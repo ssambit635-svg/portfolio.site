@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sambit Swain — Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.18);
+      --text: #e8e8f0;
+      --muted: #888899;
+      --accent: #7c6df0;
+      --accent2: #4fc4cf;
+      --accent3: #f06292;
+      --radius: 16px;
+      --font: 'Inter', sans-serif;
+      --mono: 'Fira Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Aurora Background ── */
+    .aurora {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .aurora::before, .aurora::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.18;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .aurora::before {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, #7c6df0, transparent 70%);
+      top: -200px; left: -200px;
+    }
+    .aurora::after {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, #4fc4cf, transparent 70%);
+      bottom: -150px; right: -150px;
+      animation-delay: -6s;
+    }
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(60px, 40px) scale(1.1); }
+    }
+
+    /* ── Splash Screen ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #splash.hide { opacity: 0; visibility: hidden; }
+    .splash-name {
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .splash-sub {
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: var(--muted);
+    }
+    .splash-bar {
+      width: 180px; height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .splash-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      animation: load 1.8s ease forwards;
+    }
+    @keyframes load { to { width: 100%; } }
+
+    /* ── Layout ── */
+    main { position: relative; z-index: 1; }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 80px 0; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(10,10,15,0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding-top: 80px;
+    }
+    .hero-inner { max-width: 700px; }
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--accent2);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s 2.2s ease forwards;
+    }
+    .hero-name {
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s 2.4s ease forwards;
+    }
+    .hero-name span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-tagline {
+      font-size: 1.15rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.6s 2.6s ease forwards;
+      min-height: 1.7em;
+    }
+    .cursor {
+      color: var(--accent2);
+      animation: blink 0.7s step-end infinite;
+      font-weight: 300;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+    .hero-cta {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s 2.8s ease forwards;
+    }
+    .btn {
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #6b5de0; transform: translateY(-2px); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-hover);
+    }
+    .btn-outline:hover { background: var(--surface-hover); transform: translateY(-2px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Section Titles ── */
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .section-title span { color: var(--accent); }
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 48px;
+    }
+
+    /* ── Glass Card ── */
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .glass:hover {
+      border-color: var(--border-hover);
+      background: var(--surface-hover);
+    }
+
+    /* ── About ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .about-text { padding: 28px; }
+    .about-text p { color: var(--muted); line-height: 1.8; font-size: 0.97rem; }
+    .about-text p + p { margin-top: 14px; }
+    .about-info { padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+    .info-row {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 0.9rem; color: var(--muted);
+    }
+    .info-row svg { flex-shrink: 0; color: var(--accent); }
+    .info-row a { color: var(--accent2); text-decoration: none; }
+    .info-row a:hover { text-decoration: underline; }
+
+    /* ── Skills ── */
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .skill-card { padding: 20px 24px; }
+    .skill-cat {
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      color: var(--accent2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      background: rgba(124,109,240,0.12);
+      color: #a89cf5;
+      border: 1px solid rgba(124,109,240,0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.82rem;
+      font-family: var(--mono);
+    }
+    .tag.green {
+      background: rgba(79,196,207,0.1);
+      color: #5dd6e0;
+      border-color: rgba(79,196,207,0.2);
+    }
+    .tag.pink {
+      background: rgba(240,98,146,0.1);
+      color: #f48baf;
+      border-color: rgba(240,98,146,0.2);
+    }
+
+    /* ── Projects ── */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
+    .project-card { padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+    .project-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .project-title { font-size: 1.1rem; font-weight: 600; }
+    .project-links { display: flex; gap: 10px; }
+    .project-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .project-links a:hover { color: var(--accent2); border-color: var(--accent2); }
+    .project-desc { color: var(--muted); font-size: 0.92rem; line-height: 1.7; }
+    .project-highlights { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .project-highlights li {
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding-left: 16px;
+      position: relative;
+    }
+    .project-highlights li::before {
+      content: '→';
+      position: absolute; left: 0;
+      color: var(--accent2);
+    }
+    .project-stack { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+    .stack-tag {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+    }
+
+    /* ── Education ── */
+    .edu-grid { display: flex; flex-direction: column; gap: 16px; }
+    .edu-card { padding: 24px 28px; display: flex; flex-direction: column; gap: 6px; }
+    .edu-degree { font-weight: 600; font-size: 1.05rem; }
+    .edu-inst { color: var(--accent2); font-size: 0.9rem; }
+    .edu-meta { color: var(--muted); font-size: 0.87rem; display: flex; gap: 16px; flex-wrap: wrap; }
+    .edu-meta span::before { content: '· '; }
+    .edu-meta span:first-child::before { content: ''; }
+    .courses-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .course-tag {
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(124,109,240,0.08);
+      border: 1px solid rgba(124,109,240,0.15);
+      color: #a89cf5;
+    }
+
+    /* ── Certificates ── */
+    .certs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .cert-card { padding: 20px 24px; }
+    .cert-title { font-weight: 500; font-size: 0.95rem; margin-bottom: 6px; }
+    .cert-meta { font-size: 0.82rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+    .cert-issuer { color: var(--accent2); }
+    .cert-year { font-family: var(--mono); }
+    .cert-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .cert-link:hover { text-decoration: underline; }
+
+    /* ── Contact ── */
+    .contact-inner { max-width: 560px; margin: 0 auto; text-align: center; }
+    .contact-email {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent2);
+      text-decoration: none;
+      display: block;
+      margin: 24px 0;
+    }
+    .contact-email:hover { opacity: 0.8; }
+    .social-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .social-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.2s;
+    }
+    .social-btn:hover { color: var(--text); border-color: var(--border-hover); background: var(--surface-hover); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+    footer span { color: var(--accent2); }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .about-grid { grid-template-columns: 1fr; }
+      .projects-grid { grid-template-columns: 1fr; }
+      nav { padding: 14px 16px; }
+      .nav-links { gap: 16px; }
+      section { padding: 60px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="splash-name">sambit.dev</div>
+  <div class="splash-sub">initializing portfolio...</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+<!-- Aurora -->
+<div class="aurora"></div>
+
+<!-- Nav -->
+<nav>
+  <a href="#hero" class="nav-logo">sambit_</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <!-- Hero -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <p class="hero-label">// hello world, I'm</p>
+        <h1 class="hero-name">Sambit<br/><span>Swain.</span></h1>
+        <p class="hero-tagline"><span id="typewriter"></span><span class="cursor">|</span></p>
+        <div class="hero-cta">
+          <a href="#projects" class="btn btn-primary">View Projects</a>
+          <a href="#contact" class="btn btn-outline">Let's Talk</a>
+          <a href="https://github.com/ssambit635-svg" target="_blank" class="btn btn-outline">GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="container">
+      <h2 class="section-title reveal">// <span>about</span> me</h2>
+      <p class="section-subtitle reveal">a human who writes code</p>
+      <div class="about-grid reveal">
+        <div class="glass about-text">
+          <p>
+            I'm a B.Tech CSE student who actually enjoys writing code outside of assignments too.
+            I like building real things — apps people can open in a browser, not just screenshots in a README.
+          </p>
+          <p>
+            Right now I'm focused on Python, APIs, and web development. I'm also grinding DSA on the side
+            because... well, interviews. You know how it is.
+          </p>
+          <p>
+            When I'm not coding, I'm probably overthinking a side project idea or scrolling LinkedIn
+            while telling myself I'm "networking." Open to internships, collabs, and interesting problems.
+            Let's build something.
+          </p>
+        </div>
+        <div class="glass about-info">
+          <div class="info-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Berhampur, Odisha, India
+          </div>
+          <div class="info-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <a href="mailto:ssambit635@gmail.com">ssambit635@gmail.com</a>
+          </div>
+          <div class="info-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.93 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.88 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.91a16 16 0 0 0 6 6l1.08-1.08a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 18z"/></svg>
+            +91 9437729404
+          </div>
+          <div class="info-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            <a href="https://github.com/ssambit635-svg" target="_blank">github.com/ssambit635-svg</a>
+          </div>
+          <div class="info-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            <a href="https://www.linkedin.com/in/sambit-swain-7032a8378" target="_blank">linkedin/sambit-swain</a>
+          </div>
+          <div class="info-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Open to Internships 2025–2026
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills">
+    <div class="container">
+      <h2 class="section-title reveal">// <span>skills</span></h2>
+      <p class="section-subtitle reveal">what I work with</p>
+      <div class="skills-grid reveal">
+        <div class="glass skill-card">
+          <div class="skill-cat">Languages</div>
+          <div class="skill-tags">
+            <span class="tag">Python</span>
+            <span class="tag">JavaScript</span>
+            <span class="tag">C</span>
+            <span class="tag">Java</span>
+            <span class="tag">SQL</span>
+          </div>
+        </div>
+        <div class="glass skill-card">
+          <div class="skill-cat">Web & Frameworks</div>
+          <div class="skill-tags">
+            <span class="tag green">HTML</span>
+            <span class="tag green">CSS</span>
+            <span class="tag green">React.js</span>
+            <span class="tag green">Node.js</span>
+            <span class="tag green">Streamlit</span>
+          </div>
+        </div>
+        <div class="glass skill-card">
+          <div class="skill-cat">Tools</div>
+          <div class="skill-tags">
+            <span class="tag pink">Git</span>
+            <span class="tag pink">GitHub</span>
+            <span class="tag pink">VS Code</span>
+            <span class="tag pink">Postman</span>
+            <span class="tag pink">Linux</span>
+          </div>
+        </div>
+        <div class="glass skill-card">
+          <div class="skill-cat">Databases</div>
+          <div class="skill-tags">
+            <span class="tag">MySQL</span>
+            <span class="tag">MongoDB</span>
+          </div>
+        </div>
+        <div class="glass skill-card">
+          <div class="skill-cat">Concepts</div>
+          <div class="skill-tags">
+            <span class="tag green">REST APIs</span>
+            <span class="tag green">OOP</span>
+            <span class="tag green">DSA</span>
+            <span class="tag green">SDLC</span>
+          </div>
+        </div>
+        <div class="glass skill-card">
+          <div class="skill-cat">Currently Learning</div>
+          <div class="skill-tags">
+            <span class="tag pink">AWS</span>
+            <span class="tag pink">System Design</span>
+            <span class="tag pink">Next.js</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="container">
+      <h2 class="section-title reveal">// <span>projects</span></h2>
+      <p class="section-subtitle reveal">things I built that actually work</p>
+      <div class="projects-grid reveal">
+
+        <div class="glass project-card">
+          <div class="project-header">
+            <div class="project-title">🌤 Weather Sense</div>
+            <div class="project-links">
+              <a href="https://github.com/ssambit635-svg/Weather-sense.git" target="_blank">GitHub</a>
+              <a href="https://lnkd.in/dC_9t-q4" target="_blank">Live ↗</a>
+            </div>
+          </div>
+          <p class="project-desc">
+            A full-featured weather web app built with Streamlit and Open-Meteo API. Features real-time weather,
+            7-day forecast, AQI index, lifestyle scores, and a dark/light mode with glassmorphism UI.
+          </p>
+          <ul class="project-highlights">
+            <li>Parsed live JSON data from multiple API endpoints</li>
+            <li>Built custom dark mode with CSS variables</li>
+            <li>Deployed publicly on Streamlit Cloud</li>
+          </ul>
+          <div class="project-stack">
+            <span class="stack-tag">Python</span>
+            <span class="stack-tag">Streamlit</span>
+            <span class="stack-tag">Open-Meteo API</span>
+            <span class="stack-tag">CSS</span>
+          </div>
+        </div>
+
+        <div class="glass project-card">
+          <div class="project-header">
+            <div class="project-title">🔐 Password Manager</div>
+            <div class="project-links">
+              <a href="https://github.com/ssambit635-svg/password_manager_python.git" target="_blank">GitHub</a>
+            </div>
+          </div>
+          <p class="project-desc">
+            A secure password manager built with Python and Streamlit. Allows users to generate, store,
+            and retrieve passwords safely using encryption and hashing.
+          </p>
+          <ul class="project-highlights">
+            <li>Implemented password hashing and encryption for security</li>
+            <li>Built with a focus on user privacy and data protection</li>
+          </ul>
+          <div class="project-stack">
+            <span class="stack-tag">Python</span>
+            <span class="stack-tag">Streamlit</span>
+            <span class="stack-tag">hashlib</span>
+            <span class="stack-tag">cryptography</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Education -->
+  <section id="education">
+    <div class="container">
+      <h2 class="section-title reveal">// <span>education</span></h2>
+      <p class="section-subtitle reveal">where I'm learning to be dangerous</p>
+      <div class="edu-grid reveal">
+
+        <div class="glass edu-card">
+          <div class="edu-degree">B.Tech in Computer Science & Engineering</div>
+          <div class="edu-inst">NIST University, Berhampur, Odisha</div>
+          <div class="edu-meta">
+            <span>2025 – 2029</span>
+            <span>CGPA: 7.8 / 10</span>
+          </div>
+          <div class="courses-list">
+            <span class="course-tag">DSA</span>
+            <span class="course-tag">Operating Systems</span>
+            <span class="course-tag">DBMS</span>
+            <span class="course-tag">Computer Networks</span>
+            <span class="course-tag">OOP with Java</span>
+            <span class="course-tag">Web Technologies</span>
+          </div>
+        </div>
+
+        <div class="glass edu-card">
+          <div class="edu-degree">Class XII — PCM + Computer Science</div>
+          <div class="edu-inst">Dhenkanal HSS</div>
+          <div class="edu-meta">
+            <span>BSE Board</span>
+            <span>2024</span>
+            <span>79.7%</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Certificates -->
+  <section id="certificates">
+    <div class="container">
+      <h2 class="section-title reveal">// <span>certificates</span></h2>
+      <p class="section-subtitle reveal">proof I watched the whole thing</p>
+      <div class="certs-grid reveal">
+
+        <div class="glass cert-card">
+          <div class="cert-title">C Programming Fundamentals</div>
+          <div class="cert-meta">
+            <span class="cert-issuer">Excellar Academy</span>
+            <span class="cert-year">2026</span>
+          </div>
+          <a href="https://www.linkedin.com/posts/sambit-swain-7032a8378_completed-foundation-of-programming-using-share-7408601134715719681-E70T/" target="_blank" class="cert-link">View Certificate ↗</a>
+        </div>
+
+        <div class="glass cert-card">
+          <div class="cert-title">Python Essentials 1</div>
+          <div class="cert-meta">
+            <span class="cert-issuer">Cisco Networking Academy</span>
+            <span class="cert-year">2026</span>
+          </div>
+          <a href="https://lnkd.in/dCagrYtt" target="_blank" class="cert-link">View Certificate ↗</a>
+        </div>
+
+        <div class="glass cert-card">
+          <div class="cert-title">C++ Essentials 1</div>
+          <div class="cert-meta">
+            <span class="cert-issuer">Cisco Networking Academy</span>
+            <span class="cert-year">2026</span>
+          </div>
+          <a href="https://lnkd.in/d2PEBpVx" target="_blank" class="cert-link">View Certificate ↗</a>
+        </div>
+
+        <div class="glass cert-card">
+          <div class="cert-title">AWS Cloud Practitioner Essentials</div>
+          <div class="cert-meta">
+            <span class="cert-issuer">AWS Skill Builder</span>
+            <span class="cert-year">2026</span>
+          </div>
+        </div>
+
+        <div class="glass cert-card">
+          <div class="cert-title">Cloud Computing Basics</div>
+          <div class="cert-meta">
+            <span class="cert-issuer">Simplilearn</span>
+            <span class="cert-year">2026</span>
+          </div>
+          <a href="https://simpli.app.link/pJGse92uI3b" target="_blank" class="cert-link">View Certificate ↗</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="container">
+      <div class="contact-inner reveal">
+        <h2 class="section-title">// <span>contact</span></h2>
+        <p class="section-subtitle">open to internships, collabs & interesting problems</p>
+        <a href="mailto:ssambit635@gmail.com" class="contact-email">ssambit635@gmail.com</a>
+        <div class="social-links">
+          <a href="https://github.com/ssambit635-svg" target="_blank" class="social-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/sambit-swain-7032a8378" target="_blank" class="social-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn
+          </a>
+          <a href="mailto:ssambit635@gmail.com" class="social-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Email
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>built by <span>sambit swain</span> · deployed with GitHub Pages · 2025</p>
+</footer>
+
+<script>
+  // Typewriter
+  const phrases = [
+    "CS Student who actually enjoys coding",
+    "Building things that (sometimes) work",
+    "Python · APIs · Web Dev",
+    "Open to internships & collabs",
+    "git commit -m 'another side project'"
+  ];
+  let pi = 0, ci = 0, deleting = false;
+  const tw = document.getElementById('typewriter');
+  function type() {
+    const phrase = phrases[pi];
+    if (!deleting) {
+      tw.textContent = phrase.slice(0, ++ci);
+      if (ci === phrase.length) { deleting = true; setTimeout(type, 1800); return; }
+    } else {
+      tw.textContent = phrase.slice(0, --ci);
+      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(type, 400); return; }
+    }
+    setTimeout(type, deleting ? 40 : 80);
+  }
+  setTimeout(type, 2800);
+
+  // Splash screen
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+  }, 2000);
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Active nav highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 120) current = s.getAttribute('id');
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--text)' : '';
+    });
+  });
+</script>
+</body>
+</html>
