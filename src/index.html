@@ -47,9 +47,31 @@
     .hero-label { font-family: var(--mono); font-size: 0.82rem; color: var(--accent2); margin-bottom: 24px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0; animation: fadeUp 0.6s 2.2s ease forwards; }
     .hero-name { font-size: clamp(3rem,8vw,6.5rem); font-weight: 900; line-height: 1.0; letter-spacing: -0.04em; margin-bottom: 24px; opacity: 0; animation: fadeUp 0.6s 2.4s ease forwards; }
     .hero-name .grad { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero-tagline { font-size: clamp(1rem,2.5vw,1.25rem); color: var(--muted); margin-bottom: 16px; font-weight: 400; max-width: 620px; opacity: 0; animation: fadeUp 0.6s 2.5s ease forwards; min-height: 2em; }
-    .cursor { color: var(--accent2); animation: blink 0.7s step-end infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .hero-tagline { margin-bottom: 16px; opacity: 0; animation: fadeUp 0.6s 2.5s ease forwards; min-height: 3rem; perspective: 1000px; display: flex; align-items: center; }
+    .flip-word { display: flex; gap: 0.08em; flex-wrap: wrap; align-items: center; }
+    .flip-letter {
+      display: inline-block;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: 500;
+      color: var(--muted);
+      transform-style: preserve-3d;
+      opacity: 0;
+      transform: rotateX(90deg) translateY(20px);
+      filter: blur(8px);
+      transition: transform 0.5s cubic-bezier(0.2,0.65,0.3,0.9), opacity 0.5s ease, filter 0.5s ease;
+    }
+    .flip-letter.space { width: 0.35em; }
+    .flip-letter.visible {
+      opacity: 1;
+      transform: rotateX(0deg) translateY(0px);
+      filter: blur(0px);
+    }
+    .flip-letter.exit {
+      opacity: 0;
+      transform: rotateX(-90deg) translateY(-20px);
+      filter: blur(8px);
+      transition: transform 0.3s ease-in, opacity 0.3s ease-in, filter 0.3s ease-in;
+    }
     .hero-sub { font-size: 0.92rem; color: var(--muted); margin-bottom: 36px; opacity: 0; animation: fadeUp 0.6s 2.6s ease forwards; }
     .hero-sub span { color: var(--accent2); }
     .hero-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; opacity: 0; animation: fadeUp 0.6s 2.65s ease forwards; }
@@ -188,7 +210,7 @@
     <div class="container">
       <p class="hero-label">// Berhampur, Odisha · CSE @ NIST University</p>
       <h1 class="hero-name">Sambit<br/><span class="grad">Swain.</span></h1>
-      <p class="hero-tagline"><span id="typewriter"></span><span class="cursor">|</span></p>
+      <div class="hero-tagline"><div class="flip-word" id="flipWord"></div></div>
       <p class="hero-sub">B.Tech CSE · Batch 2025–2029 · Focused on <span>Cloud & DevOps</span></p>
       <div class="hero-tags">
         <span class="hero-tag">Python</span>
@@ -289,23 +311,6 @@
           </div>
         </div>
       </div>
-      <div class="work-item reveal">
-          <div class="work-num">04</div>
-          <div class="work-content">
-            <div class="work-title">🏛️ CivicReport — AI Civic Issue Platform</div>
-            <div class="work-desc">AI-powered platform where citizens snap a photo of a civic issue — Gemini 1.5 Flash auto-detects it, assigns severity, and plots it on a live map. Built for Berhampur, Odisha. Features gamification, predictive city insights, Chart.js dashboard, and a City Health Score.</div>
-            <div class="work-stack">
-              <span class="work-tag">Gemini AI</span>
-              <span class="work-tag">Leaflet.js</span>
-              <span class="work-tag">Chart.js</span>
-              <span class="work-tag">HTML/CSS/JS</span>
-            </div>
-          </div>
-          <div class="work-links">
-            <a href="https://github.com/ssambit635-svg/Civic-report" target="_blank" class="work-link">GitHub</a>
-            <a href="https://ssambit635-svg.github.io/Civic-report/" target="_blank" class="work-link">Live ↗</a>
-          </div>
-        </div>
     </div>
   </section>
 
@@ -317,7 +322,7 @@
       <h2 class="section-title reveal">A focused skill stack <span>that ships.</span></h2>
       <p class="section-sub reveal">What I actually work with — no fluff.</p>
       <div class="stats-row reveal">
-        <div class="glass stat-card"><div class="stat-num">4+</div><div class="stat-label">Projects Shipped</div></div>
+        <div class="glass stat-card"><div class="stat-num">3+</div><div class="stat-label">Projects Shipped</div></div>
         <div class="glass stat-card"><div class="stat-num">5+</div><div class="stat-label">Certifications</div></div>
         <div class="glass stat-card"><div class="stat-num">7.8</div><div class="stat-label">CGPA / 10</div></div>
         <div class="glass stat-card"><div class="stat-num">∞</div><div class="stat-label">Room to Grow</div></div>
@@ -476,27 +481,48 @@
 </footer>
 
 <script>
-  const phrases = [
+  // 3D Flip Letter Effect
+  const flipPhrases = [
     "I build things that live on the internet and don't break (sometimes).",
     "CS Student who actually enjoys coding.",
     "Python · Cloud · DevOps · Web Dev.",
     "Open to internships & interesting problems.",
     "git push → pipeline runs → site updates. magic.",
   ];
-  let pi = 0, ci = 0, deleting = false;
-  const tw = document.getElementById('typewriter');
-  function type() {
-    const phrase = phrases[pi];
-    if (!deleting) {
-      tw.textContent = phrase.slice(0, ++ci);
-      if (ci === phrase.length) { deleting = true; setTimeout(type, 2000); return; }
-    } else {
-      tw.textContent = phrase.slice(0, --ci);
-      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(type, 400); return; }
-    }
-    setTimeout(type, deleting ? 35 : 75);
+  let flipIndex = 0;
+  const flipWord = document.getElementById('flipWord');
+
+  function buildWord(text) {
+    flipWord.innerHTML = '';
+    [...text].forEach((char, i) => {
+      const span = document.createElement('span');
+      span.className = 'flip-letter' + (char === ' ' ? ' space' : '');
+      span.textContent = char === ' ' ? '\u00A0' : char;
+      flipWord.appendChild(span);
+      setTimeout(() => span.classList.add('visible'), i * 55);
+    });
   }
-  setTimeout(type, 2800);
+
+  function exitWord(cb) {
+    const letters = flipWord.querySelectorAll('.flip-letter');
+    [...letters].reverse().forEach((span, i) => {
+      setTimeout(() => span.classList.add('exit'), i * 30);
+    });
+    setTimeout(cb, letters.length * 30 + 350);
+  }
+
+  function runFlip() {
+    buildWord(flipPhrases[flipIndex]);
+    const displayTime = flipPhrases[flipIndex].length * 55 + 2200;
+    setTimeout(() => {
+      exitWord(() => {
+        flipIndex = (flipIndex + 1) % flipPhrases.length;
+        runFlip();
+      });
+    }, displayTime);
+  }
+
+  setTimeout(runFlip, 2800);
 
   setTimeout(() => document.getElementById('splash').classList.add('hide'), 2000);
 
