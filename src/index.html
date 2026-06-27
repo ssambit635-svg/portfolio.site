@@ -157,15 +157,59 @@
     .process-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
     .process-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
 
-    .contact-inner { max-width: 600px; }
+    .contact-inner { max-width: 660px; }
     .contact-heading { font-size: clamp(2rem,4vw,3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 16px; }
     .contact-sub { color: var(--muted); font-size: 1rem; margin-bottom: 40px; line-height: 1.7; }
-    .contact-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .contact-btn { display: flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
-    .contact-btn-primary { background: var(--accent); color: #fff; }
-    .contact-btn-primary:hover { background: #6b5de0; transform: translateY(-2px); }
-    .contact-btn-outline { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
-    .contact-btn-outline:hover { color: var(--text); border-color: var(--border-hover); transform: translateY(-2px); }
+
+    /* Bento Contact Cards */
+    .bento-contact { display: flex; gap: 10px; height: 80px; width: 100%; }
+    .bento-card {
+      position: relative; border-radius: 14px; cursor: pointer;
+      overflow: hidden; transition: width 0.6s cubic-bezier(0.25,1,0.5,1), border-color 0.3s;
+      border: 1px solid var(--border); background: var(--surface);
+      width: 20%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none;
+    }
+    .bento-card.active {
+      width: 55%;
+      border-color: var(--border-hover);
+    }
+    .bento-card-bg {
+      position: absolute; inset: 0; opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .bento-card.active .bento-card-bg { opacity: 1; }
+    .bento-card-github .bento-card-bg { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+    .bento-card-linkedin .bento-card-bg { background: linear-gradient(135deg, #0a1628, #0d2137); }
+    .bento-card-email .bento-card-bg { background: linear-gradient(135deg, #1a0a2e, #2d1b4e); }
+    .bento-card-phone .bento-card-bg { background: linear-gradient(135deg, #0a1a0a, #0d2e1a); }
+
+    /* Inactive state - icon centered */
+    .bento-inactive {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      position: relative; z-index: 2;
+    }
+    .bento-card.active .bento-inactive { opacity: 0; transform: scale(0.8); pointer-events: none; position: absolute; }
+    .bento-inactive svg { color: var(--muted); transition: color 0.2s; }
+    .bento-inactive span { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--mono); }
+
+    /* Active state - full content */
+    .bento-active {
+      position: absolute; inset: 0; z-index: 3;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.35s ease 0.15s, transform 0.35s ease 0.15s;
+      pointer-events: none;
+    }
+    .bento-card.active .bento-active { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .bento-active-left { display: flex; flex-direction: column; gap: 3px; }
+    .bento-active-label { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--mono); }
+    .bento-active-value { font-size: 0.95rem; font-weight: 600; color: #fff; }
+    .bento-active-icon { color: rgba(255,255,255,0.7); }
+    .bento-active-icon:hover { color: #fff; }
 
     footer { text-align: center; padding: 36px; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); position: relative; z-index: 1; }
     footer span { color: var(--accent2); }
@@ -477,10 +521,80 @@
         <p class="section-eyebrow">Contact</p>
         <h2 class="contact-heading">Let's make something <span style="color:var(--accent)">worth shipping.</span></h2>
         <p class="contact-sub">Open to internships, collabs, interesting problems, and conversations that don't start with "quick question." Hit me up.</p>
-        <div class="contact-row">
-          <a href="mailto:ssambit635@gmail.com" class="contact-btn contact-btn-primary">Email Sambit</a>
-          <a href="https://github.com/ssambit635-svg" target="_blank" class="contact-btn contact-btn-outline">GitHub ↗</a>
-          <a href="https://www.linkedin.com/in/sambit-swain-7032a8378" target="_blank" class="contact-btn contact-btn-outline">LinkedIn ↗</a>
+        <div class="bento-contact" id="bentoContact">
+
+          <!-- GitHub -->
+          <a href="https://github.com/ssambit635-svg" target="_blank" class="bento-card bento-card-github active" data-index="0">
+            <div class="bento-card-bg"></div>
+            <div class="bento-inactive">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              <span>GitHub</span>
+            </div>
+            <div class="bento-active">
+              <div class="bento-active-left">
+                <span class="bento-active-label">Find me on</span>
+                <span class="bento-active-value">github.com/ssambit635-svg</span>
+              </div>
+              <div class="bento-active-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- LinkedIn -->
+          <a href="https://www.linkedin.com/in/sambit-swain-7032a8378" target="_blank" class="bento-card bento-card-linkedin" data-index="1">
+            <div class="bento-card-bg"></div>
+            <div class="bento-inactive">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              <span>LinkedIn</span>
+            </div>
+            <div class="bento-active">
+              <div class="bento-active-left">
+                <span class="bento-active-label">Connect on</span>
+                <span class="bento-active-value">linkedin/sambit-swain</span>
+              </div>
+              <div class="bento-active-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Email -->
+          <a href="mailto:ssambit635@gmail.com" class="bento-card bento-card-email" data-index="2">
+            <div class="bento-card-bg"></div>
+            <div class="bento-inactive">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <span>Email</span>
+            </div>
+            <div class="bento-active">
+              <div class="bento-active-left">
+                <span class="bento-active-label">Mail me at</span>
+                <span class="bento-active-value">ssambit635@gmail.com</span>
+              </div>
+              <div class="bento-active-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Phone -->
+          <a href="tel:+919437729404" class="bento-card bento-card-phone" data-index="3">
+            <div class="bento-card-bg"></div>
+            <div class="bento-inactive">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.93 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.88 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.91a16 16 0 0 0 6 6l1.08-1.08a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 18z"/></svg>
+              <span>Phone</span>
+            </div>
+            <div class="bento-active">
+              <div class="bento-active-left">
+                <span class="bento-active-label">Call me at</span>
+                <span class="bento-active-value">+91 9437729404</span>
+              </div>
+              <div class="bento-active-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.93 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.88 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.91a16 16 0 0 0 6 6l1.08-1.08a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 18z"/></svg>
+              </div>
+            </div>
+          </a>
+
         </div>
       </div>
     </div>
@@ -536,7 +650,20 @@
 
   setTimeout(runFlip, 2800);
 
-  setTimeout(() => document.getElementById('splash').classList.add('hide'), 2000);
+  // Bento Contact Cards
+  const bentoCards = document.querySelectorAll('.bento-card');
+  bentoCards.forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      bentoCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+    });
+  });
+  document.getElementById('bentoContact').addEventListener('mouseleave', () => {
+    bentoCards.forEach(c => c.classList.remove('active'));
+    bentoCards[0].classList.add('active');
+  });
+
+
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
