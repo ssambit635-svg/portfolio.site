@@ -650,9 +650,11 @@
 
   setTimeout(runFlip, 2800);
 
+  // Splash hide
+  setTimeout(() => document.getElementById('splash').classList.add('hide'), 2000);
+
   // Bento Contact Cards
-  const bentoCards = document.querySelectorAll('.bento-card');
-  bentoCards.forEach(card => {
+  const bentoCards = document.querySelectorAll('.bento-card');  bentoCards.forEach(card => {
     card.addEventListener('mouseenter', () => {
       bentoCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
