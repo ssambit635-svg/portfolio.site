@@ -3,7 +3,7 @@
 > Personal portfolio website with CI/CD pipeline automation deployed via GitHub Actions.
 
 ## 🌐 Live Site
-[sambit-swain.github.io](https://ssambit635-svg.github.io)
+https://ssambit635-svg.github.io/portfolio.site/
 
 ## 🗂 Project Structure
 ```
