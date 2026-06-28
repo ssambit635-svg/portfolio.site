@@ -8,13 +8,13 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #080810; --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
+      --bg: #000000; --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
       --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.16);
       --text: #eeeef5; --muted: #77778a; --accent: #7c6df0; --accent2: #4fc4cf; --accent3: #f06292;
       --radius: 14px; --font: 'Inter', sans-serif; --mono: 'Fira Code', monospace;
     }
     html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.7; overflow-x: hidden; }
+    body { background: #000000; color: var(--text); font-family: var(--font); line-height: 1.7; overflow-x: hidden; }
 
     .aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
     .aurora::before, .aurora::after { content: ''; position: absolute; border-radius: 50%; filter: blur(130px); opacity: 0.15; animation: drift 14s ease-in-out infinite alternate; }
@@ -22,15 +22,26 @@
     .aurora::after { width: 650px; height: 650px; background: radial-gradient(circle, #4fc4cf, transparent 70%); bottom: -200px; right: -200px; animation-delay: -7s; }
     @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(70px,50px) scale(1.12); } }
 
-    #splash { position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.6s ease, visibility 0.6s ease; }
+    #splash { position: fixed; inset: 0; z-index: 1000; background: #000000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.6s ease, visibility 0.6s ease; }
     #splash.hide { opacity: 0; visibility: hidden; }
-    .splash-name { font-size: clamp(2rem,6vw,4rem); font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .splash-sub { font-family: var(--mono); font-size: 0.9rem; color: var(--muted); }
-    .splash-bar { width: 160px; height: 2px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
-    .splash-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; animation: load 1.8s ease forwards; }
+    .splash-card { --bg-color: #000; background-color: var(--bg-color); padding: 1rem 2rem; border-radius: 1.25rem; }
+    .splash-loader { color: rgb(124,124,124); font-family: "Poppins", sans-serif; font-weight: 500; font-size: 25px; box-sizing: content-box; height: 40px; padding: 10px 10px; display: flex; border-radius: 8px; }
+    .splash-words { overflow: hidden; position: relative; }
+    .splash-words::after { content: ""; position: absolute; inset: 0; background: linear-gradient(var(--bg-color) 10%, transparent 30%, transparent 70%, var(--bg-color) 90%); z-index: 20; }
+    .splash-word { display: block; height: 100%; padding-left: 6px; color: #956afa; animation: spin_4991 4s infinite; }
+    @keyframes spin_4991 {
+      10%  { transform: translateY(-102%); }
+      25%  { transform: translateY(-100%); }
+      35%  { transform: translateY(-202%); }
+      50%  { transform: translateY(-200%); }
+      60%  { transform: translateY(-302%); }
+      75%  { transform: translateY(-300%); }
+      85%  { transform: translateY(-402%); }
+      100% { transform: translateY(-400%); }
+    }
     @keyframes load { to { width: 100%; } }
 
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 18px 48px; display: flex; align-items: center; justify-content: space-between; background: rgba(8,8,16,0.75); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 18px 48px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.75); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
     .nav-logo { font-family: var(--mono); font-size: 1rem; font-weight: 500; color: var(--text); text-decoration: none; }
     .nav-logo span { color: var(--accent); }
     .nav-links { display: flex; gap: 32px; list-style: none; }
@@ -47,6 +58,44 @@
     .hero-label { font-family: var(--mono); font-size: 0.82rem; color: var(--accent2); margin-bottom: 24px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0; animation: fadeUp 0.6s 2.2s ease forwards; }
     .hero-name { font-size: clamp(3rem,8vw,6.5rem); font-weight: 900; line-height: 1.0; letter-spacing: -0.04em; margin-bottom: 24px; opacity: 0; animation: fadeUp 0.6s 2.4s ease forwards; }
     .hero-name .grad { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Flickering Grid */
+    #flickerCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+    }
+    .code-rain-text {
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      display: inline-block;
+      background: linear-gradient(
+        270deg,
+        #ff6ef7,
+        #7c6df0,
+        #4fc4cf,
+        #a78bfa,
+        #38bdf8,
+        #f472b6,
+        #7c6df0
+      );
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: nebulaFlow 6s ease infinite;
+    }
+    @keyframes nebulaFlow {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
     .hero-tagline { margin-bottom: 16px; opacity: 0; animation: fadeUp 0.6s 2.5s ease forwards; min-height: 3rem; perspective: 1000px; display: flex; align-items: center; }
     .flip-word { display: flex; gap: 0.08em; flex-wrap: wrap; align-items: center; }
     .flip-letter {
@@ -77,11 +126,108 @@
     .hero-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; opacity: 0; animation: fadeUp 0.6s 2.65s ease forwards; }
     .hero-tag { font-size: 0.8rem; padding: 5px 14px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); }
     .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.6s 2.8s ease forwards; }
-    .btn { padding: 13px 28px; border-radius: 10px; font-size: 0.92rem; font-weight: 600; text-decoration: none; transition: all 0.2s; cursor: pointer; border: none; display: inline-block; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #6b5de0; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,109,240,0.3); }
-    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border-hover); }
-    .btn-outline:hover { background: var(--surface-hover); transform: translateY(-2px); }
+    /* Uiverse Button */
+    .uiverse-btn {
+      position: relative;
+      display: inline-flex;
+      height: 3.5rem;
+      align-items: center;
+      border-radius: 9999px;
+      padding-left: 2rem;
+      padding-right: 2rem;
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 640;
+      color: #fafaf6;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      outline: none;
+      background: transparent;
+    }
+    .uiverse-btn .button-bg {
+      border-color: rgba(124,109,240);
+      background-color: rgba(124,109,240);
+    }
+    .button-inner, .button-inner-hover, .button-inner-static { pointer-events: none; display: block; }
+    .button-inner { position: relative; z-index: 1; }
+    .button-inner-hover { position: absolute; top: 0; left: 0; opacity: 0; transform: translateY(70%); }
+    .button-bg {
+      overflow: hidden; border-radius: 2rem;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: scale(1);
+      transition: transform 1.8s cubic-bezier(0.19,1,0.22,1);
+    }
+    .button-bg, .button-bg-layer, .button-bg-layers { display: block; }
+    .button-bg-layers {
+      position: absolute; left: 50%;
+      transform: translate(-50%);
+      top: -60%; aspect-ratio: 1/1;
+      width: max(200%, 10rem);
+    }
+    .button-bg-layer {
+      border-radius: 9999px;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: scale(0);
+    }
+    .button-bg-layer.-purple  { background-color: rgba(163,116,255); }
+    .button-bg-layer.-turquoise { background-color: rgba(79,196,207); }
+    .button-bg-layer.-yellow  { background-color: rgba(124,109,240); }
+    .uiverse-btn:hover .button-inner-static {
+      opacity: 0; transform: translateY(-70%);
+      transition: transform 1.4s cubic-bezier(0.19,1,0.22,1), opacity 0.3s linear;
+    }
+    .uiverse-btn:hover .button-inner-hover {
+      opacity: 1; transform: translateY(0);
+      transition: transform 1.4s cubic-bezier(0.19,1,0.22,1), opacity 1.4s cubic-bezier(0.19,1,0.22,1);
+    }
+    .uiverse-btn:hover .button-bg-layer {
+      transition: transform 1.3s cubic-bezier(0.19,1,0.22,1), opacity 0.3s linear;
+    }
+    .uiverse-btn:hover .button-bg-layer-1 { transform: scale(1); }
+    .uiverse-btn:hover .button-bg-layer-2 { transition-delay: 0.1s; transform: scale(1); }
+    .uiverse-btn:hover .button-bg-layer-3 { transition-delay: 0.2s; transform: scale(1); }
+    /* Stroke Fill Buttons */
+    .stroke-btn {
+      --animation-color: #37FF8B;
+      --text-stroke-color: rgba(255,255,255,0.6);
+      letter-spacing: 3px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-family: var(--font);
+      position: relative;
+      text-transform: uppercase;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--text-stroke-color);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 13px 0;
+      display: inline-block;
+      font-weight: 600;
+    }
+    .stroke-btn .hover-text {
+      position: absolute;
+      box-sizing: border-box;
+      content: attr(data-text);
+      color: var(--animation-color);
+      width: 0%;
+      inset: 0;
+      border-right: 3px solid var(--animation-color);
+      overflow: hidden;
+      transition: 0.5s;
+      -webkit-text-stroke: 1px var(--animation-color);
+      white-space: nowrap;
+    }
+    .stroke-btn:hover .hover-text {
+      width: 100%;
+      filter: drop-shadow(0 0 12px var(--animation-color));
+    }
+    .stroke-btn.linkedin { --animation-color: #4fc4cf; }
+    .stroke-btn.github-btn { --animation-color: #a89cf5; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
 
     .section-eyebrow { font-family: var(--mono); font-size: 0.78rem; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
@@ -122,6 +268,27 @@
 
     .cap-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
     .cap-card { padding: 28px 32px; }
+
+    /* Marquee Tech Stack */
+    .marquee-section { width: 100%; overflow: hidden; padding: 8px 0; mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); }
+    .marquee-track { display: flex; gap: 16px; width: max-content; }
+    .marquee-track.left  { animation: marqueeLeft  30s linear infinite; }
+    .marquee-track.right { animation: marqueeRight 30s linear infinite; }
+    .marquee-track:hover { animation-play-state: paused; }
+    @keyframes marqueeLeft  { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes marqueeRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+    .tech-card {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; padding: 18px 20px; min-width: 100px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      transition: border-color 0.3s, background 0.3s, transform 0.3s;
+      cursor: default;
+    }
+    .tech-card:hover { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.07); transform: translateY(-4px); }
+    .tech-card img { width: 36px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.85; }
+    .tech-card span { font-size: 0.72rem; color: var(--muted); font-family: var(--mono); white-space: nowrap; }
     .cap-num { font-family: var(--mono); font-size: 0.78rem; color: var(--accent); margin-bottom: 16px; }
     .cap-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; }
     .cap-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
@@ -230,12 +397,22 @@
 <body>
 
 <div id="splash">
-  <div class="splash-name">sambit.dev</div>
-  <div class="splash-sub">booting up...</div>
-  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+  <div class="splash-card">
+    <div class="splash-loader">
+      Building
+      <div class="splash-words">
+        <span class="splash-word">things.</span>
+        <span class="splash-word">projects.</span>
+        <span class="splash-word">pipelines.</span>
+        <span class="splash-word">websites.</span>
+        <span class="splash-word">things.</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="aurora"></div>
+<canvas id="flickerCanvas"></canvas>
 
 <nav>
   <a href="#hero" class="nav-logo">sambit<span>_</span></a>
@@ -253,7 +430,10 @@
   <section id="hero">
     <div class="container">
       <p class="hero-label">// Berhampur, Odisha · CSE @ NIST University</p>
-      <h1 class="hero-name">Sambit<br/><span class="grad">Swain.</span></h1>
+      <h1 class="hero-name">
+        <span class="code-rain-text">SAMBIT</span><br/>
+        <span class="grad">Swain.</span>
+      </h1>
       <div class="hero-tagline"><div class="flip-word" id="flipWord"></div></div>
       <p class="hero-sub">B.Tech CSE · Batch 2025–2029 · Focused on <span>Cloud & DevOps</span></p>
       <div class="hero-tags">
@@ -265,9 +445,27 @@
         <span class="hero-tag">DSA</span>
       </div>
       <div class="hero-cta">
-        <a href="#work" class="btn btn-primary">View Projects</a>
-        <a href="#contact" class="btn btn-outline">Let's Talk</a>
-        <a href="https://github.com/ssambit635-svg" target="_blank" class="btn btn-outline">GitHub ↗</a>
+        <a href="#work" class="uiverse-btn">
+          <span class="button-bg">
+            <span class="button-bg-layers">
+              <span class="button-bg-layer button-bg-layer-1 -purple"></span>
+              <span class="button-bg-layer button-bg-layer-2 -turquoise"></span>
+              <span class="button-bg-layer button-bg-layer-3 -yellow"></span>
+            </span>
+          </span>
+          <span class="button-inner">
+            <span class="button-inner-static">View Projects</span>
+            <span class="button-inner-hover" aria-hidden="true">View Projects</span>
+          </span>
+        </a>
+        <a href="#contact" class="stroke-btn linkedin">
+          Let's Talk
+          <span class="hover-text" aria-hidden="true">Let's Talk</span>
+        </a>
+        <a href="https://github.com/ssambit635-svg" target="_blank" class="stroke-btn github-btn">
+          GitHub
+          <span class="hover-text" aria-hidden="true">GitHub</span>
+        </a>
       </div>
     </div>
   </section>
@@ -383,31 +581,81 @@
         <div class="glass stat-card"><div class="stat-num">7.8</div><div class="stat-label">CGPA / 10</div></div>
         <div class="glass stat-card"><div class="stat-num">∞</div><div class="stat-label">Room to Grow</div></div>
       </div>
-      <div class="cap-grid reveal">
-        <div class="glass cap-card">
-          <div class="cap-num">01</div>
-          <div class="cap-title">Languages</div>
-          <div class="cap-desc">Writing code that actually runs. Comfortable across multiple paradigms — scripting, OOP, web.</div>
-          <div class="cap-tags"><span class="cap-tag">Python</span><span class="cap-tag">JavaScript</span><span class="cap-tag">C</span><span class="cap-tag">Java</span><span class="cap-tag">SQL</span></div>
+
+      <div class="reveal">
+
+        <!-- Row 1 — Left to Right -->
+        <div class="marquee-section" style="margin-bottom:16px">
+          <div class="marquee-track left">
+            <!-- Original -->
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/python/ffffff" alt="Python"/><span>Python</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/javascript/ffffff" alt="JavaScript"/><span>JavaScript</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/typescript/ffffff" alt="TypeScript"/><span>TypeScript</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/react/ffffff" alt="React"/><span>React.js</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/html5/ffffff" alt="HTML5"/><span>HTML5</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg" alt="CSS3"/><span>CSS3</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/nodedotjs/ffffff" alt="Node.js"/><span>Node.js</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt="Java"/><span>Java</span></div>
+            <!-- Duplicate for infinite scroll -->
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/python/ffffff" alt="Python"/><span>Python</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/javascript/ffffff" alt="JavaScript"/><span>JavaScript</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/typescript/ffffff" alt="TypeScript"/><span>TypeScript</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/react/ffffff" alt="React"/><span>React.js</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/html5/ffffff" alt="HTML5"/><span>HTML5</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg" alt="CSS3"/><span>CSS3</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/nodedotjs/ffffff" alt="Node.js"/><span>Node.js</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt="Java"/><span>Java</span></div>
+          </div>
         </div>
-        <div class="glass cap-card">
-          <div class="cap-num">02</div>
-          <div class="cap-title">Web & Frameworks</div>
-          <div class="cap-desc">Building interfaces and backends that people can actually use in a browser — not just local.</div>
-          <div class="cap-tags"><span class="cap-tag teal">HTML</span><span class="cap-tag teal">CSS</span><span class="cap-tag teal">React.js</span><span class="cap-tag teal">Node.js</span><span class="cap-tag teal">Streamlit</span></div>
+
+        <!-- Row 2 — Right to Left -->
+        <div class="marquee-section" style="margin-bottom:16px">
+          <div class="marquee-track right">
+            <!-- Original -->
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/docker/ffffff" alt="Docker"/><span>Docker</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub"/><span>GitHub</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/git/ffffff" alt="Git"/><span>Git</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="AWS"/><span>AWS</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/nginx/ffffff" alt="Nginx"/><span>Nginx</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/linux/ffffff" alt="Linux"/><span>Linux</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/githubactions/ffffff" alt="CI/CD"/><span>CI/CD</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" alt="VS Code"/><span>VS Code</span></div>
+            <!-- Duplicate -->
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/docker/ffffff" alt="Docker"/><span>Docker</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub"/><span>GitHub</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/git/ffffff" alt="Git"/><span>Git</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="AWS"/><span>AWS</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/nginx/ffffff" alt="Nginx"/><span>Nginx</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/linux/ffffff" alt="Linux"/><span>Linux</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/githubactions/ffffff" alt="CI/CD"/><span>CI/CD</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" alt="VS Code"/><span>VS Code</span></div>
+          </div>
         </div>
-        <div class="glass cap-card">
-          <div class="cap-num">03</div>
-          <div class="cap-title">Cloud & DevOps</div>
-          <div class="cap-desc">CI/CD pipelines, containers, and cloud basics — the stuff that makes code actually live on the internet.</div>
-          <div class="cap-tags"><span class="cap-tag pink">AWS</span><span class="cap-tag pink">Docker</span><span class="cap-tag pink">GitHub Actions</span><span class="cap-tag pink">Nginx</span><span class="cap-tag pink">Linux</span></div>
+
+        <!-- Row 3 — Left to Right -->
+        <div class="marquee-section">
+          <div class="marquee-track left">
+            <!-- Original -->
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/mysql/ffffff" alt="MySQL"/><span>MySQL</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/mongodb/ffffff" alt="MongoDB"/><span>MongoDB</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/postman/ffffff" alt="Postman"/><span>Postman</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/streamlit/ffffff" alt="Streamlit"/><span>Streamlit</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/nextdotjs/ffffff" alt="Next.js"/><span>Next.js</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linkedin/linkedin-original.svg" alt="LinkedIn"/><span>LinkedIn</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/googlegemini/ffffff" alt="Gemini AI"/><span>Gemini AI</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/sqlite/ffffff" alt="SQL"/><span>SQL</span></div>
+            <!-- Duplicate -->
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/mysql/ffffff" alt="MySQL"/><span>MySQL</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/mongodb/ffffff" alt="MongoDB"/><span>MongoDB</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/postman/ffffff" alt="Postman"/><span>Postman</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/streamlit/ffffff" alt="Streamlit"/><span>Streamlit</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/nextdotjs/ffffff" alt="Next.js"/><span>Next.js</span></div>
+            <div class="tech-card"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linkedin/linkedin-original.svg" alt="LinkedIn"/><span>LinkedIn</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/googlegemini/ffffff" alt="Gemini AI"/><span>Gemini AI</span></div>
+            <div class="tech-card"><img src="https://cdn.simpleicons.org/sqlite/ffffff" alt="SQL"/><span>SQL</span></div>
+          </div>
         </div>
-        <div class="glass cap-card">
-          <div class="cap-num">04</div>
-          <div class="cap-title">Currently Learning</div>
-          <div class="cap-desc">What I'm grinding right now — because standing still isn't really an option in CSE.</div>
-          <div class="cap-tags"><span class="cap-tag">System Design</span><span class="cap-tag">Next.js</span><span class="cap-tag">DSA</span><span class="cap-tag">AWS Deep Dive</span></div>
-        </div>
+
       </div>
     </div>
   </section>
@@ -650,8 +898,52 @@
 
   setTimeout(runFlip, 2800);
 
-  // Splash hide
-  setTimeout(() => document.getElementById('splash').classList.add('hide'), 2000);
+
+
+  // Flickering Grid
+  (function() {
+    const canvas = document.getElementById('flickerCanvas');
+    const ctx = canvas.getContext('2d');
+    const squareSize = 4;
+    const gap = 6;
+    const step = squareSize + gap;
+    const color = '107, 114, 128';
+    const maxOpacity = 0.5;
+    const flickerChance = 0.1;
+    let cols, rows, grid;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols = Math.ceil(canvas.width / step);
+      rows = Math.ceil(canvas.height / step);
+      grid = Array.from({ length: cols * rows }, () => Math.random() * maxOpacity);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      grid.forEach((opacity, i) => {
+        if (Math.random() < flickerChance) grid[i] = Math.random() * maxOpacity;
+        const x = (i % cols) * step;
+        const y = Math.floor(i / cols) * step;
+        ctx.fillStyle = `rgba(${color}, ${grid[i]})`;
+        ctx.fillRect(x, y, squareSize, squareSize);
+      });
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    draw();
+    window.addEventListener('resize', resize);
+
+    // Fade out on scroll
+    window.addEventListener('scroll', () => {
+      const fade = Math.max(0, 1 - window.scrollY / window.innerHeight);
+      canvas.style.opacity = fade;
+    });
+  })();
+
+  setTimeout(() => document.getElementById('splash').classList.add('hide'), 4000);
 
   // Bento Contact Cards
   const bentoCards = document.querySelectorAll('.bento-card');  bentoCards.forEach(card => {
