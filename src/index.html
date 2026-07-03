@@ -95,8 +95,11 @@
     .section-subtitle { font-size: 1.1rem; color: var(--muted); max-width: 600px; }
 
     /* ── CARDS ── */
-    .card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 32px; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
-    .card:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.12); transform: translateY(-4px); }
+   .card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 32px; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden; }
+
+  .card::before { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(149,106,250,0.15), transparent 70%); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); left: var(--x, -999px); top: var(--y, -999px); transition: opacity 0.3s; opacity: 0; }
+
+  .card:hover::before { opacity: 1; }
 
     /* ── ABOUT ── */
     .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
@@ -213,6 +216,69 @@
       .projects-grid { grid-template-columns: 1fr; }
       .theme-toggle { right: 24px; top: 20px; }
     }
+    /* ── 3D CERTIFICATE CARD EFFECT ── */
+.cert-card-3d {
+  perspective: 1000px;
+}
+
+.cert-card-inner {
+  transition: transform 0.1s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Float layers based on translateZ values from original component */
+.cert-layer-title { transform: translateZ(50px); }
+.cert-layer-org   { transform: translateZ(60px); }
+.cert-layer-icon  { transform: translateZ(80px); }
+.cert-layer-link  { transform: translateZ(20px); }
+
+/* Subtle glow on hover matching your accent */
+.certificate-card:hover {
+  box-shadow: 0 0 30px rgba(149, 106, 250, 0.08);
+  border-color: rgba(149, 106, 250, 0.2);
+}
+
+/* Disable 3D on mobile for performance */
+@media (max-width: 768px) {
+  .cert-card-3d { perspective: none; }
+  .cert-card-inner { transform: none !important; }
+}
+/* ── NEON GLOW CONTACT CARDS (Tiagoadag) ── */
+.contact-card-neon {
+  background-image: linear-gradient(163deg, #00ff75 0%, #3700ff 100%);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  padding: 2px; /* Creates the gradient border effect */
+  border: none;
+  overflow: visible; /* Allows glow to spill outside */
+}
+
+.contact-card-neon:hover {
+  box-shadow: 0px 0px 30px 1px rgba(0, 255, 117, 0.30);
+}
+
+.contact-card-inner {
+  background-color: var(--bg);
+  border-radius: 18px; /* Slightly less than outer to show gradient edge */
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  transition: all 0.2s ease;
+}
+
+.contact-card-neon:hover .contact-card-inner {
+  transform: scale(0.98);
+}
+
+/* Light mode adjustment */
+:root.light-mode .contact-card-inner {
+  background-color: #ffffff;
+}
   </style>
 </head>
 <body>
@@ -433,12 +499,63 @@
       <h2 class="section-title">Proof I watched the <span class="serif">whole thing.</span></h2>
       <p class="section-subtitle">Verified learning from platforms I actually trust.</p>
     </div>
-    <div class="certificates-grid">
-      <div class="card certificate-card"><i class="fas fa-certificate certificate-icon"></i><div><h4 class="certificate-title">C Programming Fundamentals</h4><p class="certificate-org">Excellar Academy · 2026</p><a href="https://www.linkedin.com/posts/sambit-swain-7032a8378_completed-foundation-of-programming-using-share-7408601134715719681-E70T/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAF1Nu_MBCbMtHi0NdnxBEWERM9kOccSHudE" target="_blank" class="certificate-link">View ↗</a></div></div>
-      <div class="card certificate-card"><i class="fas fa-certificate certificate-icon"></i><div><h4 class="certificate-title">Python Essentials 1</h4><p class="certificate-org">Cisco Networking Academy · 2026</p><a href="https://www.credly.com/badges/2855d561-607d-40a9-ac8f-b9005421c6b3/public_url" target="_blank" class="certificate-link">View ↗</a></div></div>
-      <div class="card certificate-card"><i class="fas fa-certificate certificate-icon"></i><div><h4 class="certificate-title">C++ Essentials 1</h4><p class="certificate-org">Cisco Networking Academy · 2026</p><a href="https://www.credly.com/badges/66f3216f-c6ed-415e-bc46-3fb831c05ed9/public_url" target="_blank" class="certificate-link">View ↗</a></div></div>
-      <div class="card certificate-card"><i class="fas fa-certificate certificate-icon"></i><div><h4 class="certificate-title">AWS Cloud Practitioner Essentials</h4><p class="certificate-org">AWS Skill Builder · 2026</p></div></div>
-      <div class="card certificate-card"><i class="fas fa-certificate certificate-icon"></i><div><h4 class="certificate-title">Cloud Computing Basics</h4><p class="certificate-org">Simplilearn · 2026</p><a href="https://www.simplilearn.com/skillup-certificate-landing?token=eyJjb3Vyc2VfaWQiOiIxNTExIiwiY2VydGlmaWNhdGVfdXJsIjoiaHR0cHM6XC9cL2NlcnRpZmljYXRlcy5zaW1wbGljZG4ubmV0XC9zaGFyZVwvMTAzMDk4ODdfMTA1OTczODJfMTc4MDY0MjMzNDA2MC5wbmciLCJ1c2VybmFtZSI6IlNhbWJpdCBzd2FpbiAifQ&utm_source=shared-certificate&utm_medium=app_lms&utm_campaign=shared-certificate-promotion" target="_blank" class="certificate-link">View ↗</a></div></div>
+        <div class="certificates-grid">
+
+      <div class="card certificate-card cert-card-3d">
+        <div class="cert-card-inner">
+          <i class="fas fa-certificate certificate-icon cert-layer-icon"></i>
+          <div>
+            <h4 class="certificate-title cert-layer-title">C Programming Fundamentals</h4>
+            <p class="certificate-org cert-layer-org">Excellar Academy · 2026</p>
+            <a href="https://www.linkedin.com/posts/sambit-swain-7032a8378_completed-foundation-of-programming-using-share-7408601134715719681-E70T/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAF1Nu_MBCbMtHi0NdnxBEWERM9kOccSHudE" target="_blank" class="certificate-link cert-layer-link">View ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card certificate-card cert-card-3d">
+        <div class="cert-card-inner">
+          <i class="fas fa-certificate certificate-icon cert-layer-icon"></i>
+          <div>
+            <h4 class="certificate-title cert-layer-title">Python Essentials 1</h4>
+            <p class="certificate-org cert-layer-org">Cisco Networking Academy · 2026</p>
+            <a href="https://www.credly.com/badges/2855d561-607d-40a9-ac8f-b9005421c6b3/public_url" target="_blank" class="certificate-link cert-layer-link">View ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card certificate-card cert-card-3d">
+        <div class="cert-card-inner">
+          <i class="fas fa-certificate certificate-icon cert-layer-icon"></i>
+          <div>
+            <h4 class="certificate-title cert-layer-title">C++ Essentials 1</h4>
+            <p class="certificate-org cert-layer-org">Cisco Networking Academy · 2026</p>
+            <a href="https://www.credly.com/badges/66f3216f-c6ed-415e-bc46-3fb831c05ed9/public_url" target="_blank" class="certificate-link cert-layer-link">View ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card certificate-card cert-card-3d">
+  <div class="cert-card-inner">
+    <i class="fas fa-certificate certificate-icon cert-layer-icon"></i>
+    <div>
+      <h4 class="certificate-title cert-layer-title">AWS Foundations: Getting Started with the AWS Cloud Essentials</h4>
+      <p class="certificate-org cert-layer-org">AWS Skill Builder · 2026</p>
+      <a href="https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials" target="_blank" class="certificate-link cert-layer-link">View ↗</a>
+    </div>
+  </div>
+</div>
+
+      <div class="card certificate-card cert-card-3d">
+        <div class="cert-card-inner">
+          <i class="fas fa-certificate certificate-icon cert-layer-icon"></i>
+          <div>
+            <h4 class="certificate-title cert-layer-title">Cloud Computing Basics</h4>
+            <p class="certificate-org cert-layer-org">Simplilearn · 2026</p>
+            <a href="https://www.simplilearn.com/skillup-certificate-landing?token=eyJjb3Vyc2VfaWQiOiIxNTExIiwiY2VydGlmaWNhdGVfdXJsIjoiaHR0cHM6XC9cL2NlcnRpZmljYXRlcy5zaW1wbGljZG4ubmV0XC9zaGFyZVwvMTAzMDk4ODdfMTA1OTczODJfMTc4MDY0MjMzNDA2MC5wbmciLCJ1c2VybmFtZSI6IlNhbWJpdCBzd2FpbiAifQ&utm_source=shared-certificate&utm_medium=app_lms&utm_campaign=shared-certificate-promotion" target="_blank" class="certificate-link cert-layer-link">View ↗</a>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -461,11 +578,35 @@
       <h2 class="section-title">Let's make something <span class="serif">worth shipping.</span></h2>
       <p class="section-subtitle">Open to internships, collabs, interesting problems, and conversations that don't start with "quick question." Hit me up.</p>
     </div>
-    <div class="contact-grid">
-      <div class="card contact-card"><i class="fab fa-github"></i><h3>GitHub</h3><a href="https://github.com/ssambit635-svg" target="_blank">github.com/ssambit635-svg</a></div>
-      <div class="card contact-card"><i class="fab fa-linkedin"></i><h3>LinkedIn</h3><a href="https://www.linkedin.com/in/sambit-swain-7032a8378" target="_blank">linkedin/sambit-swain</a></div>
-      <div class="card contact-card"><i class="fas fa-envelope"></i><h3>Email</h3><a href="mailto:ssambit635@gmail.com">ssambit635@gmail.com</a></div>
-      <div class="card contact-card"><i class="fas fa-phone"></i><h3>Phone</h3><a href="tel:+919437729404">+91 9437729404</a></div>
+        <div class="contact-grid">
+      <div class="card contact-card contact-card-neon">
+        <div class="contact-card-inner">
+          <i class="fab fa-github"></i>
+          <h3>GitHub</h3>
+          <a href="https://github.com/ssambit635-svg" target="_blank">github.com/ssambit635-svg</a>
+        </div>
+      </div>
+      <div class="card contact-card contact-card-neon">
+        <div class="contact-card-inner">
+          <i class="fab fa-linkedin"></i>
+          <h3>LinkedIn</h3>
+          <a href="https://www.linkedin.com/in/sambit-swain-7032a8378" target="_blank">linkedin/sambit-swain</a>
+        </div>
+      </div>
+      <div class="card contact-card contact-card-neon">
+        <div class="contact-card-inner">
+          <i class="fas fa-envelope"></i>
+          <h3>Email</h3>
+          <a href="mailto:ssambit635@gmail.com">ssambit635@gmail.com</a>
+        </div>
+      </div>
+      <div class="card contact-card contact-card-neon">
+        <div class="contact-card-inner">
+          <i class="fas fa-phone"></i>
+          <h3>Phone</h3>
+          <a href="tel:+919437729404">+91 9437729404</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -555,6 +696,34 @@
     });
   }, { threshold: 0.1 });
   cards.forEach(card => cardObserver.observe(card));
+  document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--x', (e.clientX - rect.left) + 'px');
+    card.style.setProperty('--y', (e.clientY - rect.top) + 'px');
+  });
+});
+// 3D Certificate Card Tilt Effect
+document.querySelectorAll('.cert-card-3d').forEach(card => {
+  const inner = card.querySelector('.cert-card-inner');
+  
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateX = ((y - centerY) / centerY) * -8; // Max 8deg tilt
+    const rotateY = ((x - centerX) / centerX) * 8;
+    
+    inner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+  });
+  
+  card.addEventListener('mouseleave', () => {
+    inner.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  });
+});
 </script>
 </body>
 </html>
