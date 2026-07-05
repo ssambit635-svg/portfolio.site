@@ -44,6 +44,35 @@
     .nav-links { display: flex; gap: 32px; list-style: none; }
     .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s ease; }
     .nav-links a:hover { color: var(--text); }
+    .nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #956afa;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.nav-links a:hover {
+  color: #956afa;
+  text-shadow: 0 0 12px rgba(149,106,250,0.6);
+}
+
+.nav-links a:hover::after {
+  transform: scaleX(1);
+}
     
     /* ── ANIMATED INTERNSHIP BADGE ── */
     .badge {
@@ -279,6 +308,20 @@
       .cert-card-3d { perspective: none; }
       .cert-card-inner { transform: none !important; }
     }
+    .mask-text {
+  position: relative;
+  cursor: none;
+}
+.mask-text .revealed {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #956afa, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  clip-path: circle(0px at 0px 0px);
+  transition: clip-path 0.1s ease;
+}
   </style>
 </head>
 <body>
@@ -323,9 +366,17 @@
   <section id="hero">
     <div class="hero-label">Software Developer · Berhampur, Odisha · CSE @ NIST University</div>
     <h1 class="hero-title">
+  <span class="mask-text">
+    Building things<br>
+    that actually 
+    <span class="serif">ship.</span>
+    <span class="revealed" aria-hidden="true">
       Building things<br>
-      that actually <span class="serif">ship.</span>
-    </h1>
+      that actually 
+      <span class="serif">ship.</span>
+    </span>
+  </span>
+</h1>
     <p class="hero-desc">
       I'm Sambit — a B.Tech CSE student (Batch 2025–2029) focused on Cloud, DevOps, and web development. I build real projects people can open in a browser right now.
     </p>
@@ -745,6 +796,17 @@ document.querySelectorAll('.project-card').forEach(card => {
       inner.style.transform = 'rotateX(0deg) rotateY(0deg)';
     });
   });
+  const maskText = document.querySelector('.mask-text');
+maskText.addEventListener('mousemove', (e) => {
+  const rect = maskText.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  maskText.querySelector('.revealed').style.clipPath = 
+    `circle(80px at ${x}px ${y}px)`;
+});
+maskText.addEventListener('mouseleave', () => {
+  maskText.querySelector('.revealed').style.clipPath = 'circle(0px at 0px 0px)';
+});
 </script>
 </body>
 </html>
