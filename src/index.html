@@ -327,32 +327,31 @@
 <!-- Replace your old #preloader div with this -->
 <div id="preloader" class="fixed inset-0 z-[9999] bg-black overflow-hidden">
   
-  <!-- Left door panel -->
-  <div id="door-left" class="absolute top-0 left-0 w-1/2 h-full bg-black flex items-center justify-end transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
-    <span class="text-[clamp(2.5rem,8vw,5rem)] font-light tracking-tight text-white pr-[2px]" style="font-family:'Bricolage Grotesque', sans-serif;">SAM</span>
+  <!-- Top panel -->
+  <div id="door-top" class="absolute top-0 left-0 w-full h-1/2 bg-black flex items-end justify-center pb-1 transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
+    <span class="text-[clamp(2.5rem,8vw,5rem)] font-light tracking-tight text-white" style="font-family:'Bricolage Grotesque', sans-serif; color:#8B5CF6; text-shadow: 0 0 30px rgba(139,92,246,0.5);">SAMBIT</span>
   </div>
 
-  <!-- Right door panel -->
-  <div id="door-right" class="absolute top-0 right-0 w-1/2 h-full bg-black flex items-center justify-start transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
-    <span class="text-[clamp(2.5rem,8vw,5rem)] font-light tracking-tight text-white pl-[2px]" style="font-family:'Bricolage Grotesque', sans-serif;">BIT</span>
+  <!-- Bottom panel -->
+  <div id="door-bottom" class="absolute bottom-0 left-0 w-full h-1/2 bg-black transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
   </div>
 
   <!-- Thin center seam line -->
-  <div id="door-seam" class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-white/20 transition-opacity duration-500"></div>
+  <div id="door-seam" class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-px transition-opacity duration-500" style="background: linear-gradient(to right, transparent, #8B5CF6, transparent); box-shadow: 0 0 20px 2px rgba(139,92,246,0.6);"></div>
 
 </div>
 
 <script>
   window.addEventListener('load', () => {
     setTimeout(() => {
-      const left = document.getElementById('door-left');
-      const right = document.getElementById('door-right');
+      const top = document.getElementById('door-top');
+      const bottom = document.getElementById('door-bottom');
       const seam = document.getElementById('door-seam');
       const preloader = document.getElementById('preloader');
 
       seam.style.opacity = '0';
-      left.style.transform = 'translateX(-100%)';
-      right.style.transform = 'translateX(100%)';
+      top.style.transform = 'translateY(-100%)';
+      bottom.style.transform = 'translateY(100%)';
 
       setTimeout(() => {
         preloader.style.display = 'none';
