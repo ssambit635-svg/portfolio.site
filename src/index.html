@@ -329,11 +329,12 @@
   
   <!-- Top panel -->
   <div id="door-top" class="absolute top-0 left-0 w-full h-1/2 bg-black flex items-end justify-center pb-1 transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
-    <span class="text-[clamp(2.5rem,8vw,5rem)] font-light tracking-tight text-white" style="font-family:'Bricolage Grotesque', sans-serif; color:#8B5CF6; text-shadow: 0 0 30px rgba(139,92,246,0.5);">SAMBIT</span>
+    <span id="boot-text" class="text-[clamp(1rem,3vw,1.4rem)] font-mono tracking-widest" style="color:#8B5CF6; text-shadow: 0 0 20px rgba(139,92,246,0.5);">INITIALIZING</span>
   </div>
 
   <!-- Bottom panel -->
-  <div id="door-bottom" class="absolute bottom-0 left-0 w-full h-1/2 bg-black transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
+  <div id="door-bottom" class="absolute bottom-0 left-0 w-full h-1/2 bg-black flex items-start justify-center pt-1 transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
+    <span id="boot-percent" class="text-[clamp(0.75rem,2vw,0.9rem)] font-mono tracking-widest" style="color:#8B5CF6; opacity:0.6;">0%</span>
   </div>
 
   <!-- Thin center seam line -->
@@ -342,8 +343,27 @@
 </div>
 
 <script>
+  // Boot sequence text + fake progress
+  const bootText = document.getElementById('boot-text');
+  const bootPercent = document.getElementById('boot-percent');
+  const bootStages = ["INITIALIZING", "LOADING ASSETS", "COMPILING", "READY"];
+  let stage = 0;
+  let percent = 0;
+
+  const bootInterval = setInterval(() => {
+    percent += Math.floor(Math.random() * 18) + 8;
+    if (percent >= 100) percent = 100;
+    bootPercent.textContent = percent + "%";
+    if (percent > stage * 30 && stage < bootStages.length - 1) {
+      stage++;
+      bootText.textContent = bootStages[stage];
+    }
+    if (percent >= 100) clearInterval(bootInterval);
+  }, 140);
+
   window.addEventListener('load', () => {
     setTimeout(() => {
+      clearInterval(bootInterval);
       const top = document.getElementById('door-top');
       const bottom = document.getElementById('door-bottom');
       const seam = document.getElementById('door-seam');
@@ -356,7 +376,7 @@
       setTimeout(() => {
         preloader.style.display = 'none';
       }, 1000);
-    }, 900);
+    }, 1200);
   });
 </script>
 <!-- NAV -->
