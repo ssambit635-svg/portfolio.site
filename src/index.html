@@ -8,16 +8,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700&family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg: #09090b;
-      --text: #fafafa;
-      --muted: #a1a1aa;
-      --border: rgba(255,255,255,0.08);
-      --font-display: 'Bricolage Grotesque', sans-serif;
-      --font-body: 'Inter', sans-serif;
-      --font-serif: 'Instrument Serif', serif;
-    }
+  --bg: #000000;
+  --text: #ffffff;
+  --muted: #a1a1aa;
+  --border: #27272A;
+  --accent: #6D28D9;
+  
+}
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
@@ -135,14 +135,14 @@
     .hero-label { font-family: var(--font-display); color: var(--muted); font-size: 0.9rem; margin-top: 80px; margin-bottom: 24px; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.2s cubic-bezier(0.16,1,0.3,1) forwards; }
     .hero-title { font-family: var(--font-display); font-size: clamp(3.5rem,8vw,6rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 24px; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
     
-    /* Neon Gradient - ONLY for Hero Title Serif Word */
-    .hero-title .serif { 
-      font-family: var(--font-serif); font-weight: 400; font-style: italic;
-      background: linear-gradient(135deg, #a78bfa 0%, #6366f1 50%, #00ff75 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+   /* NEW */
+.hero-title .serif { 
+  font-family: var(--font-serif); font-weight: 400; font-style: italic;
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366f1 60%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
     .hero-desc { font-size: 1.1rem; color: var(--muted); max-width: 600px; margin-bottom: 40px; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
     .hero-tags { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
@@ -166,7 +166,7 @@
 
     /* ── CARDS + SPOTLIGHT ── */
     .card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 32px; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden; }
-    .card::before { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(149,106,250,0.15), transparent 70%); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); left: var(--x, -999px); top: var(--y, -999px); transition: opacity 0.3s; opacity: 0; }
+    .card::before { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); left: var(--x, -999px); top: var(--y, -999px); transition: opacity 0.3s; opacity: 0; }
     .card:hover::before { opacity: 1; }
 
     /* ── ABOUT ── */
@@ -230,7 +230,7 @@
     .cert-layer-org   { transform: translateZ(60px); }
     .cert-layer-icon  { transform: translateZ(80px); }
     .cert-layer-link  { transform: translateZ(20px); }
-    .certificate-card:hover { box-shadow: 0 0 30px rgba(149, 106, 250, 0.08); border-color: rgba(149, 106, 250, 0.2); }
+   .certificate-card:hover { box-shadow: 0 0 30px rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); }
 
     /* ── PROCESS ── */
     .process-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
@@ -244,10 +244,10 @@
     .contact-section .section-subtitle { margin-left: auto; margin-right: auto; text-align: center; }
     .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 64px; }
     .contact-card-neon {
-      background-image: linear-gradient(163deg, #00ff75 0%, #3700ff 100%);
+      background-image: linear-gradient(163deg, #8B5CF6 0%, #6366f1 100%);
       border-radius: 20px; transition: all 0.3s ease; padding: 2px; border: none; overflow: visible;
     }
-    .contact-card-neon:hover { box-shadow: 0px 0px 30px 1px rgba(0, 255, 117, 0.30); }
+    .contact-card-neon:hover { box-shadow: 0px 0px 30px 1px rgba(139, 92, 246, 0.30); }
     .contact-card-inner {
       background-color: var(--bg); border-radius: 18px; height: 100%; width: 100%;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -258,7 +258,6 @@
     .contact-card-inner a { color: var(--muted); text-decoration: none; transition: color 0.3s ease; font-size: 0.9rem; }
     .contact-card-inner a:hover { color: var(--text); }
     .contact-card-neon:hover .contact-card-inner { transform: scale(0.98); }
-
     /* ── FOOTER ── */
     footer { text-align: center; padding: 48px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; background: var(--bg); }
 
@@ -273,14 +272,14 @@
     @keyframes spin_4991 { 10% { transform: translateY(-102%); } 25% { transform: translateY(-100%); } 35% { transform: translateY(-202%); } 50% { transform: translateY(-200%); } 60% { transform: translateY(-302%); } 75% { transform: translateY(-300%); } 85% { transform: translateY(-402%); } 100% { transform: translateY(-400%); } }
 
     /* ── LIGHT MODE ── */
-    :root.light-mode { --bg: #ffffff; --text: #09090b; --muted: #52525b; --border: rgba(0,0,0,0.1); }
+    :root.light-mode { --bg: #F1F1F0; --text: #111111; --muted: #71717A; --border: #E4E4E7; --accent: #6D28D9; }
     :root.light-mode .card, :root.light-mode .contact-item, :root.light-mode .tag, :root.light-mode .tech-tag { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
     :root.light-mode .hero-title .serif {
       background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #059669 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     :root.light-mode .marquee-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
-    :root.light-mode .contact-card-inner { background-color: #ffffff; }
+    :root.light-mode .contact-card-inner { background-color: #F1F1F0; }
     :root.light-mode .badge { background: rgba(124, 58, 237, 0.06); border-color: rgba(124, 58, 237, 0.25); color: #7c3aed; }
     :root.light-mode .badge:hover { background: rgba(124, 58, 237, 0.12); border-color: rgba(124, 58, 237, 0.4); color: #6d28d9; box-shadow: 0 0 20px rgba(124, 58, 237, 0.15); }
 
@@ -325,25 +324,42 @@
   </style>
 </head>
 <body>
-
-<!-- PRELOADER -->
-<div id="preloader">
-  <div class="loader-card">
-    <div class="loader">
-      <span>Building </span>
-      <div class="words">
-        <span class="word">experiences.</span>
-        <span class="word">projects.</span>
-        <span class="word">solutions.</span>
-        <span class="word">future.</span>
-        <span class="word">experiences.</span>
-      </div>
-    </div>
+<!-- Replace your old #preloader div with this -->
+<div id="preloader" class="fixed inset-0 z-[9999] bg-black overflow-hidden">
+  
+  <!-- Left door panel -->
+  <div id="door-left" class="absolute top-0 left-0 w-1/2 h-full bg-black flex items-center justify-end transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
+    <span class="text-[clamp(2.5rem,8vw,5rem)] font-light tracking-tight text-white pr-[2px]" style="font-family:'Bricolage Grotesque', sans-serif;">SAM</span>
   </div>
+
+  <!-- Right door panel -->
+  <div id="door-right" class="absolute top-0 right-0 w-1/2 h-full bg-black flex items-center justify-start transition-transform duration-[1000ms] ease-[cubic-bezier(0.76,0,0.24,1)]">
+    <span class="text-[clamp(2.5rem,8vw,5rem)] font-light tracking-tight text-white pl-[2px]" style="font-family:'Bricolage Grotesque', sans-serif;">BIT</span>
+  </div>
+
+  <!-- Thin center seam line -->
+  <div id="door-seam" class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-white/20 transition-opacity duration-500"></div>
+
 </div>
 
-<div class="ambient-glow"></div>
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const left = document.getElementById('door-left');
+      const right = document.getElementById('door-right');
+      const seam = document.getElementById('door-seam');
+      const preloader = document.getElementById('preloader');
 
+      seam.style.opacity = '0';
+      left.style.transform = 'translateX(-100%)';
+      right.style.transform = 'translateX(100%)';
+
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 1000);
+    }, 900);
+  });
+</script>
 <!-- NAV -->
 <nav>
   <a href="#" class="logo">Sambit Swain</a>
@@ -732,14 +748,7 @@
     else { icon.classList.replace('fa-sun','fa-moon'); localStorage.setItem('theme','dark'); }
   });
 
-  // Preloader
-  window.addEventListener('load', () => {
-    const preloader = document.getElementById('preloader');
-    setTimeout(() => {
-      preloader.classList.add('hidden');
-      setTimeout(() => { preloader.style.display = 'none'; }, 500);
-    }, 1500);
-  });
+ 
 
   // Hero fade on scroll
   const heroChildren = document.querySelectorAll('#hero .hero-label, #hero .hero-title, #hero .hero-desc, #hero .hero-tags, #hero .hero-cta');
