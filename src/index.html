@@ -135,6 +135,41 @@
     .hero-label { font-family: var(--font-display); color: var(--muted); font-size: 0.9rem; margin-top: 80px; margin-bottom: 24px; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.2s cubic-bezier(0.16,1,0.3,1) forwards; }
     .hero-title { font-family: var(--font-display); font-size: clamp(3.5rem,8vw,6rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 24px; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
     
+   /* ── HERO RETRO GRID (FIXED) ── */
+.retro-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.8;
+  perspective: 600px;
+}
+.retro-grid::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  height: 220%;
+  background-image:
+    linear-gradient(to right, rgba(139,92,246,0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139,92,246,0.5) 1px, transparent 1px);
+  background-size: 50px 50px;
+  transform: rotateX(70deg);
+  transform-origin: bottom center;
+  animation: retroGridMove 10s linear infinite;
+}
+.retro-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--bg) 0%, transparent 45%);
+}
+
+@keyframes retroGridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 50px; }
+}
    /* NEW */
 .hero-title .serif { 
   font-family: var(--font-serif); font-weight: 400; font-style: italic;
@@ -396,8 +431,9 @@
   </button>
 </nav>
 
-<!-- HERO -->
+  <!-- HERO -->
 <div class="hero-sticky-wrapper">
+  <div class="retro-grid"></div>
   <section id="hero">
     <div class="hero-label">Software Developer · Berhampur, Odisha · CSE @ NIST University</div>
     <h1 class="hero-title">
