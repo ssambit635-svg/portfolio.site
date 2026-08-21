@@ -6,8 +6,7 @@ https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge
 
 A modern, fully automated personal portfolio website — built with a robust CI/CD pipeline that deploys to GitHub Pages in under 60 seconds. Zero-touch updates, container-ready, and built to impress.
 
-🌐 Live Demo
-👉 Visit My Portfolio — See the live version in action.
+🌐 Live Demo -https://ssambit635-svg.github.io/portfolio.site/
 
 Project Structure
 text
@@ -52,14 +51,14 @@ CI/CD	GitHub Actions — automated workflows
 Hosting	GitHub Pages — fast, free, reliable
 Container	Docker + Nginx — production-grade serving
 Version Control	Git · GitHub
-👤 Author
+Author
 Sambit Swain
 A passionate developer committed to clean code and automation.
 
 https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white
 https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white
 
-📄 License
+License
 This project is open-source and available under the MIT License.
 Show Your Support
 If you found this useful, please give it a star  — it helps others discover this project!
