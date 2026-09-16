@@ -30,6 +30,39 @@ export const profile = {
   site: 'https://ssambit635-svg.github.io/portfolio.site/'
 } as const
 
+/** Everything the monochrome home screen needs, in one place. */
+export const home = {
+  kicker: 'SOFTWARE DEVELOPER — ODISHA, INDIA',
+  headline: ['React • FastAPI • Cloud', 'Full-stack products & calm interfaces'],
+  lede: [
+    'full-stack products',
+    'cloud tooling',
+    'interactive experiments'
+  ],
+  ledeBefore: 'a computer science student from Odisha who ships',
+  ledeAfter: 'Design-led on the surface, engineering-led underneath — available for internships & freelance.',
+  status: 'Open to internships & freelance',
+  currently: {
+    title: 'B.Tech, Computer Science & Engineering',
+    org: '@ NIST University, Berhampur',
+    period: '2025 — 2029 · 8.2 CGPA'
+  },
+  focusSkills: [
+    'React',
+    'TypeScript',
+    'Python',
+    'FastAPI',
+    'AWS',
+    'Docker',
+    'Tailwind',
+    'GSAP',
+    'three.js',
+    'PostgreSQL'
+  ],
+  connectBlurb:
+    'Always interested in ambitious projects, internships, and conversations about products, cloud, design and the odd interface experiment.'
+} as const
+
 export const heroCopy = {
   kicker: 'Portfolio — 2026',
   available: 'Open to internships & freelance',

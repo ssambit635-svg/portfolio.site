@@ -25,14 +25,6 @@ export default defineConfig({
     target: 'es2020',
     cssCodeSplit: true,
     assetsInlineLimit: 2048,
-    chunkSizeWarningLimit: 1400,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
-          gsap: ['gsap', 'lenis']
-        }
-      }
-    }
+    chunkSizeWarningLimit: 1400
   }
 })

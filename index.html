@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F7F2E8" />
-    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="color-scheme" content="dark light" />
 
     <title>Sambit Swain — Software Developer &amp; Interface Designer</title>
     <meta
@@ -17,22 +17,30 @@
     <meta property="og:title" content="Sambit Swain — Software Developer &amp; Interface Designer" />
     <meta
       property="og:description"
-      content="Calm interfaces, serious engineering. Full-stack product work from Berhampur, Odisha."
+      content="Full-stack products, cloud tooling and calm interfaces from Berhampur, Odisha. Available for internships & freelance."
     />
     <meta name="twitter:card" content="summary_large_image" />
 
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231A1712'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' fill='%23F7F2E8' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a'/%3E%3Ctext x='32' y='44' font-family='Arial,sans-serif' font-size='34' fill='%23fafafa' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E"
     />
+
+    <script>
+      // Restore the visitor's theme choice before first paint to avoid a flash.
+      try {
+        var saved = localStorage.getItem('sambit-theme')
+        if (saved === 'light') document.documentElement.classList.remove('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <noscript>
-      <div style="padding: 48px; font-family: Georgia, serif; max-width: 720px; margin: 0 auto">
+      <div style="padding: 48px; font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto">
         <h1>Sambit Swain — Software Developer</h1>
         <p>
-          This portfolio needs JavaScript for its motion and 3D work. Reach me instead at
+          This portfolio needs JavaScript to run. Reach me instead at
           <a href="mailto:ssambit635@gmail.com">ssambit635@gmail.com</a> or on
           <a href="https://github.com/ssambit635-svg">GitHub</a>.
         </p>
