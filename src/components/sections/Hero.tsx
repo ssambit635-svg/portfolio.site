@@ -237,7 +237,7 @@ export function Hero() {
             <HeroBlobScene
               mount={ready && shouldMount && !reduced}
               active={shouldMount}
-              className="h-[46vh] min-h-[300px] w-full sm:h-[56vh] lg:h-[74vh]"
+              className="h-[38vh] min-h-[240px] w-full sm:h-[52vh] lg:h-[74vh]"
               cameraPosition={[0, 0, 6.6]}
               fov={32}
               shadow="blob"

@@ -97,7 +97,7 @@ export function Work() {
   )
 
   return (
-    <section id="work" ref={rootRef} className="relative z-10 overflow-hidden py-[clamp(4.5rem,8vw,7rem)]">
+    <section id="work" ref={rootRef} className="relative z-10 overflow-hidden py-[clamp(4rem,7vw,5.5rem)] lg:py-12">
       <div className="mx-auto w-full max-w-[92rem] px-5 sm:px-8">
         <div className="flex items-center gap-4 pb-8 sm:gap-6">
           <span className="size-1.5 shrink-0 rounded-full bg-ember-500" />

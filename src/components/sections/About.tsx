@@ -92,7 +92,7 @@ export function About() {
   )
 
   return (
-    <section id="about" ref={rootRef} className="relative z-10 px-5 py-[clamp(5rem,9vw,8.5rem)] sm:px-8">
+    <section id="about" ref={rootRef} className="relative z-10 px-5 py-[clamp(4.5rem,8vw,7.5rem)] sm:px-8">
       <div className="mx-auto w-full max-w-[86rem]">
         <div className="flex items-center gap-4 pb-10 sm:gap-6">
           <span className="size-1.5 shrink-0 rounded-full bg-ember-500" />
