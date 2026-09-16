@@ -142,11 +142,14 @@ globalThis.process.env.NODE_ENV = 'development'
 
 await import(pathToFileURL(outfile).href)
 
-/* The app opens on an entry gate — click through it like a visitor would. */
-await new Promise((resolvePromise) => setTimeout(resolvePromise, 800))
-const enterButton = [...window.document.querySelectorAll('button')].find((button) =>
-  /enter without sound/i.test(button.textContent ?? '')
-)
+/* Flow: handwritten loader (∼4s) → entry gate → home. Poll for the gate. */
+let enterButton = null
+for (let i = 0; i < 48 && !enterButton; i++) {
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 250))
+  enterButton = [...window.document.querySelectorAll('button')].find((button) =>
+    /enter without sound/i.test(button.textContent ?? '')
+  )
+}
 if (!enterButton) {
   originalError('could not find the "Enter without sound" button')
   process.exit(1)

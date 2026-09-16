@@ -10,6 +10,12 @@ import certCpp from '../assets/certs/cpp-essentials.jpg'
 import certLinux from '../assets/certs/linux-unhatched.jpg'
 import certPython from '../assets/certs/python-essentials.jpg'
 
+import shotCivic from '../assets/projects/civicreport.jpg'
+import shotWeather from '../assets/projects/weather-sense.jpg'
+import shotAws from '../assets/projects/aws-dashboard.jpg'
+import shotPassword from '../assets/projects/password-manager.jpg'
+import shotPortfolio from '../assets/projects/portfolio.jpg'
+
 export const profile = {
   name: 'Sambit Swain',
   first: 'Sambit',
@@ -92,6 +98,7 @@ export type Project = {
   year: string
   role: string
   stack: string[]
+  image: string
   links: { label: string; href: string; kind: 'repo' | 'live' | 'case' }[]
   accent: string
   glyph: string
@@ -108,6 +115,7 @@ export const projects: Project[] = [
     year: '2026',
     role: 'Concept, design & front-end',
     stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet', 'Chart.js'],
+    image: shotCivic,
     links: [
       {
         label: 'Live site',
@@ -133,6 +141,7 @@ export const projects: Project[] = [
     year: '2025',
     role: 'Design & engineering',
     stack: ['Python', 'Streamlit', 'Open-Meteo API', 'Custom CSS'],
+    image: shotWeather,
     links: [
       {
         label: 'Live app',
@@ -158,6 +167,7 @@ export const projects: Project[] = [
     year: '2025',
     role: 'Full-stack & infra',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
+    image: shotAws,
     links: [
       { label: 'Live', href: 'https://lnkd.in/dgA4fPCR', kind: 'live' },
       { label: 'Backend', href: 'https://lnkd.in/dvXT6S-J', kind: 'case' }
@@ -175,6 +185,7 @@ export const projects: Project[] = [
     year: '2025',
     role: 'Engineering',
     stack: ['Python', 'cryptography', 'hashlib', 'Streamlit'],
+    image: shotPassword,
     links: [
       {
         label: 'Source',
@@ -195,6 +206,7 @@ export const projects: Project[] = [
     year: '2026',
     role: 'Design, motion & build',
     stack: ['React', 'TypeScript', 'GSAP', 'three.js', 'Tailwind', 'GitHub Actions'],
+    image: shotPortfolio,
     links: [
       {
         label: 'Source',

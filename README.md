@@ -14,11 +14,13 @@ https://ssambit635-svg.github.io/portfolio.site/
 
 | Layer | Details |
 | --- | --- |
+| **Signature loader** | "Sambit Swain" writes itself in hand-built monoline cursive SVG strokes — Apple-style penmanship — then the curtain lifts (once per session) |
 | **Entry gate** | The name snaps between rack-focus frames over a beam-fan shader, then *Enter with / without sound* — sound effects are synthesized live with the Web Audio API, no audio files |
-| **Backdrop** | Raw-WebGL fragment shader: layered sine field → Bayer-style ordered dithering → 3-step gray waves; a fan-of-beams variant powers the entry screen |
+| **Backdrop** | Raw-WebGL fragment shader: layered sine field → Bayer-style ordered dithering → 3-step gray waves, tinted by three slow-drifting aurora blobs (Gemini-style glow) with a soft vignette |
 | **Navigation** | Four sections (`intro · work · credentials · connect`) tracked by a slim pill rail on the left edge, IntersectionObserver-driven |
-| **Interaction** | Target cursor with corner brackets that frame interactive elements, click sparks, blur-fade section reveals, hover-invert buttons |
-| **Theme** | Dark by default with a persisted light/dark toggle in the footer |
+| **Interaction** | Target cursor with corner brackets that frame interactive elements, click sparks, cursor-following image previews on every project and certificate, hover-invert buttons |
+| **Motion** | Lenis buttery smooth scrolling with custom easing, blur-fade section reveals on the way in |
+| **Theme** | Dark by default with a persisted dark/cream toggle in the footer (light mode is warm paper, not plain white) |
 
 Motion is opt-out friendly: `prefers-reduced-motion` freezes the shader loop, the custom cursor only exists on fine pointers, and touch devices keep the native cursor.
 
@@ -34,11 +36,13 @@ portfolio.site/
 │   └── smoke.mjs                  # headless render check (jsdom + esbuild)
 ├── src/
 │   ├── components/
+│   │   ├── Loader.tsx             # handwritten signature intro
 │   │   ├── EnterScreen.tsx        # sound gate + animated name
 │   │   ├── HomePage.tsx           # intro / work / credentials / connect / footer
 │   │   ├── PillNav.tsx            # left-edge section tracker
-│   │   └── fx/                    # WaveCanvas (WebGL dither), FocusName,
-│   │                              # TargetCursor, ClickSpark, BlurFade
+│   │   └── fx/                    # WaveCanvas (WebGL dither + aurora), FocusName,
+│   │                              # TargetCursor, ClickSpark, BlurFade, HoverPreview
+│   ├── providers/SmoothScroll.tsx # Lenis buttery scrolling
 │   ├── context/SoundContext.tsx   # global sound toggle + click hook
 │   ├── lib/
 │   │   ├── site.ts                # every word of copy lives here
@@ -65,7 +69,7 @@ npm run smoke     # headless render check
 
 ## 🛠 Stack
 
-React 19 · TypeScript · Vite · Tailwind CSS 4 · motion · lucide-react · raw WebGL shaders · Web Audio API
+React 19 · TypeScript · Vite · Tailwind CSS 4 · Lenis · motion · lucide-react · raw WebGL shaders · Web Audio API
 
 Deploys to GitHub Pages via `.github/workflows/deploy.yml` on every push to `main`. A multi-stage `Dockerfile` (node build → nginx) is included for containers.
 

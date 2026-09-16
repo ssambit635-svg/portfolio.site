@@ -2,10 +2,36 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, FileText, MessageCircle, Moon, Sun } from 'lucide-react'
 import { WaveCanvas } from './fx/WaveCanvas'
 import { BlurFade } from './fx/BlurFade'
+import { HoverPreview } from './fx/HoverPreview'
 import { PillNav } from './PillNav'
+import { useSmoothScroll } from '../providers/SmoothScroll'
 import { certificates, contactChannels, home, profile, projects } from '../lib/site'
 
 const SECTIONS = ['intro', 'work', 'credentials', 'connect']
+
+/** Theme-tuned backdrops: dither waves + Gemini-style aurora tints. */
+const BACKDROPS = {
+  dark: {
+    bg: [0.08, 0.08, 0.08] as [number, number, number],
+    wave: [0.17, 0.17, 0.17] as [number, number, number],
+    aurora: {
+      a: [0.13, 0.15, 0.31] as [number, number, number],
+      b: [0.21, 0.13, 0.31] as [number, number, number],
+      c: [0.08, 0.19, 0.24] as [number, number, number],
+      strength: 0.5
+    }
+  },
+  light: {
+    bg: [0.955, 0.94, 0.9] as [number, number, number],
+    wave: [0.83, 0.8, 0.72] as [number, number, number],
+    aurora: {
+      a: [0.94, 0.85, 0.72] as [number, number, number],
+      b: [0.82, 0.86, 0.74] as [number, number, number],
+      c: [0.79, 0.85, 0.9] as [number, number, number],
+      strength: 0.55
+    }
+  }
+}
 
 /* Buttons share one skeleton; only the paint changes. */
 function BorderButton({
@@ -56,6 +82,8 @@ export function HomePage({
 }) {
   const [activeSection, setActiveSection] = useState('intro')
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
+  const { scrollToSection } = useSmoothScroll()
+  const backdrop = isDark ? BACKDROPS.dark : BACKDROPS.light
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -80,17 +108,18 @@ export function HomePage({
 
   return (
     <>
-      {/* Fixed dithered-wave backdrop across the whole page */}
+      {/* Fixed dithered-wave + aurora backdrop across the whole page */}
       <div className="fixed inset-0 z-0">
         <WaveCanvas
           variant="home"
-          bg={isDark ? [0.08, 0.08, 0.08] : [1, 1, 1]}
-          wave={isDark ? [0.17, 0.17, 0.17] : [0.87, 0.87, 0.87]}
+          bg={backdrop.bg}
+          wave={backdrop.wave}
+          aurora={backdrop.aurora}
           className="h-full w-full"
         />
       </div>
 
-      <PillNav sections={SECTIONS} active={activeSection} />
+      <PillNav sections={SECTIONS} active={activeSection} onNavigate={scrollToSection} />
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 sm:px-8 lg:px-16">
         {/* ------------------------------------------------------- intro -- */}
@@ -136,9 +165,7 @@ export function HomePage({
                     <div className="flex items-center gap-3">
                       <div>{profile.location}</div>
                       <div className="origin-left scale-90">
-                        <BorderButton onClick={() => document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' })}>
-                          More
-                        </BorderButton>
+                        <BorderButton onClick={() => scrollToSection('work')}>More</BorderButton>
                       </div>
                     </div>
                   </div>
@@ -206,10 +233,8 @@ export function HomePage({
             <BlurFade delay={0.5}>
               <div className="space-y-8 sm:space-y-12">
                 {projects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="cursor-target group grid gap-4 border-b border-border/50 py-6 transition-colors duration-500 hover:border-border sm:gap-8 sm:py-8 lg:grid-cols-12"
-                  >
+                  <HoverPreview key={project.id} src={project.image} alt={`${project.title} screenshot`}>
+                    <div className="cursor-target group grid gap-4 border-b border-border/50 py-6 transition-colors duration-500 hover:border-border sm:gap-8 sm:py-8 lg:grid-cols-12">
                     <div className="lg:col-span-2">
                       <div className="text-xl font-light text-muted-foreground transition-colors duration-500 group-hover:text-foreground sm:text-2xl">
                         {project.year}
@@ -250,7 +275,8 @@ export function HomePage({
                         </span>
                       ))}
                     </div>
-                  </div>
+                    </div>
+                  </HoverPreview>
                 ))}
               </div>
             </BlurFade>
@@ -278,25 +304,27 @@ export function HomePage({
             <BlurFade delay={0.5}>
               <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
                 {certificates.map((cert) => (
-                  <a key={cert.id} href={cert.href} target="_blank" rel="noreferrer" className="block h-full">
-                    <article className="cursor-target group flex h-full cursor-pointer flex-col rounded-lg border border-border p-6 transition-all duration-500 hover:border-muted-foreground/50 hover:shadow-lg sm:p-8">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between gap-3 font-mono text-xs text-muted-foreground">
-                          <span>{cert.date}</span>
-                          <span className="text-right">{cert.issuer}</span>
-                        </div>
+                  <HoverPreview key={cert.id} src={cert.image} alt={`${cert.title} certificate`}>
+                    <a href={cert.href} target="_blank" rel="noreferrer" className="block h-full">
+                      <article className="cursor-target group flex h-full cursor-pointer flex-col rounded-lg border border-border p-6 transition-all duration-500 hover:border-muted-foreground/50 hover:shadow-lg sm:p-8">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-3 font-mono text-xs text-muted-foreground">
+                            <span>{cert.date}</span>
+                            <span className="text-right">{cert.issuer}</span>
+                          </div>
 
-                        <h3 className="text-lg font-medium transition-colors duration-300 group-hover:text-muted-foreground sm:text-xl">
-                          {cert.title}
-                        </h3>
+                          <h3 className="text-lg font-medium transition-colors duration-300 group-hover:text-muted-foreground sm:text-xl">
+                            {cert.title}
+                          </h3>
 
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
-                          <span>View credential</span>
-                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                            <span>View credential</span>
+                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                          </div>
                         </div>
-                      </div>
-                    </article>
-                  </a>
+                      </article>
+                    </a>
+                  </HoverPreview>
                 ))}
               </div>
             </BlurFade>

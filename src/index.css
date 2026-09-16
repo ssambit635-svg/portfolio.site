@@ -12,22 +12,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* --------------------------------------------------------------- tokens --- */
+/* Light mode = warm cream/paper, not plain white. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: oklch(0.955 0.016 95);
+  --foreground: oklch(0.21 0.012 75);
+  --card: oklch(0.955 0.016 95);
+  --card-foreground: oklch(0.21 0.012 75);
+  --primary: oklch(0.24 0.012 75);
+  --primary-foreground: oklch(0.97 0.014 95);
+  --secondary: oklch(0.925 0.02 93);
+  --secondary-foreground: oklch(0.24 0.012 75);
+  --muted: oklch(0.925 0.02 93);
+  --muted-foreground: oklch(0.5 0.026 85);
+  --accent: oklch(0.925 0.02 93);
+  --accent-foreground: oklch(0.24 0.012 75);
+  --border: oklch(0.878 0.024 91);
+  --input: oklch(0.878 0.024 91);
+  --ring: oklch(0.68 0.03 88);
   --radius: 0.5rem;
 }
 
@@ -77,8 +78,12 @@
 
 /* ---------------------------------------------------------------- base --- */
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
   }
 
   body {

@@ -21,7 +21,7 @@ export function useTheme() {
     root.style.colorScheme = theme
     window.localStorage.setItem(STORAGE_KEY, theme)
 
-    const themeColor = theme === 'dark' ? '#0a0a0a' : '#ffffff'
+    const themeColor = theme === 'dark' ? '#0a0a0a' : '#f3ede1'
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor)
   }, [theme])
 

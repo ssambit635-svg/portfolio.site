@@ -1,13 +1,15 @@
 /**
  * Slim vertical section-tracker pinned to the left edge (desktop only).
- * Each pill scrolls to its section; the active one lights up.
+ * Each pill smooth-glides to its section; the active one lights up.
  */
 export function PillNav({
   sections,
-  active
+  active,
+  onNavigate
 }: {
   sections: string[]
   active: string
+  onNavigate: (id: string) => void
 }) {
   return (
     <nav className="fixed left-8 top-1/2 z-10 hidden -translate-y-1/2 lg:block" aria-label="Section navigation">
@@ -15,7 +17,7 @@ export function PillNav({
         {sections.map((section) => (
           <button
             key={section}
-            onClick={() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => onNavigate(section)}
             className={`h-8 w-2 cursor-target rounded-full transition-all duration-500 ${
               active === section
                 ? 'bg-foreground'
