@@ -7,6 +7,7 @@ import { EnterScreen } from './components/EnterScreen'
 import { HomePage } from './components/HomePage'
 import { TargetCursor } from './components/fx/TargetCursor'
 import { ClickSpark } from './components/fx/ClickSpark'
+import { SplitDoors } from './components/fx/SplitDoors'
 
 type Phase = 'loading' | 'gate' | 'home'
 
@@ -24,6 +25,10 @@ export default function App() {
   })
   const { isDark, toggle } = useTheme()
 
+  // Horizontal doors that swing open onto the homepage.
+  const [revealOpen, setRevealOpen] = useState(false)
+  const [showReveal, setShowReveal] = useState(false)
+
   const finishLoading = useCallback(() => {
     try {
       sessionStorage.setItem(LOADER_KEY, '1')
@@ -31,6 +36,13 @@ export default function App() {
       /* private mode — the loader simply plays again next visit */
     }
     setPhase('gate')
+  }, [])
+
+  const enterHome = useCallback(() => {
+    setPhase('home')
+    setShowReveal(true)
+    // Give the doors one frame to paint closed before they swing open.
+    requestAnimationFrame(() => requestAnimationFrame(() => setRevealOpen(true)))
   }, [])
 
   return (
@@ -41,7 +53,10 @@ export default function App() {
         {phase === 'home' ? (
           <HomePage isDark={isDark} onToggleTheme={toggle} />
         ) : (
-          <EnterScreen onEnter={() => setPhase('home')} />
+          <EnterScreen onEnter={enterHome} />
+        )}
+        {showReveal && (
+          <SplitDoors open={revealOpen} onDone={() => setShowReveal(false)} zIndex={90} durationMs={1200} />
         )}
         {phase === 'loading' && <Loader onExit={finishLoading} />}
       </SmoothScrollProvider>

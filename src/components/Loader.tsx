@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { SplitDoors } from './fx/SplitDoors'
 
 /**
- * Apple-style intro: "Sambit Swain" writes itself in monoline cursive
- * (hand-built SVG paths, drawn with stroke-dashoffset), a quiet caption
- * fades in, then the whole curtain lifts away to reveal the site.
+ * Apple-style intro: "Sambit Swain" writes itself in monoline cursive —
+ * hand-built SVG strokes drawn with stroke-dashoffset at real pen pace,
+ * trailed by a glowing ink dot — then the gate doors split open
+ * horizontally to reveal the site.
  */
 
-/* Hand-lettered paths, grouped per letter in writing order. */
+/* Hand-lettered strokes in exact writing order. */
 const STROKES: string[][] = [
   // S
   [
@@ -23,7 +25,7 @@ const STROKES: string[][] = [
   ],
   // b
   [
-    'M 310,198 C 318,172 330,128 342,100 C 346,118 342,165 330,200 C 344,146 372,142 378,164 C 384,184 368,202 344,203 C 338,203 332,201 328,198 C 340,212 352,208 362,200'
+    'M 310,198 C 319,172 330,132 342,104 C 349,124 344,164 331,198 C 342,152 368,144 377,162 C 386,180 370,200 348,203 C 340,204 333,202 328,198 C 341,211 353,207 363,200'
   ],
   // i (+ dot)
   [
@@ -60,14 +62,15 @@ const STROKES: string[][] = [
   ]
 ]
 
-const PACE = 260 // px per second — measured, penmanship speed
-const INTRO_DELAY = 0.45
+const WRITE_SECONDS = 2.5 // total time for the full signature
+const INTRO_DELAY = 0.4
 
 export function Loader({ onExit }: { onExit: () => void }) {
+  const wrapRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const dotRef = useRef<HTMLDivElement>(null)
   const [written, setWritten] = useState(false)
-  const [leaving, setLeaving] = useState(false)
-  const exitedRef = useRef(false)
+  const [doorsOpen, setDoorsOpen] = useState(false)
 
   useEffect(() => {
     const svg = svgRef.current
@@ -75,89 +78,129 @@ export function Loader({ onExit }: { onExit: () => void }) {
 
     const paths = Array.from(svg.querySelectorAll('path'))
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const geometry =
+      typeof SVGPathElement !== 'undefined' && typeof paths[0]?.getTotalLength === 'function'
 
+    /* Schedule: how long each stroke takes given one shared pen pace. */
+    let schedule: { path: SVGPathElement; len: number; delay: number; dur: number }[] = []
     let total = INTRO_DELAY
-    if (reduced) {
-      // Skip the draw entirely — show it, hold, lift.
-      paths.forEach((p) => (p.style.opacity = '1'))
-      total = 0.6
-    } else {
-      paths.forEach((p) => {
-        const len =
-          typeof p.getTotalLength === 'function' && !Number.isNaN(p.getTotalLength())
-            ? Math.max(p.getTotalLength(), 1)
-            : 140
+
+    if (geometry && !reduced) {
+      const lengths = paths.map((p) => Math.max(p.getTotalLength(), 1))
+      const totalLen = lengths.reduce((a, b) => a + b, 0)
+      const pace = totalLen / WRITE_SECONDS
+
+      paths.forEach((p, i) => {
+        const len = lengths[i]
+        const dur = Math.max(len / pace, 0.03)
+        schedule.push({ path: p, len, delay: total, dur })
         p.style.strokeDasharray = `${len}`
         p.style.strokeDashoffset = `${len}`
-        const duration = Math.max(len / PACE, 0.04)
-        p.style.transition = `stroke-dashoffset ${duration}s cubic-bezier(0.45, 0.05, 0.35, 0.95) ${total}s`
-        total += duration * 0.96
+        p.style.transition = `stroke-dashoffset ${dur}s cubic-bezier(0.45, 0.05, 0.35, 0.95) ${total}s`
+        total += dur * 0.96
       })
-      // Kick off on the next frame so the initial dash state is painted.
+
       requestAnimationFrame(() => {
         paths.forEach((p) => {
           p.style.strokeDashoffset = '0'
         })
       })
+    } else {
+      paths.forEach((p) => (p.style.opacity = '1'))
+      total = 0.6
+      schedule = []
+    }
+
+    /* The ink dot hunting along freshly-written strokes. */
+    let raf = 0
+    const canTrack =
+      geometry && !reduced && schedule.length > 0 && typeof schedule[0].path.getPointAtLength === 'function'
+
+    if (canTrack) {
+      const [vbX, vbY, vbW] = (svg.getAttribute('viewBox') ?? '0 0 1 1').split(/\s+/).map(Number)
+      const started = performance.now()
+
+      const track = (now: number) => {
+        const elapsed = (now - started) / 1000
+        const dot = dotRef.current
+        const wrap = wrapRef.current
+        if (!dot || !wrap) return
+
+        const active = schedule.find((s) => elapsed >= s.delay && elapsed <= s.delay + s.dur)
+        if (!active) {
+          dot.style.opacity = '0'
+          if (elapsed < total) raf = requestAnimationFrame(track)
+          return
+        }
+
+        const rect = svg.getBoundingClientRect()
+        const wrapRect = wrap.getBoundingClientRect()
+        if (rect.width < 4) {
+          raf = requestAnimationFrame(track)
+          return
+        }
+
+        const progress = Math.min((elapsed - active.delay) / active.dur, 1)
+        const pt = active.path.getPointAtLength(progress * active.len)
+        const scale = rect.width / vbW
+        const x = rect.left - wrapRect.left + (pt.x - vbX) * scale
+        const y = rect.top - wrapRect.top + (pt.y - vbY) * scale
+
+        dot.style.opacity = '1'
+        dot.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`
+        raf = requestAnimationFrame(track)
+      }
+      raf = requestAnimationFrame(track)
     }
 
     const timers = [
-      window.setTimeout(() => setWritten(true), (total + 0.15) * 1000),
-      window.setTimeout(() => setLeaving(true), (total + 0.8) * 1000),
-      window.setTimeout(
-        () => {
-          if (!exitedRef.current) {
-            exitedRef.current = true
-            onExit()
-          }
-        },
-        (total + 0.8 + 1.0) * 1000
-      )
+      window.setTimeout(() => setWritten(true), (total + 0.1) * 1000),
+      window.setTimeout(() => setDoorsOpen(true), (total + 0.7) * 1000)
     ]
-    return () => timers.forEach((t) => window.clearTimeout(t))
-  }, [onExit])
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t))
+      cancelAnimationFrame(raf)
+    }
+  }, [])
 
-  return (
-    <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a] transition-transform duration-[950ms] ease-[cubic-bezier(0.76,0,0.24,1)] ${
-        leaving ? '-translate-y-full' : 'translate-y-0'
-      }`}
-      role="status"
-      aria-label="Loading Sambit Swain's portfolio"
-    >
-      <div
-        className={`transition-all duration-700 ${
-          leaving ? '-translate-y-10 opacity-0' : 'translate-y-0 opacity-100'
-        }`}
+  const signature = (
+    <div ref={wrapRef} className="relative flex flex-col items-center">
+      <svg
+        ref={svgRef}
+        viewBox="40 40 1000 220"
+        className="w-[min(82vw,600px)] overflow-visible"
+        aria-hidden="true"
       >
-        <svg
-          ref={svgRef}
-          viewBox="40 40 1000 220"
-          className="w-[min(76vw,540px)] overflow-visible"
-          aria-hidden="true"
+        <g
+          stroke="#fafafa"
+          strokeWidth="6"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.22))' }}
         >
-          <g
-            stroke="#fafafa"
-            strokeWidth="6"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ filter: 'drop-shadow(0 0 14px rgba(255,255,255,0.22))' }}
-          >
-            {STROKES.flat().map((d, i) => (
-              <path key={i} d={d} />
-            ))}
-          </g>
-        </svg>
-      </div>
+          {STROKES.flat().map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+      </svg>
+
+      {/* The ink dot trailing the pen */}
+      <div
+        ref={dotRef}
+        className="pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 rounded-full bg-white opacity-0 shadow-[0_0_14px_4px_rgba(255,255,255,0.55)] transition-opacity duration-200"
+        aria-hidden="true"
+      />
 
       <div
-        className={`mt-10 font-mono text-[11px] uppercase tracking-[0.35em] text-neutral-500 transition-opacity duration-700 ${
-          written && !leaving ? 'opacity-100' : 'opacity-0'
+        className={`mt-12 font-mono text-[11px] uppercase tracking-[0.35em] text-neutral-500 transition-opacity duration-700 ${
+          written && !doorsOpen ? 'opacity-100' : 'opacity-0'
         }`}
       >
         software developer — portfolio
       </div>
     </div>
   )
+
+  return <SplitDoors open={doorsOpen} onDone={onExit} bg="#0a0a0a" zIndex={100} durationMs={1200}>{signature}</SplitDoors>
 }
