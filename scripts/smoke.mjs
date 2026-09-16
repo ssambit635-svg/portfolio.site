@@ -142,16 +142,37 @@ globalThis.process.env.NODE_ENV = 'development'
 
 await import(pathToFileURL(outfile).href)
 
+/* Flow: handwritten loader (∼4s) → entry gate → home. Poll for the gate. */
+let enterButton = null
+for (let i = 0; i < 48 && !enterButton; i++) {
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 250))
+  enterButton = [...window.document.querySelectorAll('button')].find((button) =>
+    /enter without sound/i.test(button.textContent ?? '')
+  )
+}
+if (!enterButton) {
+  originalError('could not find the "Enter without sound" button')
+  process.exit(1)
+}
+enterButton.click()
+
 await new Promise((resolvePromise) => setTimeout(resolvePromise, 4200))
 
 const rootEl = window.document.getElementById('root')
 const html = rootEl?.innerHTML ?? ''
 const text = (rootEl?.textContent ?? '').replace(/\s+/g, ' ').trim()
 
-const expected = ['Sambit', 'Building calm', 'CivicReport', 'Weather Sense', 'Certificates', 'Python Essentials 1']
+const expected = [
+  'Sambit Swain',
+  'React • FastAPI • Cloud',
+  'CivicReport',
+  'Certificates',
+  "Let's Connect",
+  'ssambit635@gmail.com'
+]
 
 const missing = expected.filter((needle) => !text.includes(needle))
-const sections = ['hero', 'work', 'about', 'skills', 'certificates', 'process', 'contact'].filter(
+const sections = ['intro', 'work', 'credentials', 'connect'].filter(
   (id) => !window.document.getElementById(id)
 )
 

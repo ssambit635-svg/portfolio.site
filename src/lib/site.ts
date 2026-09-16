@@ -10,6 +10,12 @@ import certCpp from '../assets/certs/cpp-essentials.jpg'
 import certLinux from '../assets/certs/linux-unhatched.jpg'
 import certPython from '../assets/certs/python-essentials.jpg'
 
+import shotCivic from '../assets/projects/civicreport.jpg'
+import shotWeather from '../assets/projects/weather-sense.jpg'
+import shotAws from '../assets/projects/aws-dashboard.jpg'
+import shotPassword from '../assets/projects/password-manager.jpg'
+import shotPortfolio from '../assets/projects/portfolio.jpg'
+
 export const profile = {
   name: 'Sambit Swain',
   first: 'Sambit',
@@ -28,6 +34,39 @@ export const profile = {
   discord: 'https://discord.com/users/1522612480831000733',
   avely: 'https://avely.me/sambit',
   site: 'https://ssambit635-svg.github.io/portfolio.site/'
+} as const
+
+/** Everything the monochrome home screen needs, in one place. */
+export const home = {
+  kicker: 'SOFTWARE DEVELOPER — ODISHA, INDIA',
+  headline: ['React • FastAPI • Cloud', 'Full-stack products & calm interfaces'],
+  lede: [
+    'full-stack products',
+    'cloud tooling',
+    'interactive experiments'
+  ],
+  ledeBefore: 'a computer science student from Odisha who ships',
+  ledeAfter: 'Design-led on the surface, engineering-led underneath — available for internships & freelance.',
+  status: 'Open to internships & freelance',
+  currently: {
+    title: 'B.Tech, Computer Science & Engineering',
+    org: '@ NIST University, Berhampur',
+    period: '2025 — 2029 · 8.2 CGPA'
+  },
+  focusSkills: [
+    'React',
+    'TypeScript',
+    'Python',
+    'FastAPI',
+    'AWS',
+    'Docker',
+    'Tailwind',
+    'GSAP',
+    'three.js',
+    'PostgreSQL'
+  ],
+  connectBlurb:
+    'Always interested in ambitious projects, internships, and conversations about products, cloud, design and the odd interface experiment.'
 } as const
 
 export const heroCopy = {
@@ -59,6 +98,7 @@ export type Project = {
   year: string
   role: string
   stack: string[]
+  image: string
   links: { label: string; href: string; kind: 'repo' | 'live' | 'case' }[]
   accent: string
   glyph: string
@@ -75,6 +115,7 @@ export const projects: Project[] = [
     year: '2026',
     role: 'Concept, design & front-end',
     stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet', 'Chart.js'],
+    image: shotCivic,
     links: [
       {
         label: 'Live site',
@@ -100,6 +141,7 @@ export const projects: Project[] = [
     year: '2025',
     role: 'Design & engineering',
     stack: ['Python', 'Streamlit', 'Open-Meteo API', 'Custom CSS'],
+    image: shotWeather,
     links: [
       {
         label: 'Live app',
@@ -125,6 +167,7 @@ export const projects: Project[] = [
     year: '2025',
     role: 'Full-stack & infra',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
+    image: shotAws,
     links: [
       { label: 'Live', href: 'https://lnkd.in/dgA4fPCR', kind: 'live' },
       { label: 'Backend', href: 'https://lnkd.in/dvXT6S-J', kind: 'case' }
@@ -142,6 +185,7 @@ export const projects: Project[] = [
     year: '2025',
     role: 'Engineering',
     stack: ['Python', 'cryptography', 'hashlib', 'Streamlit'],
+    image: shotPassword,
     links: [
       {
         label: 'Source',
@@ -162,6 +206,7 @@ export const projects: Project[] = [
     year: '2026',
     role: 'Design, motion & build',
     stack: ['React', 'TypeScript', 'GSAP', 'three.js', 'Tailwind', 'GitHub Actions'],
+    image: shotPortfolio,
     links: [
       {
         label: 'Source',
