@@ -156,13 +156,16 @@ function GhostButton({
 
 function SectionHeading({ index, kicker, title }: { index: string; kicker: string; title: string }) {
   return (
-    <div className="space-y-3">
+    <div className="group cursor-target space-y-3">
       <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-        <span className="ink-gold">{index}</span>
-        <span className="hairline-gold h-px w-10 opacity-60" aria-hidden="true" />
+        <span className="ink-gold transition-all duration-500 group-hover:tracking-[0.42em]">{index}</span>
+        <span
+          className="hairline-gold h-px w-10 origin-left opacity-60 transition-transform duration-700 group-hover:scale-x-[2.4]"
+          aria-hidden="true"
+        />
         <TextScramble text={kicker} />
       </div>
-      <h2 className="group cursor-target text-3xl font-light tracking-tight transition-colors duration-500 sm:text-4xl lg:text-[2.75rem]">
+      <h2 className="text-3xl font-light tracking-tight transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 sm:text-4xl lg:text-[2.75rem]">
         {title}
       </h2>
     </div>
