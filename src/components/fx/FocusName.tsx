@@ -75,8 +75,7 @@ export function FocusName({
     }
   }, [start, words.length, holdMs])
 
-  const corner =
-    'absolute h-4 w-4 transition-all duration-300 ease-out pointer-events-none'
+  const corner = 'absolute h-4 w-4 transition-all duration-300 ease-out pointer-events-none'
 
   return (
     <div ref={containerRef} className={cn('relative inline-flex flex-wrap gap-x-5', className)}>

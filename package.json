@@ -1,8 +1,32 @@
 {
   "name": "sambit-swain-portfolio",
+  "version": "3.0.0",
   "private": true,
-  "version": "2.0.0",
+  "description": "Portfolio of Sambit Swain — an Italian signature loader, raw-WebGL dithered ink, and a fully interactive monochrome interface.",
   "type": "module",
+  "license": "MIT",
+  "author": "Sambit Swain <ssambit635@gmail.com>",
+  "homepage": "https://ssambit635-svg.github.io/portfolio.site/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssambit635-svg/portfolio.site.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ssambit635-svg/portfolio.site/issues"
+  },
+  "keywords": [
+    "portfolio",
+    "react",
+    "typescript",
+    "webgl",
+    "shader",
+    "animation",
+    "signature",
+    "tailwind",
+    "vite",
+    "web-audio",
+    "github-pages"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -13,6 +37,7 @@
   "dependencies": {
     "@fontsource/geist": "^5.3.0",
     "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lenis": "^1.3.26",
@@ -32,5 +57,8 @@
     "tailwindcss": "^4.1.16",
     "typescript": "^5.9.3",
     "vite": "^7.1.12"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

@@ -142,16 +142,16 @@ globalThis.process.env.NODE_ENV = 'development'
 
 await import(pathToFileURL(outfile).href)
 
-/* Flow: handwritten loader (∼4s) → entry gate → home. Poll for the gate. */
+/* Flow: signature loader (∼4.5s) → entry gate → home. Poll for the gate. */
 let enterButton = null
 for (let i = 0; i < 48 && !enterButton; i++) {
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 250))
   enterButton = [...window.document.querySelectorAll('button')].find((button) =>
-    /enter without sound/i.test(button.textContent ?? '')
+    /enter in silence/i.test(button.textContent ?? '')
   )
 }
 if (!enterButton) {
-  originalError('could not find the "Enter without sound" button')
+  originalError('could not find the "Enter in silence" button')
   process.exit(1)
 }
 enterButton.click()
@@ -171,11 +171,11 @@ const expected = [
   'ssambit635@gmail.com'
 ]
 
-const missing = expected.filter((needle) => !text.includes(needle))
-const sections = ['intro', 'work', 'credentials', 'connect'].filter(
+const sections = ['intro', 'about', 'work', 'credentials', 'connect'].filter(
   (id) => !window.document.getElementById(id)
 )
 
+const missing = expected.filter((needle) => !text.includes(needle))
 const report = {
   renderedChars: html.length,
   visibleText: text.length,
