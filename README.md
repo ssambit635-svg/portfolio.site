@@ -20,6 +20,7 @@ _Every frame is hand-tuned. No animation libraries for the showpieces — just S
 
 <div align="center">
 
+<img src="https://img.shields.io/github/actions/workflow/status/ssambit635-svg/portfolio.site/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white" alt="CI status" />
 <img src="https://img.shields.io/github/actions/workflow/status/ssambit635-svg/portfolio.site/deploy.yml?branch=main&style=flat-square&label=deploy&logo=githubactions&logoColor=white" alt="Deploy status" />
 <img src="https://img.shields.io/github/package-json/v/ssambit635-svg/portfolio.site?style=flat-square&label=version&color=E2B76A" alt="Version" />
 <img src="https://img.shields.io/github/repo-size/ssambit635-svg/portfolio.site?style=flat-square&label=repo%20size" alt="Repo size" />
@@ -245,7 +246,9 @@ npm run dev       # http://localhost:5173
 
 ## 🚢 Shipping
 
-Every push to `main` runs **[deploy.yml](.github/workflows/deploy.yml)**:
+Every pull request runs **[ci.yml](.github/workflows/ci.yml)** — strict typecheck, the headless smoke test and a production build, with a size report written to the job summary. Nothing can reach `main` red.
+
+Every push to `main` then runs **[deploy.yml](.github/workflows/deploy.yml)**:
 
 ```
 npm ci → npm run typecheck → npm run build → upload dist/ → deploy to GitHub Pages

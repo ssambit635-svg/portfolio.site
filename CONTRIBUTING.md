@@ -34,6 +34,8 @@ npm run smoke       # headless render of loader → gate → home
 npm run build       # production build
 ```
 
+Pull requests run all three automatically in CI (`.github/workflows/ci.yml`).
+
 `npm run smoke` walks the real flow in jsdom — it clicks through the entry
 gate and asserts that every section and every line of hero copy rendered. If
 you rename a section, change the gate buttons or edit `home.headline`, update
