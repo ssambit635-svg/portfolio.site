@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { SoundProvider } from './context/SoundContext'
+import { ToastProvider } from './context/ToastContext'
 import { SmoothScrollProvider } from './providers/SmoothScroll'
 import { useTheme } from './lib/theme'
 import { Loader } from './components/Loader'
@@ -47,19 +48,24 @@ export default function App() {
 
   return (
     <SoundProvider>
-      <SmoothScrollProvider>
-        <TargetCursor />
-        <ClickSpark />
-        {phase === 'home' ? (
-          <HomePage isDark={isDark} onToggleTheme={toggle} />
-        ) : (
-          <EnterScreen onEnter={enterHome} />
-        )}
-        {showReveal && (
-          <SplitDoors open={revealOpen} onDone={() => setShowReveal(false)} zIndex={90} durationMs={1200} />
-        )}
-        {phase === 'loading' && <Loader onExit={finishLoading} />}
-      </SmoothScrollProvider>
+      <ToastProvider>
+        <SmoothScrollProvider>
+          <TargetCursor />
+          <ClickSpark />
+          {phase === 'home' ? <HomePage isDark={isDark} onToggleTheme={toggle} /> : <EnterScreen onEnter={enterHome} />}
+          {showReveal && (
+            <SplitDoors
+              open={revealOpen}
+              onDone={() => setShowReveal(false)}
+              bg={isDark ? '#05050c' : '#f3ede1'}
+              seam={isDark ? 'rgb(226 183 106 / 0.55)' : 'rgb(169 118 47 / 0.5)'}
+              zIndex={90}
+              durationMs={1250}
+            />
+          )}
+          {phase === 'loading' && <Loader onExit={finishLoading} />}
+        </SmoothScrollProvider>
+      </ToastProvider>
     </SoundProvider>
   )
 }

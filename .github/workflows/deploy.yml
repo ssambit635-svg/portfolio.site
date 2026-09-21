@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+# CI (typecheck · smoke · build) runs separately in .github/workflows/ci.yml
+# on every pull request, so a PR never touches GitHub Pages.
+
 permissions:
   contents: read
   pages: write

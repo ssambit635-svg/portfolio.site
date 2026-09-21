@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { onPointer } from '../../lib/pointer'
 
 /**
  * Fullscreen dithered-wave background rendered with raw WebGL.
@@ -45,6 +46,9 @@ uniform vec3 uColB;
 uniform vec3 uColC;
 uniform float uAurora;
 uniform float uEnter; /* 0 = calm home waves, 1 = entry beam fan */
+uniform vec2 uPointer; /* smoothed pointer, 0..1 in screen space */
+uniform float uPointerOn; /* 0 until the visitor has moved the mouse */
+uniform vec3 uGold;
 
 /* Ordered-dither threshold, built recursively from a 2x2 matrix.
    (0,0)=0 (1,0)=2 (0,1)=3 (1,1)=1 */
@@ -116,6 +120,20 @@ void main() {
     color = mix(color, uColB, clamp(blobB * uAurora, 0.0, 1.0));
     color = mix(color, uColC, clamp(blobC * uAurora, 0.0, 1.0));
   }
+
+  /* Pointer lens: the dither field bends a little around the cursor, and a
+     warm lamp blooms behind it — the backdrop reacts to being looked at. */
+  if (uPointerOn > 0.5) {
+    vec2 ptr = vec2(uPointer.x * aspect, uPointer.y);
+    float dist = length(p - ptr);
+    float lens = exp(-7.5 * dist);
+    color += uGold * lens * 0.085;
+    color = mix(color, color * 1.08, smoothstep(0.34, 0.0, dist));
+  }
+
+  /* Slow caustic shimmer so the flat fields are never quite flat */
+  float caustic = sin(p.x * 26.0 + p.y * 17.0 + t * 1.35) * 0.5 + 0.5;
+  color += uGold * pow(caustic, 9.0) * 0.03;
 
   /* Gentle vignette to seat the content in the frame */
   float vig = smoothstep(1.25, 0.45, length(uv - 0.5) * 1.4);
@@ -204,7 +222,17 @@ export function WaveCanvas({ bg, wave, aurora, variant = 'home', className }: Wa
     const uColC = gl.getUniformLocation(program, 'uColC')
     const uAurora = gl.getUniformLocation(program, 'uAurora')
     const uEnter = gl.getUniformLocation(program, 'uEnter')
+    const uPointer = gl.getUniformLocation(program, 'uPointer')
+    const uPointerOn = gl.getUniformLocation(program, 'uPointerOn')
+    const uGold = gl.getUniformLocation(program, 'uGold')
     gl.uniform1f(uEnter, variant === 'enter' ? 1 : 0)
+    gl.uniform3f(uGold, 0.886, 0.718, 0.416)
+
+    /* The whole page shares one smoothed pointer; the shader just reads it. */
+    const pointerState = { current: { x: 0.5, y: 0.5, active: 0 } }
+    const stopPointer = onPointer((ptr) => {
+      pointerState.current = ptr
+    })
 
     let raf = 0
     const start = performance.now()
@@ -233,6 +261,8 @@ export function WaveCanvas({ bg, wave, aurora, variant = 'home', className }: Wa
       gl.uniform3f(uColB, cAurora.b[0], cAurora.b[1], cAurora.b[2])
       gl.uniform3f(uColC, cAurora.c[0], cAurora.c[1], cAurora.c[2])
       gl.uniform1f(uAurora, cAurora.strength)
+      gl.uniform2f(uPointer, pointerState.current.x * 0.5 + 0.5, 1 - (pointerState.current.y * 0.5 + 0.5))
+      gl.uniform1f(uPointerOn, pointerState.current.active)
       gl.drawArrays(gl.TRIANGLES, 0, 3)
     }
 
@@ -257,6 +287,7 @@ export function WaveCanvas({ bg, wave, aurora, variant = 'home', className }: Wa
     window.addEventListener('resize', resize)
 
     return () => {
+      stopPointer()
       cancelAnimationFrame(raf)
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('resize', resize)

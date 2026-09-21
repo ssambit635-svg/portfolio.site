@@ -40,11 +40,7 @@ export const profile = {
 export const home = {
   kicker: 'SOFTWARE DEVELOPER — ODISHA, INDIA',
   headline: ['React • FastAPI • Cloud', 'Full-stack products & calm interfaces'],
-  lede: [
-    'full-stack products',
-    'cloud tooling',
-    'interactive experiments'
-  ],
+  lede: ['full-stack products', 'cloud tooling', 'interactive experiments'],
   ledeBefore: 'a computer science student from Odisha who ships',
   ledeAfter: 'Design-led on the surface, engineering-led underneath — available for internships & freelance.',
   status: 'Open to internships & freelance',
