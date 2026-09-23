@@ -69,7 +69,7 @@ export default function Halftone({ src, className }: { src?: string; className?:
           for (let x = 0; x < sw; x++) {
             const i = (y * sw + x) * 4
             const l = (data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11) / 255
-            if (l < 0.05) continue
+            if (l < 0.03) continue
             const px = x * cell
             const py = y * cell
             const dx = px - mouse.x
@@ -79,7 +79,7 @@ export default function Halftone({ src, className }: { src?: string; className?:
             const halo = Math.max(0, 1 - d / (R * 1.9))
             const hue = (270 + x * 0.6 + y * 0.4 + t * 0.02 + halo * 60) % 360
             const sat = 55 + halo * 40
-            const light = 18 + l * 42 + halo * 16
+            const light = 14 + Math.pow(l, 0.75) * 52 + halo * 16
             ctx.globalAlpha = 1 - inside
             ctx.fillStyle = `hsl(${hue} ${sat}% ${light}%)`
             const r = Math.max(1, (cell * 0.55 * (0.35 + l)) | 0)
