@@ -1,8 +1,6 @@
 /**
  * Single source of truth for every piece of copy on the site.
- * Editing this file is enough to keep the whole portfolio in sync.
  */
-
 import certAws from '../assets/certs/aws-foundations.jpg'
 import certC from '../assets/certs/c-programming.jpg'
 import certCloud from '../assets/certs/cloud-computing.jpg'
@@ -20,12 +18,18 @@ export const profile = {
   name: 'Sambit Swain',
   first: 'Sambit',
   last: 'Swain',
-  role: 'Software Developer & Interface Designer',
-  rotating: ['software developer', 'interface designer', 'systems tinkerer', 'cloud builder'],
-  location: 'Berhampur, Odisha, India',
+  role: 'Software Developer',
+  tagline: 'a computer science student',
+  taglineSub: 'who ships products & experiments',
+  birthYear: "06'",
+  country: 'IN',
+  city: 'Berhampur, IN',
+  coords: ["19°18'55.0\"N", "84°47'32.0\"E"],
   timezone: 'Asia/Kolkata',
   email: 'ssambit635@gmail.com',
+  emailParts: ['ssambit635', '@gmail.com'],
   phone: '+91 9437729404',
+  phoneParts: ['+91', '943', '772', '9404'],
   phoneHref: '+919437729404',
   github: 'https://github.com/ssambit635-svg',
   linkedin: 'https://www.linkedin.com/in/sambit-swain-7032a8378',
@@ -33,298 +37,185 @@ export const profile = {
   hashnode: 'https://hashnode.com/@ssambit',
   discord: 'https://discord.com/users/1522612480831000733',
   avely: 'https://avely.me/sambit',
-  site: 'https://ssambit635-svg.github.io/portfolio.site/'
+  site: 'https://ssambit635-svg.github.io/portfolio.site/',
+  resume: '#'
 } as const
 
-/** Everything the monochrome home screen needs, in one place. */
+export const intro = {
+  before: "I'm a regular guy passionate about ",
+  art: 'Code',
+  mid: ' and ',
+  tech: '<design/>',
+  after:
+    ' Nothing excites me more than building in those spaces. If I ever got rich, I’d fund open-source tools for students.'
+} as const
+
+export const manifesto = {
+  lines: ['I believe great', 'work isn’t made', 'by talent alone.', 'It’s forged through', 'late nights,', 'bad drafts,', '& one too many'],
+  quote: ['“Just one', 'more', 'tweak”']
+} as const
+
+export const stats = [
+  { label: 'Products Shipped', value: 5, suffix: '+' },
+  { label: 'Years Coding', value: 3, suffix: '+' },
+  { label: 'Certifications', value: 6, suffix: '+' }
+] as const
+
+export const tools = [
+  { id: 'react', label: 'React' },
+  { id: 'python', label: 'Python' },
+  { id: 'aws', label: 'AWS' },
+  { id: 'docker', label: 'Docker' }
+] as const
 
 export type Project = {
   id: string
-  index: string
   title: string
-  tagline: string
+  kind: string
   description: string
   year: string
-  role: string
   stack: string[]
   image: string
-  links: { label: string; href: string; kind: 'repo' | 'live' | 'case' }[]
-  accent: string
-  glyph: string
+  href: string
+  repo?: string
 }
 
 export const projects: Project[] = [
   {
     id: 'civicreport',
-    index: '01',
     title: 'CivicReport',
-    tagline: 'AI-assisted civic reporting for a real city',
+    kind: 'Web App',
     description:
-      'Citizens photograph a problem — a broken streetlight, an overflowing drain — and Gemini classifies it, drops it on a live map and tracks it until it closes. A dashboard rolls every report into a city health score.',
+      'Citizens photograph a problem — a broken streetlight, an overflowing drain — and Gemini classifies it, drops it on a live map and tracks it until it closes.',
     year: '2026',
-    role: 'Concept, design & front-end',
-    stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet', 'Chart.js'],
+    stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet'],
     image: shotCivic,
-    links: [
-      {
-        label: 'Live site',
-        href: 'https://ssambit635-svg.github.io/Civic-report/',
-        kind: 'live'
-      },
-      {
-        label: 'Source',
-        href: 'https://github.com/ssambit635-svg/Civic-report.git',
-        kind: 'repo'
-      }
-    ],
-    accent: '#C0592C',
-    glyph: 'map'
+    href: 'https://ssambit635-svg.github.io/Civic-report/',
+    repo: 'https://github.com/ssambit635-svg/Civic-report.git'
   },
   {
     id: 'weather-sense',
-    index: '02',
     title: 'Weather Sense',
-    tagline: 'Weather that explains what today should feel like',
+    kind: 'Data App',
     description:
-      'A seven-day forecast, air-quality index and lifestyle scores that tell you whether to carry an umbrella or skip the evening run. Built so the data reads like advice instead of a spreadsheet.',
+      'A seven-day forecast, air-quality index and lifestyle scores that tell you whether to carry an umbrella or skip the evening run.',
     year: '2025',
-    role: 'Design & engineering',
-    stack: ['Python', 'Streamlit', 'Open-Meteo API', 'Custom CSS'],
+    stack: ['Python', 'Streamlit', 'Open-Meteo API'],
     image: shotWeather,
-    links: [
-      {
-        label: 'Live app',
-        href: 'https://weather-sense-pbwmsehcq8etxhy7vufp6i.streamlit.app/',
-        kind: 'live'
-      },
-      {
-        label: 'Source',
-        href: 'https://github.com/ssambit635-svg/Weather-sense.git',
-        kind: 'repo'
-      }
-    ],
-    accent: '#5B6749',
-    glyph: 'weather'
+    href: 'https://weather-sense-pbwmsehcq8etxhy7vufp6i.streamlit.app/',
+    repo: 'https://github.com/ssambit635-svg/Weather-sense.git'
   },
   {
     id: 'aws-dashboard',
-    index: '03',
-    title: 'AWS Cost & Resource Dashboard',
-    tagline: 'Where first cloud projects stop being free',
+    title: 'AWS Dashboard',
+    kind: 'Cloud Tool',
     description:
-      'A dashboard that lists live EC2 instances, S3 buckets and month-to-date billing, then breaks the spend down by service. Built by debugging Docker, CORS and deployment configs until it stayed up.',
+      'Lists live EC2 instances, S3 buckets and month-to-date billing, then breaks the spend down by service.',
     year: '2025',
-    role: 'Full-stack & infra',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
     image: shotAws,
-    links: [
-      { label: 'Live', href: 'https://lnkd.in/dgA4fPCR', kind: 'live' },
-      { label: 'Backend', href: 'https://lnkd.in/dvXT6S-J', kind: 'case' }
-    ],
-    accent: '#B98A2C',
-    glyph: 'cloud'
+    href: 'https://lnkd.in/dgA4fPCR'
   },
   {
     id: 'password-manager',
-    index: '04',
     title: 'Password Manager',
-    tagline: 'Encryption explained in one honest screen',
+    kind: 'Security',
     description:
-      'Generate, store and retrieve credentials with AES Fernet encryption and a SHA-256 hashed master password. No cloud, no accounts — the vault never leaves the machine it runs on.',
+      'Generate, store and retrieve credentials with AES Fernet encryption and a SHA-256 hashed master password. No cloud, no accounts.',
     year: '2025',
-    role: 'Engineering',
-    stack: ['Python', 'cryptography', 'hashlib', 'Streamlit'],
+    stack: ['Python', 'cryptography', 'Streamlit'],
     image: shotPassword,
-    links: [
-      {
-        label: 'Source',
-        href: 'https://github.com/ssambit635-svg/password_manager_python.git',
-        kind: 'repo'
-      }
-    ],
-    accent: '#3A332A',
-    glyph: 'lock'
+    href: 'https://github.com/ssambit635-svg/password_manager_python.git'
   },
   {
     id: 'portfolio',
-    index: '05',
     title: 'This Portfolio',
-    tagline: 'The site you are reading, rebuilt from zero',
-    description:
-      'Creamy, motion-first, and fully automated: GSAP ScrollTrigger drives the scroll narrative, three.js renders the clay models, and every push to main deploys through GitHub Actions.',
+    kind: 'Web Design',
+    description: 'The site you are reading, rebuilt from zero.',
     year: '2026',
-    role: 'Design, motion & build',
-    stack: ['React', 'TypeScript', 'GSAP', 'three.js', 'Tailwind', 'GitHub Actions'],
+    stack: ['React', 'TypeScript', 'GSAP', 'Tailwind'],
     image: shotPortfolio,
-    links: [
-      {
-        label: 'Source',
-        href: 'https://github.com/ssambit635-svg/portfolio.site.git',
-        kind: 'repo'
-      },
-      {
-        label: 'Live',
-        href: 'https://ssambit635-svg.github.io/portfolio.site/',
-        kind: 'live'
-      }
-    ],
-    accent: '#6E7A5E',
-    glyph: 'spark'
+    href: 'https://github.com/ssambit635-svg/portfolio.site.git'
   }
 ]
 
-export const skillGroups = [
-  {
-    title: 'Languages',
-    note: 'What I reach for first',
-    items: ['Python', 'JavaScript', 'TypeScript', 'Java', 'C', 'SQL']
-  },
-  {
-    title: 'Front-end & design',
-    note: 'Interfaces that hold up',
-    items: ['React', 'Vite', 'Tailwind CSS', 'GSAP', 'three.js', 'Figma']
-  },
-  {
-    title: 'Back-end & data',
-    note: 'The parts users never see',
-    items: ['FastAPI', 'Node.js', 'PostgreSQL', 'SQLite', 'REST APIs', 'Auth flows']
-  },
-  {
-    title: 'Cloud & tooling',
-    note: 'Keeping it shipped',
-    items: ['AWS', 'Docker', 'Nginx', 'GitHub Actions', 'Linux', 'Git']
-  }
-] as const
-
-export const timeline = [
-  {
-    period: '2025 — 2029',
-    title: 'B.Tech, Computer Science & Engineering',
-    org: 'NIST University, Berhampur',
-    detail:
-      'Core computer science by day — data structures, operating systems, DBMS, networks — and shipping real products on the side. Currently going deep on cloud architecture and DevOps practice.',
-    metric: '8.2 CGPA',
-    tags: ['DSA', 'Operating Systems', 'DBMS', 'Computer Networks', 'OOP with Java', 'Web Technologies']
-  },
-  {
-    period: '2022 — 2024',
-    title: 'Class XII, PCM + Computer Science',
-    org: 'Dhenkanal Higher Secondary School',
-    detail:
-      'The computer science paper is where this started: writing my first loops, then wondering what happens behind the browser tab.',
-    metric: '79.7%',
-    tags: ['Programming fundamentals', 'Mathematics', 'Physics']
-  }
-] as const
-
-export type Certificate = {
+export type Experience = {
   id: string
-  title: string
-  issuer: string
-  date: string
-  image: string
-  href: string
+  org: string
+  role: string
+  detail: string
+  image?: string
 }
 
-export const certificates: Certificate[] = [
+export const experience: Experience[] = [
+  {
+    id: 'nist',
+    org: 'NIST University',
+    role: 'B.Tech CSE · 2025 — 2029',
+    detail:
+      'Core computer science by day — data structures, operating systems, DBMS, networks — and shipping real products on the side. 8.2 CGPA.'
+  },
   {
     id: 'aws',
-    title: 'AWS Foundations: AWS Cloud Essentials',
-    issuer: 'AWS Training & Certification',
-    date: 'Jun 2026',
-    image: certAws,
-    href: 'https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials'
+    org: 'AWS Training',
+    role: 'Cloud Essentials',
+    detail: 'AWS Foundations: Cloud Essentials — compute, storage, networking and billing fundamentals.',
+    image: certAws
   },
   {
-    id: 'python',
-    title: 'Python Essentials 1',
-    issuer: 'Cisco Networking Academy',
-    date: 'Jun 2026',
-    image: certPython,
-    href: 'https://www.credly.com/badges/2855d561-607d-40a9-ac8f-b9005421c6b3/public_url'
+    id: 'cisco-py',
+    org: 'Cisco NetAcad',
+    role: 'Python Essentials 1',
+    detail: 'Python fundamentals, data types, control flow and functions — Cisco Networking Academy.',
+    image: certPython
   },
   {
-    id: 'cpp',
-    title: 'C++ Essentials 1',
-    issuer: 'Cisco Networking Academy',
-    date: 'Jun 2026',
-    image: certCpp,
-    href: 'https://www.credly.com/badges/66f3216f-c6ed-415e-bc46-3fb831c05ed9/public_url'
+    id: 'cisco-cpp',
+    org: 'Cisco NetAcad',
+    role: 'C++ Essentials',
+    detail: 'Object-oriented programming, memory and the STL in C++.',
+    image: certCpp
   },
   {
-    id: 'linux',
-    title: 'Linux Unhatched',
-    issuer: 'Cisco Networking Academy',
-    date: 'Jul 2026',
-    image: certLinux,
-    href: 'https://www.credly.com/badges/a9f5dddc-e2fb-42bb-8899-decdfd71775a/public_url'
+    id: 'cisco-linux',
+    org: 'Cisco NetAcad',
+    role: 'Linux Unhatched',
+    detail: 'Shell, filesystem and permissions — the base layer for everything I deploy.',
+    image: certLinux
   },
   {
-    id: 'cloud',
-    title: 'Introduction to Cloud Computing',
-    issuer: 'Simplilearn SkillUp',
-    date: 'Jun 2026',
-    image: certCloud,
-    href: 'https://www.simplilearn.com/skillup-certificate-landing?token=eyJjb3Vyc2VfaWQiOiIxNTExIiwiY2VydGlmaWNhdGVfdXJsIjoiaHR0cHM6XC9cL2NlcnRpZmljYXRlcy5zaW1wbGljZG4ubmV0XC9zaGFyZVwvMTAzMDk4ODdfMTA1OTczODJfMTc4MDY0MjMzNDA2MC5wbmciLCJ1c2VybmFtZSI6IlNhbWJpdCBzd2FpbiAifQ&utm_source=shared-certificate&utm_medium=app_lms&utm_campaign=shared-certificate-promotion'
+    id: 'simplilearn',
+    org: 'Simplilearn',
+    role: 'Cloud Computing',
+    detail: 'Cloud service models, deployment models and architecture basics.',
+    image: certCloud
   },
   {
-    id: 'c',
-    title: 'Foundations of Programming using C',
-    issuer: 'ExcelR EdTech — 30 hr live training',
-    date: 'Nov 2025',
-    image: certC,
-    href: 'https://www.linkedin.com/posts/sambit-swain-7032a8378_completed-foundation-of-programming-using-share-7408601134715719681-E70T/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAF1Nu_MBCbMtHi0NdnxBEWERM9kOccSHudE'
+    id: 'excelr',
+    org: 'ExcelR',
+    role: 'Programming in C',
+    detail: '30-hour live training on the foundations of programming using C.',
+    image: certC
+  },
+  {
+    id: 'dhss',
+    org: 'Dhenkanal HSS',
+    role: 'Class XII · PCM + CS',
+    detail: 'The computer science paper is where this started: first loops, then wondering what happens behind the browser tab. 79.7%.'
   }
 ]
 
-export const contactChannels = [
-  {
-    label: 'Email',
-    value: profile.email,
-    href: `mailto:${profile.email}`,
-    kind: 'primary' as const
-  },
-  {
-    label: 'GitHub',
-    value: 'ssambit635-svg',
-    href: profile.github,
-    kind: 'link' as const
-  },
-  {
-    label: 'LinkedIn',
-    value: 'sambit-swain',
-    href: profile.linkedin,
-    kind: 'link' as const
-  },
-  {
-    label: 'Phone',
-    value: profile.phone,
-    href: `tel:${profile.phoneHref}`,
-    kind: 'link' as const
-  },
-  {
-    label: 'Book a call',
-    value: 'avely.me/sambit',
-    href: profile.avely,
-    kind: 'link' as const
-  },
-  {
-    label: 'X',
-    value: '@swainsambit7i',
-    href: profile.x,
-    kind: 'link' as const
-  },
-  {
-    label: 'Hashnode',
-    value: 'Writing on code',
-    href: profile.hashnode,
-    kind: 'link' as const
-  },
-  {
-    label: 'Discord',
-    value: 'Say hello',
-    href: profile.discord,
-    kind: 'link' as const
-  }
-]
+export const connect = [
+  { n: '01', label: 'LinkedIn', href: profile.linkedin },
+  { n: '02', label: 'GitHub', href: profile.github },
+  { n: '03', label: 'X', href: profile.x },
+  { n: '04', label: 'Hashnode', href: profile.hashnode },
+  { n: '05', label: 'Discord', href: profile.discord },
+  { n: '06', label: 'Avely', href: profile.avely }
+] as const
 
+export const footerCols = [
+  { title: 'Portfolio', items: [{ label: 'GitHub', href: profile.github }, { label: 'Hashnode', href: profile.hashnode }] },
+  { title: 'Social', items: [{ label: 'LinkedIn', href: profile.linkedin }, { label: 'X', href: profile.x }] },
+  { title: 'Talk', items: [{ label: 'Discord', href: profile.discord }, { label: 'Avely', href: profile.avely }] }
+] as const

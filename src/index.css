@@ -1,14 +1,188 @@
 @import 'tailwindcss';
+@import '@fontsource/big-shoulders-display/300';
+@import '@fontsource/big-shoulders-display/400';
+@import '@fontsource/big-shoulders-display/500';
+@import '@fontsource/big-shoulders-display/600';
+@import '@fontsource/chakra-petch/300';
+@import '@fontsource/chakra-petch/400';
+@import '@fontsource/chakra-petch/500';
+@import '@fontsource/chakra-petch/600';
+@import '@fontsource/dm-sans/300';
+@import '@fontsource/dm-sans/400';
+@import '@fontsource/dm-sans/500';
 
-/* Theme tokens will be defined here once the new design direction is set. */
+@theme {
+  --color-ink: #060606;
+  --color-ink-2: #0d0e0c;
+  --color-ink-3: #141613;
+  --color-lime: #b6ff3b;
+  --color-lime-deep: #8fd634;
+  --color-lime-dim: #5b8a22;
+  --color-purple: #5a0fe0;
+  --color-cream: #eef0e6;
+  --color-red: #ff3b3b;
+  --color-mute: #6d716a;
+  --color-mute-2: #3a3d38;
 
-html,
-body,
-#root {
-  min-height: 100%;
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-label: 'Chakra Petch', ui-monospace, monospace;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+
+:root {
+  /* header + chrome colours, swapped per section theme */
+  --hd-fg: var(--color-cream);
+  --hd-mute: var(--color-mute);
+  --hd-accent: var(--color-lime);
+  --hd-btn-bg: #1a1d19;
+  --hd-btn-fg: var(--color-cream);
+  --hd-btn-bd: #3a3f38;
+  --hd-line: rgba(255, 255, 255, 0.07);
+  --hd-cursor: var(--color-lime);
+}
+:root[data-theme='lime'] {
+  --hd-fg: var(--color-purple);
+  --hd-mute: rgba(90, 15, 224, 0.45);
+  --hd-accent: var(--color-purple);
+  --hd-btn-bg: var(--color-lime);
+  --hd-btn-fg: var(--color-purple);
+  --hd-btn-bd: var(--color-purple);
+  --hd-line: rgba(0, 0, 0, 0.08);
+  --hd-cursor: var(--color-purple);
+}
+
+html {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  scroll-behavior: auto;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 body {
   margin: 0;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+@media (hover: hover) and (pointer: fine) {
+  body,
+  a,
+  button {
+    cursor: none;
+  }
+}
+::selection {
+  background: var(--color-lime);
+  color: var(--color-ink);
+}
+
+/* --- typography helpers ------------------------------------------------ */
+.t-label {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+
+/* --- shapes -------------------------------------------------------------- */
+/* Tag: diagonal cut on bottom-right */
+.notch-tag {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+}
+/* Folder card: small step on the left edge */
+.notch-card {
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% 100%,
+    12px 100%,
+    12px 62%,
+    0 62%,
+    0 22%,
+    12px 22%
+  );
+}
+/* Menu item: tiny clip at top-right */
+.notch-item {
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+/* Active list item: diagonal bottom-right */
+.notch-list {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+
+/* --- vertical grid lines ------------------------------------------------- */
+.grid-lines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 5), 1fr);
+}
+.grid-lines > i {
+  border-left: 1px solid var(--hd-line);
+}
+.grid-lines > i:first-child {
+  border-left: 0;
+}
+
+/* --- scramble ------------------------------------------------------------ */
+.scr-pending {
+  color: var(--scr-color, var(--color-lime));
+  opacity: 0.85;
+}
+
+/* --- dotted giant type --------------------------------------------------- */
+.dotted-text {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-image: radial-gradient(circle at center, #0a0a0a 32%, transparent 36%);
+  background-size: 7px 7px;
+}
+
+/* --- misc ---------------------------------------------------------------- */
+.vertical-rl {
+  writing-mode: vertical-rl;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.blink {
+  animation: blink 1.2s steps(1) infinite;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee {
+  animation: marquee 28s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee, .blink { animation: none; }
 }
