@@ -3,6 +3,9 @@ import Scramble from '../fx/Scramble'
 import Halftone from '../fx/Halftone'
 import Tag from '../ui/Tag'
 
+/** Drop your cut-out portrait at public/portrait.png (dark/transparent bg). */
+const PORTRAIT = `${import.meta.env.BASE_URL}portrait.png`
+
 export default function Hero() {
   return (
     <section id="top" data-theme="dark" className="relative h-[100svh] min-h-[640px] overflow-hidden bg-ink text-cream">
@@ -36,7 +39,7 @@ export default function Hero() {
 
       {/* portrait */}
       <div className="absolute top-[12%] left-[53%] h-[92%] w-[26%] max-md:top-[28%] max-md:left-[30%] max-md:h-[60%] max-md:w-[46%]">
-        <Halftone />
+        <Halftone src={PORTRAIT} />
       </div>
 
       {/* name */}

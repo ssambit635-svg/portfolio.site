@@ -105,6 +105,10 @@ export default function Halftone({ src, className }: { src?: string; className?:
         img = im
         resize()
       }
+      im.onerror = () => {
+        img = null
+        data = null
+      }
       im.src = src
     }
     resize()
