@@ -7,7 +7,7 @@ export default function Footer() {
   const { tick } = useSound()
   return (
     <footer data-theme="lime" className="relative overflow-hidden bg-lime px-8 pt-10 text-ink max-md:px-4">
-      <div className="flex items-start justify-between gap-8 max-md:flex-col">
+      <div className="flex items-start justify-between gap-8 max-md:flex-col" data-reveal>
         <div>
           <h2 className="font-label text-[clamp(26px,2.4vw,32px)] leading-[1.05] font-semibold uppercase">
             <Scramble text="Let’s create" speed={30} />

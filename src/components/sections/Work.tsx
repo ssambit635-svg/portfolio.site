@@ -19,6 +19,7 @@ function Card({ p, i }: { p: Project; i: number }) {
       rel="noreferrer"
       onMouseEnter={tick}
       data-scramble-hover
+      data-reveal={i * 60}
       className="group relative block w-[300px] shrink-0 max-md:w-[78vw]"
       style={{ marginTop: OFFSETS[i % OFFSETS.length] }}
     >
@@ -37,14 +38,14 @@ function Card({ p, i }: { p: Project; i: number }) {
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(182,255,59,0.55)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(180,140,255,0.6)_100%)]" />
         <Tag tone="ink" className="absolute bottom-3 left-3">
           {p.kind}
         </Tag>
       </div>
       <div className="mt-3 flex items-center justify-between">
         <span className="font-label text-[13px] font-semibold tracking-[0.06em] text-ink uppercase">
-          <Scramble text={p.title} trigger="hover" speed={30} color="#5a0fe0" />
+          <Scramble text={p.title} trigger="hover" speed={30} color="#180735" />
         </span>
         <span className="t-label text-ink/60">
           Visit <span className="text-ink">↗</span>

@@ -12,12 +12,14 @@ import Footer from './components/sections/Footer'
 import { SoundProvider } from './hooks/useSound'
 import { useLenis } from './hooks/useLenis'
 import { useSectionTheme } from './hooks/useSectionTheme'
+import { useReveal } from './hooks/useReveal'
 
 export default function App() {
   const [menu, setMenu] = useState(false)
   const close = useCallback(() => setMenu(false), [])
   useLenis()
   useSectionTheme()
+  useReveal()
 
   return (
     <SoundProvider>

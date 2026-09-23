@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils'
 
 /* Dotted tool glyphs (halftone look) */
 const Glyph = ({ id }: { id: string }) => {
-  const common = 'h-[70px] w-[70px] [background:radial-gradient(circle,#1b1d17_36%,transparent_40%)] [background-size:5px_5px] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:center]'
+  const common = 'h-[70px] w-[70px] [background:radial-gradient(circle,#180735_36%,transparent_40%)] [background-size:5px_5px] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:center]'
   const masks: Record<string, string> = {
     react:
       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='black' stroke-width='5'%3E%3Cellipse cx='32' cy='32' rx='28' ry='11'/%3E%3Cellipse cx='32' cy='32' rx='28' ry='11' transform='rotate(60 32 32)'/%3E%3Cellipse cx='32' cy='32' rx='28' ry='11' transform='rotate(120 32 32)'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='6' fill='black'/%3E%3C/svg%3E\")",
@@ -35,6 +35,7 @@ function Card({
     <div
       onMouseEnter={tick}
       data-cursor
+      data-reveal
       className={cn(
         'notch-card group relative flex h-[180px] flex-col justify-between bg-lime-deep px-6 py-4 pl-9 transition-colors duration-200',
         hover && 'hover:bg-purple hover:text-lime',
@@ -50,7 +51,7 @@ function Card({
 export default function Stats() {
   return (
     <section data-theme="lime" className="relative bg-lime px-8 pt-[110px] pb-[90px] text-ink max-md:px-4">
-      <PixelTransition color="#b6ff3b" edge="top" />
+      <PixelTransition color="#b48cff" edge="top" />
       <div className="mx-auto grid max-w-[1400px] grid-cols-[repeat(10,1fr)] gap-y-0 max-md:grid-cols-2 max-md:gap-3">
         {/* row 1 */}
         <Card title={stats[0].label} className="col-span-2 max-md:col-span-1">

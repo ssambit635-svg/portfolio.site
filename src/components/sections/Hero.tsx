@@ -38,7 +38,7 @@ export default function Hero() {
       </p>
 
       {/* portrait */}
-      <div className="absolute top-[12%] left-[53%] h-[92%] w-[26%] max-md:top-[28%] max-md:left-[30%] max-md:h-[60%] max-md:w-[46%]">
+      <div data-cursor className="absolute top-[12%] left-[53%] h-[92%] w-[26%] max-md:top-[28%] max-md:left-[30%] max-md:h-[60%] max-md:w-[46%]">
         <Halftone src={PORTRAIT} />
       </div>
 

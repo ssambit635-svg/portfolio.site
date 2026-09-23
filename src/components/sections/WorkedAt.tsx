@@ -39,7 +39,7 @@ export default function WorkedAt() {
   return (
     <section data-theme="dark" className="relative bg-ink px-8 pt-[110px] pb-[80px] text-cream max-md:px-4">
       <PixelTransition color="#060606" edge="top" />
-      <div className="text-center">
+      <div className="text-center" data-reveal>
         <Tag>I’ve been</Tag>
         <h2 className="t-display mt-3 text-[clamp(52px,6vw,88px)] font-normal">
           <Scramble text="Learning at" speed={40} />
@@ -63,8 +63,8 @@ export default function WorkedAt() {
               <img key={cur.id} src={cur.image} alt={cur.org} className="h-full w-full object-cover opacity-90" />
             ) : (
               <div className="grid h-full place-items-center">
-                <span className="font-display text-[clamp(28px,4vw,52px)] font-medium tracking-wide text-[#5560d8] uppercase">
-                  <Scramble key={cur.id} text={cur.org} trigger="mount" speed={35} color="#22c55e" />
+                <span className="font-display text-[clamp(28px,4vw,52px)] font-medium tracking-wide text-[#b48cff] uppercase">
+                  <Scramble key={cur.id} text={cur.org} trigger="mount" speed={35} color="#b48cff" />
                 </span>
               </div>
             )}

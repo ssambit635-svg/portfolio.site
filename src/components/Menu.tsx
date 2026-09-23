@@ -78,7 +78,7 @@ export default function Menu({ open, onClose }: { open: boolean; onClose: () => 
                   active ? (hover === i && i === 1 ? 'bg-lime text-ink' : 'bg-cream text-ink') : 'text-cream'
                 )}
               >
-                <Scramble text={it.label} trigger="hover" speed={40} color="#7a7f74" />
+                <Scramble text={it.label} trigger="hover" speed={40} color="#8f7ab0" />
               </a>
             )
           })}
