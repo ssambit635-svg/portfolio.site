@@ -1,6 +1,7 @@
 import { footerCols, profile } from '../../lib/site'
 import Button from '../ui/Button'
 import Scramble from '../fx/Scramble'
+import DotText from '../fx/DotText'
 import { useSound } from '../../hooks/useSound'
 
 export default function Footer() {
@@ -45,15 +46,9 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* giant dotted marquee */}
-      <div className="mt-10 -mx-8 overflow-hidden whitespace-nowrap select-none max-md:-mx-4">
-        <div className="marquee inline-flex">
-          {[0, 1].map((k) => (
-            <span key={k} className="dotted-text t-display inline-block pr-[0.3em] text-[clamp(96px,17vw,250px)] font-semibold leading-[0.82]">
-              Portfolio/{profile.first}&nbsp;·&nbsp;
-            </span>
-          ))}
-        </div>
+      {/* giant dotted marquee — dots warp around the cursor */}
+      <div className="mt-10 -mx-8 h-[clamp(120px,17vw,250px)] select-none max-md:-mx-4" data-cursor>
+        <DotText text={`Portfolio/${profile.first}`} />
       </div>
     </footer>
   )
