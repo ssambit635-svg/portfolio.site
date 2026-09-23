@@ -3,33 +3,28 @@ import { RotateCcw, Volume2, VolumeX, X } from 'lucide-react'
 import { SplitDoors } from './fx/SplitDoors'
 import { createPenScratch, playWhoosh } from '../lib/audio'
 import { prefersReducedMotion } from '../lib/motion'
-import { SIGNATURE_STROKES } from './loader/signature'
 
 /**
  * Cinematic Golden Signature Loader.
  *
  * "Sambit Swain" writes itself across the full screen in glowing golden ink —
- * letterbox bars, slow camera push-in, rising gold-dust embers, a metallic
- * shimmer sweep and a soft floor reflection. Runs for exactly 5 seconds,
- * then the doors swing open onto the site.
+ * a Lolita-style monoline script, letterbox bars, slow camera push-in, rising
+ * gold-dust embers, a metallic shimmer sweep and a soft floor reflection.
+ * Runs for exactly 5 seconds, then the doors swing open onto the site.
  */
 
 const TOTAL_MS = 5000
 const REDUCED_MS = 1400
-const DRAW_START = 0.05 // signature starts drawing
+const DRAW_START = 0.05 // signature starts writing
 const DRAW_END = 0.7 // signature completes
 const SHIM_START = 0.7 // shimmer sweep begins
 const SHIM_END = 0.97 // shimmer sweep ends
-const NAME_AT = 0.56 // printed name caption fades in
 const RING_C = 2 * Math.PI * 15
 
-type StrokePath = { d: string; kind: 'letter' | 'flourish' | 'dot' }
-
-const PATHS: StrokePath[] = SIGNATURE_STROKES.flatMap((stroke) =>
-  stroke.d.map((d) => ({ d, kind: stroke.kind }))
-)
-
-const strokeWidth = (kind: StrokePath['kind']) => (kind === 'dot' ? 8 : kind === 'flourish' ? 4 : 5)
+const SIGNATURE_TEXT = 'Sambit Swain'
+const SIGNATURE_SIZE = 175
+const SIGNATURE_X = 560
+const SIGNATURE_BASELINE = 285
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
@@ -124,7 +119,9 @@ function EmberCanvas({ active }: { active: boolean }) {
 
 export function Loader({ onExit }: { onExit: () => void }) {
   const stageRef = useRef<HTMLDivElement>(null)
-  const pathRefs = useRef<(SVGPathElement | null)[]>([])
+  const mainTextRef = useRef<SVGTextElement>(null)
+  const wipeSolidRef = useRef<SVGRectElement>(null)
+  const wipeSoftRef = useRef<SVGRectElement>(null)
   const glowRef = useRef<SVGGElement>(null)
   const reflRef = useRef<SVGGElement>(null)
   const shimRef = useRef<SVGGElement>(null)
@@ -138,7 +135,6 @@ export function Loader({ onExit }: { onExit: () => void }) {
   const [runId, setRunId] = useState(0)
   const [doorsOpen, setDoorsOpen] = useState(false)
   const [soundOn, setSoundOn] = useState(false)
-  const [showName, setShowName] = useState(false)
 
   const exitedRef = useRef(false)
   const timersRef = useRef<number[]>([])
@@ -168,155 +164,150 @@ export function Loader({ onExit }: { onExit: () => void }) {
     timersRef.current.forEach((t) => window.clearTimeout(t))
     timersRef.current = []
     stopScratch()
-    setShowName(false)
     setDoorsOpen(false)
     setRunId((n) => n + 1)
   }, [stopScratch])
 
   /* ---------------------------------------------------------- master loop */
   useEffect(() => {
+    let cancelled = false
+    let raf = 0
+
+    const openWipeFully = () => {
+      wipeSolidRef.current?.setAttribute('x', '0')
+      wipeSolidRef.current?.setAttribute('width', '1120')
+      wipeSoftRef.current?.setAttribute('width', '0')
+    }
+
     if (reduced) {
-      // Calm fallback: the signature rests fully drawn, then we leave.
-      for (const p of pathRefs.current) {
-        if (!p) continue
-        p.style.strokeDasharray = 'none'
-        p.style.strokeDashoffset = '0'
-      }
+      // Calm fallback: the signature rests fully written, then we leave.
+      openWipeFully()
       if (glowRef.current) glowRef.current.style.opacity = '0.5'
       if (reflRef.current) reflRef.current.style.opacity = '0.3'
       if (nibRef.current) nibRef.current.style.opacity = '0'
       if (shimRef.current) shimRef.current.style.opacity = '0'
       if (hairRef.current) hairRef.current.style.transform = 'scaleX(1)'
       if (ringRef.current) ringRef.current.style.strokeDashoffset = '0'
-      setShowName(true)
       const t = window.setTimeout(finish, REDUCED_MS)
       timersRef.current.push(t)
-      return () => window.clearTimeout(t)
-    }
-
-    const paths = pathRefs.current.filter((p): p is SVGPathElement => !!p)
-    if (paths.length === 0) {
-      const t = window.setTimeout(finish, 800)
-      timersRef.current.push(t)
-      return () => window.clearTimeout(t)
-    }
-
-    // Measure every path so the pen travels at one constant speed.
-    const lengths = paths.map((p) => {
-      try {
-        const len = p.getTotalLength()
-        return Number.isFinite(len) && len > 0 ? len : 100
-      } catch {
-        return 100
+      return () => {
+        cancelled = true
+        window.clearTimeout(t)
       }
-    })
-    const total = lengths.reduce((a, b) => a + b, 0)
-    const spans: { from: number; to: number; len: number }[] = []
-    let acc = 0
-    for (const len of lengths) {
-      const from = DRAW_START + ((DRAW_END - DRAW_START) * acc) / total
-      acc += len
-      const to = DRAW_START + ((DRAW_END - DRAW_START) * acc) / total
-      spans.push({ from, to, len })
-    }
-    for (let i = 0; i < paths.length; i++) {
-      paths[i].style.strokeDasharray = `${lengths[i]}`
-      paths[i].style.strokeDashoffset = `${lengths[i]}`
     }
 
-    timersRef.current.push(window.setTimeout(() => setShowName(true), TOTAL_MS * NAME_AT))
+    const boot = async () => {
+      // Wait for the signature face so the ink never flashes in a fallback.
+      try {
+        if (document.fonts?.load) {
+          await Promise.race([
+            document.fonts.load(`${SIGNATURE_SIZE}px "Ms Madi"`, SIGNATURE_TEXT),
+            new Promise((resolve) => window.setTimeout(resolve, 1800))
+          ])
+        }
+      } catch {
+        /* fall back to whatever rendered */
+      }
+      if (cancelled || exitedRef.current) return
 
-    let raf = 0
-    const start = performance.now()
+      // Measure the written line so the wipe + nib track it exactly.
+      let lineWidth = 880
+      try {
+        const measured = mainTextRef.current?.getComputedTextLength?.()
+        if (measured && Number.isFinite(measured) && measured > 200 && measured < 1100) {
+          lineWidth = measured
+        }
+      } catch {
+        /* keep the estimate */
+      }
+      const left = SIGNATURE_X - lineWidth / 2
+      const WIPE_LEAD = 170
 
-    const frame = (now: number) => {
-      if (exitedRef.current) return
-      const elapsed = now - start
-      const p = clamp01(elapsed / TOTAL_MS)
+      const start = performance.now()
 
-      // Signature draw.
-      let nibX = 0
-      let nibY = 0
-      let nibOn = false
-      for (let i = 0; i < paths.length; i++) {
-        const { from, to, len } = spans[i]
-        const local = clamp01((p - from) / Math.max(to - from, 1e-6))
-        const eased = easeInOut(local)
-        paths[i].style.strokeDashoffset = `${(len * (1 - eased)).toFixed(1)}`
-        if (local > 0 && local < 1) {
-          try {
-            const pt = paths[i].getPointAtLength(len * local)
-            nibX = pt.x
-            nibY = pt.y
-            nibOn = true
-          } catch {
-            /* keep last tip */
+      const frame = (now: number) => {
+        if (cancelled || exitedRef.current) return
+        const elapsed = now - start
+        const p = clamp01(elapsed / TOTAL_MS)
+
+        // Ink wipe: the writing reveal travels left to right.
+        const wipeP = clamp01((p - DRAW_START) / (DRAW_END - DRAW_START))
+        const solidW = wipeP * (lineWidth + WIPE_LEAD)
+        wipeSolidRef.current?.setAttribute('x', (left - WIPE_LEAD).toFixed(1))
+        wipeSolidRef.current?.setAttribute('width', Math.max(solidW, 0.1).toFixed(1))
+        wipeSoftRef.current?.setAttribute('x', (left - WIPE_LEAD + solidW).toFixed(1))
+
+        // Pen nib rides the wet leading edge of the ink.
+        const nib = nibRef.current
+        const writing = wipeP > 0 && wipeP < 1
+        if (nib) {
+          nib.style.opacity = writing ? '1' : '0'
+          if (writing) {
+            const nx = left + wipeP * lineWidth
+            const ny = SIGNATURE_BASELINE - 46 + Math.sin(elapsed / 170) * 12
+            nib.setAttribute('transform', `translate(${nx.toFixed(1)} ${ny.toFixed(1)})`)
+            const flicker = 0.75 + 0.25 * Math.sin(now / 57)
+            nibHaloRef.current?.setAttribute('opacity', flicker.toFixed(2))
           }
         }
-      }
-      const drawP = clamp01((p - DRAW_START) / (DRAW_END - DRAW_START))
 
-      // Pen nib follows the wet tip of the ink.
-      const nib = nibRef.current
-      if (nib) {
-        nib.style.opacity = nibOn ? '1' : '0'
-        if (nibOn) {
-          nib.setAttribute('transform', `translate(${nibX.toFixed(1)} ${nibY.toFixed(1)})`)
-          const flicker = 0.75 + 0.25 * Math.sin(now / 57)
-          if (nibHaloRef.current) nibHaloRef.current.setAttribute('opacity', flicker.toFixed(2))
+        // Living metal: the gold gradient breathes, the under-glow swells.
+        if (goldGradRef.current) {
+          const drift = Math.sin(elapsed / 900) * 40
+          goldGradRef.current.setAttribute('gradientTransform', `translate(${drift.toFixed(1)} 0)`)
         }
-      }
-
-      // Living metal: the gold gradient breathes, the under-glow swells.
-      if (goldGradRef.current) {
-        const drift = Math.sin(elapsed / 900) * 40
-        goldGradRef.current.setAttribute('gradientTransform', `translate(${drift.toFixed(1)} 0)`)
-      }
-      if (glowRef.current) {
-        const pulse = drawP >= 1 ? 0.55 + 0.12 * Math.sin(elapsed / 320) : 0.55 * drawP
-        glowRef.current.style.opacity = pulse.toFixed(3)
-      }
-      if (reflRef.current) reflRef.current.style.opacity = (0.38 * drawP).toFixed(3)
-
-      // Shimmer sweep across the finished signature.
-      const shim = shimRef.current
-      if (shim) {
-        const sp = clamp01((p - SHIM_START) / (SHIM_END - SHIM_START))
-        if (sp > 0 && sp < 1) {
-          const x = -320 + sp * 1760
-          shim.style.opacity = (Math.sin(sp * Math.PI) * 0.85).toFixed(3)
-          shimGradRef.current?.setAttribute('gradientTransform', `translate(${x.toFixed(1)} 0)`)
-        } else {
-          shim.style.opacity = '0'
+        if (glowRef.current) {
+          const pulse = wipeP >= 1 ? 0.55 + 0.12 * Math.sin(elapsed / 320) : 0.55 * wipeP
+          glowRef.current.style.opacity = pulse.toFixed(3)
         }
-      }
+        if (reflRef.current) reflRef.current.style.opacity = (0.38 * wipeP).toFixed(3)
 
-      // Slow cinematic push-in.
-      if (stageRef.current) {
-        const z = 1 + easeInOut(clamp01(p / 0.92)) * 0.07
-        stageRef.current.style.transform = `scale(${z.toFixed(4)}) translateY(${(-8 * p).toFixed(2)}px)`
-      }
+        // Shimmer sweep across the finished signature.
+        const shim = shimRef.current
+        if (shim) {
+          const sp = clamp01((p - SHIM_START) / (SHIM_END - SHIM_START))
+          if (sp > 0 && sp < 1) {
+            const x = -320 + sp * 1760
+            shim.style.opacity = (Math.sin(sp * Math.PI) * 0.85).toFixed(3)
+            shimGradRef.current?.setAttribute('gradientTransform', `translate(${x.toFixed(1)} 0)`)
+          } else {
+            shim.style.opacity = '0'
+          }
+        }
 
-      // Progress hairline + skip ring.
-      if (hairRef.current) hairRef.current.style.transform = `scaleX(${p.toFixed(4)})`
-      if (ringRef.current) ringRef.current.style.strokeDashoffset = `${(RING_C * (1 - p)).toFixed(2)}`
+        // Slow cinematic push-in.
+        if (stageRef.current) {
+          const z = 1 + easeInOut(clamp01(p / 0.92)) * 0.07
+          stageRef.current.style.transform = `scale(${z.toFixed(4)}) translateY(${(-8 * p).toFixed(2)}px)`
+        }
 
-      // Pen scratch tracks the writing.
-      const scratch = scratchRef.current
-      if (scratch) {
-        const writing = p > DRAW_START && p < DRAW_END
-        scratch.update(writing ? 0.9 : 0.06, writing ? 0.4 + 0.3 * Math.sin(elapsed / 210) : 0)
-      }
+        // Progress hairline + skip ring.
+        if (hairRef.current) hairRef.current.style.transform = `scaleX(${p.toFixed(4)})`
+        if (ringRef.current) ringRef.current.style.strokeDashoffset = `${(RING_C * (1 - p)).toFixed(2)}`
 
-      if (p >= 1) {
-        finish()
-        return
+        // Pen scratch tracks the writing.
+        const scratch = scratchRef.current
+        if (scratch) {
+          scratch.update(
+            writing ? 0.9 : 0.06,
+            writing ? 0.4 + 0.3 * Math.sin(elapsed / 210) : 0
+          )
+        }
+
+        if (p >= 1) {
+          finish()
+          return
+        }
+        raf = requestAnimationFrame(frame)
       }
       raf = requestAnimationFrame(frame)
     }
-    raf = requestAnimationFrame(frame)
+    boot()
 
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(raf)
+    }
   }, [runId, reduced, finish])
 
   /* ---------------------------------------------------------- sound toggle */
@@ -347,7 +338,13 @@ export function Loader({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [finish, replay])
 
-  const NAME = 'SAMBIT SWAIN'
+  const textProps = {
+    x: SIGNATURE_X,
+    y: SIGNATURE_BASELINE,
+    textAnchor: 'middle' as const,
+    fontSize: SIGNATURE_SIZE,
+    className: 'font-signature'
+  }
 
   return (
     <>
@@ -393,7 +390,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
         <div ref={stageRef} className="absolute inset-0 grid place-items-center will-change-transform">
           <div className="w-[min(1180px,94vw)]">
             <svg
-              viewBox="10 10 1100 440"
+              viewBox="10 10 1100 470"
               className="h-auto w-full overflow-visible"
               role="img"
               aria-label="Sambit Swain, written in golden ink"
@@ -422,12 +419,20 @@ export function Loader({ onExit }: { onExit: () => void }) {
                   <stop offset="58%" stopColor="#fff6e2" stopOpacity="0.55" />
                   <stop offset="100%" stopColor="#fff6e2" stopOpacity="0" />
                 </linearGradient>
-                <linearGradient id="reflFade" gradientUnits="userSpaceOnUse" x1="0" y1="298" x2="0" y2="448">
+                <linearGradient id="wipeSoftGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="140" y2="0">
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                </linearGradient>
+                <linearGradient id="reflFade" gradientUnits="userSpaceOnUse" x1="0" y1="320" x2="0" y2="475">
                   <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
                   <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
                 </linearGradient>
+                <mask id="inkWipe" maskUnits="userSpaceOnUse" x="0" y="0" width="1120" height="490">
+                  <rect ref={wipeSolidRef} x="0" y="0" width="0.1" height="490" fill="#ffffff" />
+                  <rect ref={wipeSoftRef} x="0" y="0" width="140" height="490" fill="url(#wipeSoftGrad)" />
+                </mask>
                 <mask id="reflMask">
-                  <rect x="0" y="290" width="1120" height="170" fill="url(#reflFade)" />
+                  <rect x="0" y="310" width="1120" height="175" fill="url(#reflFade)" />
                 </mask>
                 <filter id="sigBlur" x="-40%" y="-40%" width="180%" height="180%">
                   <feGaussianBlur stdDeviation="7" />
@@ -451,62 +456,39 @@ export function Loader({ onExit }: { onExit: () => void }) {
                 mask="url(#reflMask)"
                 filter="url(#reflBlur)"
                 opacity="0"
-                transform="translate(0 570) scale(1 -1)"
+                transform="translate(0 630) scale(1 -1)"
               >
-                {PATHS.map((s, i) => (
-                  <path
-                    key={`refl-${i}`}
-                    d={s.d}
-                    fill="none"
-                    stroke="#e2b76a"
-                    strokeWidth={strokeWidth(s.kind)}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ))}
+                <text {...textProps} fill="#e2b76a">
+                  {SIGNATURE_TEXT}
+                </text>
               </g>
 
               {/* Warm under-glow */}
               <g ref={glowRef} filter="url(#sigBlur)" opacity="0">
-                {PATHS.map((s, i) => (
-                  <path
-                    key={`glow-${i}`}
-                    d={s.d}
-                    fill="none"
-                    stroke="#e2b76a"
-                    strokeWidth={strokeWidth(s.kind) + 7}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ))}
+                <text {...textProps} fill="#e2b76a">
+                  {SIGNATURE_TEXT}
+                </text>
               </g>
 
               {/* The golden signature itself */}
-              <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-                {PATHS.map((s, i) => (
-                  <path
-                    key={`sig-${runId}-${i}`}
-                    ref={(el) => {
-                      pathRefs.current[i] = el
-                    }}
-                    d={s.d}
-                    stroke="url(#sigGold)"
-                    strokeWidth={strokeWidth(s.kind)}
-                    style={{ filter: 'drop-shadow(0 0 6px rgb(226 183 106 / 0.65))' }}
-                  />
-                ))}
-              </g>
+              <text
+                {...textProps}
+                ref={mainTextRef}
+                mask="url(#inkWipe)"
+                fill="url(#sigGold)"
+                stroke="#ffe9bd"
+                strokeWidth="2"
+                paintOrder="stroke"
+                style={{ filter: 'drop-shadow(0 0 6px rgb(226 183 106 / 0.65))' }}
+              >
+                {SIGNATURE_TEXT}
+              </text>
 
               {/* Shimmer sweep */}
-              <g ref={shimRef} fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0">
-                {PATHS.map((s, i) => (
-                  <path
-                    key={`shim-${i}`}
-                    d={s.d}
-                    stroke="url(#sigShimmer)"
-                    strokeWidth={strokeWidth(s.kind) + 1.5}
-                  />
-                ))}
+              <g ref={shimRef} opacity="0">
+                <text {...textProps} mask="url(#inkWipe)" fill="none" stroke="url(#sigShimmer)" strokeWidth="3">
+                  {SIGNATURE_TEXT}
+                </text>
               </g>
 
               {/* Pen nib riding the wet tip */}
@@ -516,47 +498,6 @@ export function Loader({ onExit }: { onExit: () => void }) {
                 <circle r="2.4" fill="#ffffff" />
               </g>
             </svg>
-
-            {/* Printed name caption */}
-            <div className="mt-1 text-center sm:mt-2" aria-hidden={!showName}>
-              <p
-                className="font-sans text-[clamp(13px,2.4vw,21px)] font-medium uppercase"
-                style={{ letterSpacing: '0.55em', textIndent: '0.55em' }}
-              >
-                {NAME.split('').map((ch, i) => (
-                  <span
-                    key={i}
-                    className="inline-block bg-gradient-to-b from-[#fff6e2] via-[#e9c37c] to-[#9a7434] bg-clip-text text-transparent"
-                    style={{
-                      opacity: showName ? 1 : 0,
-                      transform: showName ? 'translateY(0)' : 'translateY(10px)',
-                      filter: showName ? 'blur(0)' : 'blur(4px)',
-                      transition: `opacity 600ms ease ${i * 38}ms, transform 600ms ease ${i * 38}ms, filter 600ms ease ${i * 38}ms`
-                    }}
-                  >
-                    {ch === ' ' ? '\u00A0' : ch}
-                  </span>
-                ))}
-              </p>
-              <div
-                className="mx-auto mt-3 h-px w-40 bg-gradient-to-r from-transparent via-[#e2b76a]/80 to-transparent sm:mt-4 sm:w-56"
-                style={{
-                  opacity: showName ? 1 : 0,
-                  transform: showName ? 'scaleX(1)' : 'scaleX(0.3)',
-                  transition: 'opacity 700ms ease 500ms, transform 900ms ease 500ms'
-                }}
-              />
-              <p
-                className="mt-3 font-mono text-[9px] uppercase tracking-[0.32em] text-white/40 sm:mt-4 sm:text-[10px]"
-                style={{
-                  opacity: showName ? 1 : 0,
-                  transform: showName ? 'translateY(0)' : 'translateY(6px)',
-                  transition: 'opacity 700ms ease 750ms, transform 700ms ease 750ms'
-                }}
-              >
-                Software Developer · Interface Designer
-              </p>
-            </div>
           </div>
         </div>
 
