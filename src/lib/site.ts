@@ -37,53 +37,6 @@ export const profile = {
 } as const
 
 /** Everything the monochrome home screen needs, in one place. */
-export const home = {
-  kicker: 'SOFTWARE DEVELOPER — ODISHA, INDIA',
-  headline: ['React • FastAPI • Cloud', 'Full-stack products & calm interfaces'],
-  lede: ['full-stack products', 'cloud tooling', 'interactive experiments'],
-  ledeBefore: 'a computer science student from Odisha who ships',
-  ledeAfter: 'Design-led on the surface, engineering-led underneath — available for internships & freelance.',
-  status: 'Open to internships & freelance',
-  currently: {
-    title: 'B.Tech, Computer Science & Engineering',
-    org: '@ NIST University, Berhampur',
-    period: '2025 — 2029 · 8.2 CGPA'
-  },
-  focusSkills: [
-    'React',
-    'TypeScript',
-    'Python',
-    'FastAPI',
-    'AWS',
-    'Docker',
-    'Tailwind',
-    'GSAP',
-    'three.js',
-    'PostgreSQL'
-  ],
-  connectBlurb:
-    'Always interested in ambitious projects, internships, and conversations about products, cloud, design and the odd interface experiment.'
-} as const
-
-export const heroCopy = {
-  kicker: 'Portfolio — 2026',
-  available: 'Open to internships & freelance',
-  headline: ['Building calm', 'interfaces for', 'loud problems.'],
-  lede: 'I am Sambit — a computer science student from Odisha who ships full-stack products, cloud tooling and the odd interactive experiment. Design-led on the surface, engineering-led underneath.',
-  ctas: [
-    { label: 'See the work', href: '#work' },
-    { label: 'Start a conversation', href: '#contact' }
-  ]
-} as const
-
-export const tickerWords = [
-  'Full-stack product',
-  'Interface design',
-  'Cloud & DevOps',
-  'Interaction experiments',
-  'Available for work',
-  'Odisha, India'
-] as const
 
 export type Project = {
   id: string
@@ -220,13 +173,6 @@ export const projects: Project[] = [
   }
 ]
 
-export const stats = [
-  { value: 5, suffix: '', label: 'Products shipped & live' },
-  { value: 6, suffix: '', label: 'Verified certifications' },
-  { value: 8.2, suffix: '', label: 'CGPA, first year', decimals: 1 },
-  { value: 3, suffix: '+', label: 'Years writing code' }
-] as const
-
 export const skillGroups = [
   {
     title: 'Languages',
@@ -331,27 +277,6 @@ export const certificates: Certificate[] = [
   }
 ]
 
-export const processSteps = [
-  {
-    index: '01',
-    title: 'Understand the problem properly',
-    body: 'Before a single line: who is this for, what does success look like, what breaks if it is wrong. Most bad software is a well-solved wrong problem.',
-    detail: 'Discovery notes · constraints · success criteria'
-  },
-  {
-    index: '02',
-    title: 'Design and build together',
-    body: 'I sketch in the browser. Structure, hierarchy and motion get decided in code where I can feel the timing, not in a static mockup that flatters itself.',
-    detail: 'Wireframes · design tokens · motion passes'
-  },
-  {
-    index: '03',
-    title: 'Break it, fix it, ship it',
-    body: 'Deploy early to a real URL, watch real people use it, then tighten the rough edges. The version strangers use teaches more than any local preview.',
-    detail: 'CI/CD · Docker · monitoring · iteration'
-  }
-] as const
-
 export const contactChannels = [
   {
     label: 'Email',
@@ -403,10 +328,3 @@ export const contactChannels = [
   }
 ]
 
-export const navLinks = [
-  { label: 'Work', href: '#work', index: '01' },
-  { label: 'About', href: '#about', index: '02' },
-  { label: 'Skills', href: '#skills', index: '03' },
-  { label: 'Certificates', href: '#certificates', index: '04' },
-  { label: 'Contact', href: '#contact', index: '05' }
-] as const
