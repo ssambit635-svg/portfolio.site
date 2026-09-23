@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw, Volume2, VolumeX, X } from 'lucide-react'
 import { SplitDoors } from './fx/SplitDoors'
 import { createPenScratch, playWhoosh } from '../lib/audio'
@@ -7,16 +7,19 @@ import { prefersReducedMotion } from '../lib/motion'
 /**
  * Cinematic Golden Signature Loader.
  *
- * "Sambit Swain" writes itself across the full screen in glowing golden ink —
- * a Lolita-style monoline script, letterbox bars, slow camera push-in, rising
- * gold-dust embers, a metallic shimmer sweep and a soft floor reflection.
- * Runs for exactly 5 seconds, then the doors swing open onto the site.
+ * "Sambit Swain" is written across the full screen in glowing golden ink —
+ * a real pen-order performance: each letter flows in writing sequence at one
+ * constant pen speed, the nib lifts and hops between letters (higher between
+ * words), ink glows wet at the tip, then a metallic shimmer sweeps the
+ * finished signature. Letterbox bars, slow camera push-in, rising gold-dust
+ * embers, spotlight pool and a soft floor reflection. Runs for exactly
+ * 5 seconds, then the doors swing open onto the site.
  */
 
 const TOTAL_MS = 5000
 const REDUCED_MS = 1400
-const DRAW_START = 0.05 // signature starts writing
-const DRAW_END = 0.7 // signature completes
+const DRAW_START = 0.05 // pen touches down
+const DRAW_END = 0.7 // pen lifts for the last time
 const SHIM_START = 0.7 // shimmer sweep begins
 const SHIM_END = 0.97 // shimmer sweep ends
 const RING_C = 2 * Math.PI * 15
@@ -25,8 +28,13 @@ const SIGNATURE_TEXT = 'Sambit Swain'
 const SIGNATURE_SIZE = 175
 const SIGNATURE_X = 560
 const SIGNATURE_BASELINE = 285
+const LETTER_LEAD = 60 // soft ink edge ahead of the nib, per letter
+const LIFT_SMALL = 12 // nib hop height between letters
+const LIFT_WORD = 30 // nib hop height between words
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
+/** Gentle pen easing — the nib breathes at curves, runs mid-stroke. */
+const penEase = (t: number) => t * t * (3 - 2 * t)
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
 /* ---------------------------------------------------------------- embers -- */
@@ -117,11 +125,27 @@ function EmberCanvas({ active }: { active: boolean }) {
 
 /* ----------------------------------------------------------------- loader -- */
 
+type LetterSeg = {
+  index: number
+  x0: number
+  x1: number
+  start: number
+  end: number
+}
+
+type GapSeg = {
+  start: number
+  end: number
+  fromX: number
+  toX: number
+  lift: number
+}
+
 export function Loader({ onExit }: { onExit: () => void }) {
   const stageRef = useRef<HTMLDivElement>(null)
   const mainTextRef = useRef<SVGTextElement>(null)
-  const wipeSolidRef = useRef<SVGRectElement>(null)
-  const wipeSoftRef = useRef<SVGRectElement>(null)
+  const wipeSolidRefs = useRef<(SVGRectElement | null)[]>([])
+  const wipeSoftRefs = useRef<(SVGRectElement | null)[]>([])
   const glowRef = useRef<SVGGElement>(null)
   const reflRef = useRef<SVGGElement>(null)
   const shimRef = useRef<SVGGElement>(null)
@@ -129,6 +153,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
   const goldGradRef = useRef<SVGLinearGradientElement>(null)
   const nibRef = useRef<SVGGElement>(null)
   const nibHaloRef = useRef<SVGCircleElement>(null)
+  const nibCoreRef = useRef<SVGCircleElement>(null)
   const hairRef = useRef<HTMLDivElement>(null)
   const ringRef = useRef<SVGCircleElement>(null)
 
@@ -174,9 +199,15 @@ export function Loader({ onExit }: { onExit: () => void }) {
     let raf = 0
 
     const openWipeFully = () => {
-      wipeSolidRef.current?.setAttribute('x', '0')
-      wipeSolidRef.current?.setAttribute('width', '1120')
-      wipeSoftRef.current?.setAttribute('width', '0')
+      for (const r of wipeSolidRefs.current) {
+        if (!r) continue
+        r.setAttribute('x', '0')
+        r.setAttribute('width', '1120')
+      }
+      for (const r of wipeSoftRefs.current) {
+        if (!r) continue
+        r.setAttribute('width', '0')
+      }
     }
 
     if (reduced) {
@@ -210,19 +241,75 @@ export function Loader({ onExit }: { onExit: () => void }) {
       }
       if (cancelled || exitedRef.current) return
 
-      // Measure the written line so the wipe + nib track it exactly.
-      let lineWidth = 880
-      try {
-        const measured = mainTextRef.current?.getComputedTextLength?.()
-        if (measured && Number.isFinite(measured) && measured > 200 && measured < 1100) {
-          lineWidth = measured
+      /* ---- measure every letter in place (shaping intact) ---- */
+      const chars = SIGNATURE_TEXT.split('')
+      const bounds: { x0: number; x1: number }[] = []
+      const textEl = mainTextRef.current
+      let measuredOk = false
+      if (textEl) {
+        try {
+          const total = textEl.getComputedTextLength()
+          if (Number.isFinite(total) && total > 200 && total < 1100) {
+            measuredOk = true
+            for (let i = 0; i < chars.length; i++) {
+              const s = textEl.getStartPositionOfChar(i).x
+              const e = textEl.getEndPositionOfChar(i).x
+              bounds.push({ x0: s, x1: Math.max(e, s + 1) })
+            }
+          }
+        } catch {
+          measuredOk = false
         }
-      } catch {
-        /* keep the estimate */
       }
-      const left = SIGNATURE_X - lineWidth / 2
-      const WIPE_LEAD = 170
+      if (!measuredOk) {
+        // Even fallback slices keep the pen-order rhythm.
+        const lineWidth = 880
+        const left = SIGNATURE_X - lineWidth / 2
+        const slice = lineWidth / chars.length
+        for (let i = 0; i < chars.length; i++) {
+          bounds.push({ x0: left + i * slice, x1: left + (i + 1) * slice })
+        }
+      }
 
+      /* ---- pen choreography: constant speed, lifts between letters ---- */
+      const letters: LetterSeg[] = []
+      const gaps: GapSeg[] = []
+      const isSpace = (i: number) => chars[i] === ' '
+      const letterWidth = bounds.reduce((a, b, i) => (isSpace(i) ? a : a + (b.x1 - b.x0)), 0)
+
+      const GAP_LETTER = 0.014 // progress units ≈ 70ms pen lift
+      const GAP_WORD = 0.06 // progress units ≈ 300ms word lift
+      let gapTotal = 0
+      for (let i = 0; i < chars.length - 1; i++) {
+        if (isSpace(i) || isSpace(i + 1)) gapTotal += GAP_WORD
+        else gapTotal += GAP_LETTER
+      }
+      const writeSpan = DRAW_END - DRAW_START - gapTotal
+
+      let cursor = DRAW_START
+      let prevLetter: LetterSeg | null = null
+      for (let i = 0; i < chars.length; i++) {
+        if (isSpace(i)) continue
+        if (prevLetter) {
+          const wordBreak = chars[prevLetter.index + 1] === ' ' || i - prevLetter.index > 1
+          const gapLen = wordBreak ? GAP_WORD : GAP_LETTER
+          gaps.push({
+            start: cursor,
+            end: cursor + gapLen,
+            fromX: prevLetter.x1,
+            toX: bounds[i].x0,
+            lift: wordBreak ? LIFT_WORD : LIFT_SMALL
+          })
+          cursor += gapLen
+        }
+        const dur = ((bounds[i].x1 - bounds[i].x0) / letterWidth) * writeSpan
+        const seg: LetterSeg = { index: i, x0: bounds[i].x0, x1: bounds[i].x1, start: cursor, end: cursor + dur }
+        letters.push(seg)
+        prevLetter = seg
+        cursor += dur
+      }
+
+      const NIB_Y = SIGNATURE_BASELINE - 46
       const start = performance.now()
 
       const frame = (now: number) => {
@@ -230,26 +317,55 @@ export function Loader({ onExit }: { onExit: () => void }) {
         const elapsed = now - start
         const p = clamp01(elapsed / TOTAL_MS)
 
-        // Ink wipe: the writing reveal travels left to right.
-        const wipeP = clamp01((p - DRAW_START) / (DRAW_END - DRAW_START))
-        const solidW = wipeP * (lineWidth + WIPE_LEAD)
-        wipeSolidRef.current?.setAttribute('x', (left - WIPE_LEAD).toFixed(1))
-        wipeSolidRef.current?.setAttribute('width', Math.max(solidW, 0.1).toFixed(1))
-        wipeSoftRef.current?.setAttribute('x', (left - WIPE_LEAD + solidW).toFixed(1))
-
-        // Pen nib rides the wet leading edge of the ink.
-        const nib = nibRef.current
-        const writing = wipeP > 0 && wipeP < 1
-        if (nib) {
-          nib.style.opacity = writing ? '1' : '0'
-          if (writing) {
-            const nx = left + wipeP * lineWidth
-            const ny = SIGNATURE_BASELINE - 46 + Math.sin(elapsed / 170) * 12
-            nib.setAttribute('transform', `translate(${nx.toFixed(1)} ${ny.toFixed(1)})`)
-            const flicker = 0.75 + 0.25 * Math.sin(now / 57)
-            nibHaloRef.current?.setAttribute('opacity', flicker.toFixed(2))
+        // Each letter flows in writing order.
+        let active: LetterSeg | null = null
+        let activeEased = 0
+        for (const seg of letters) {
+          const local = clamp01((p - seg.start) / Math.max(seg.end - seg.start, 1e-6))
+          const eased = penEase(local)
+          const solidW = eased * (seg.x1 - seg.x0 + LETTER_LEAD)
+          const solid = wipeSolidRefs.current[seg.index]
+          const soft = wipeSoftRefs.current[seg.index]
+          solid?.setAttribute('x', (seg.x0 - LETTER_LEAD).toFixed(1))
+          solid?.setAttribute('width', Math.max(solidW, 0.1).toFixed(1))
+          soft?.setAttribute('x', (seg.x0 - LETTER_LEAD + solidW).toFixed(1))
+          if (local > 0 && local < 1) {
+            active = seg
+            activeEased = eased
           }
         }
+
+        // Pen nib: writes, lifts, hops — never glides mechanically.
+        const nib = nibRef.current
+        let writing = false
+        if (nib) {
+          if (active) {
+            writing = true
+            const nx = active.x0 + activeEased * (active.x1 - active.x0)
+            // The tip dips into downstrokes and breathes as it runs.
+            const ny = NIB_Y - Math.sin(activeEased * Math.PI) * 8 + Math.sin(elapsed / 150) * 5
+            nib.style.opacity = '1'
+            nib.setAttribute('transform', `translate(${nx.toFixed(1)} ${ny.toFixed(1)})`)
+            // Pressure: the halo swells mid-stroke.
+            const pressure = 0.8 + Math.sin(activeEased * Math.PI) * 0.35
+            nibHaloRef.current?.setAttribute('opacity', (pressure * (0.8 + 0.2 * Math.sin(now / 57))).toFixed(2))
+            nibCoreRef.current?.setAttribute('r', (6 * (0.9 + 0.25 * Math.sin(activeEased * Math.PI))).toFixed(2))
+          } else {
+            const gap = gaps.find((g) => p >= g.start && p < g.end)
+            if (gap) {
+              const gp = (p - gap.start) / Math.max(gap.end - gap.start, 1e-6)
+              const nx = gap.fromX + (gap.toX - gap.fromX) * gp
+              const ny = NIB_Y - Math.sin(gp * Math.PI) * gap.lift
+              nib.style.opacity = '0.35'
+              nib.setAttribute('transform', `translate(${nx.toFixed(1)} ${ny.toFixed(1)})`)
+              nibHaloRef.current?.setAttribute('opacity', '0.3')
+            } else {
+              nib.style.opacity = '0'
+            }
+          }
+        }
+
+        const drawP = clamp01((p - DRAW_START) / (DRAW_END - DRAW_START))
 
         // Living metal: the gold gradient breathes, the under-glow swells.
         if (goldGradRef.current) {
@@ -257,10 +373,10 @@ export function Loader({ onExit }: { onExit: () => void }) {
           goldGradRef.current.setAttribute('gradientTransform', `translate(${drift.toFixed(1)} 0)`)
         }
         if (glowRef.current) {
-          const pulse = wipeP >= 1 ? 0.55 + 0.12 * Math.sin(elapsed / 320) : 0.55 * wipeP
+          const pulse = drawP >= 1 ? 0.55 + 0.12 * Math.sin(elapsed / 320) : 0.55 * drawP
           glowRef.current.style.opacity = pulse.toFixed(3)
         }
-        if (reflRef.current) reflRef.current.style.opacity = (0.38 * wipeP).toFixed(3)
+        if (reflRef.current) reflRef.current.style.opacity = (0.38 * drawP).toFixed(3)
 
         // Shimmer sweep across the finished signature.
         const shim = shimRef.current
@@ -285,11 +401,11 @@ export function Loader({ onExit }: { onExit: () => void }) {
         if (hairRef.current) hairRef.current.style.transform = `scaleX(${p.toFixed(4)})`
         if (ringRef.current) ringRef.current.style.strokeDashoffset = `${(RING_C * (1 - p)).toFixed(2)}`
 
-        // Pen scratch tracks the writing.
+        // Pen scratch tracks the writing, hushes on lifts.
         const scratch = scratchRef.current
         if (scratch) {
           scratch.update(
-            writing ? 0.9 : 0.06,
+            writing ? 0.9 : 0.05,
             writing ? 0.4 + 0.3 * Math.sin(elapsed / 210) : 0
           )
         }
@@ -383,6 +499,16 @@ export function Loader({ onExit }: { onExit: () => void }) {
           }}
         />
 
+        {/* Spotlight pool on the surface the ink flows onto */}
+        <div
+          className="absolute left-1/2 top-1/2 h-[46vmin] w-[92vmin] -translate-x-1/2 -translate-y-1/2"
+          aria-hidden="true"
+          style={{
+            background:
+              'radial-gradient(50% 50% at 50% 50%, rgb(232 196 120 / 0.1) 0%, rgb(160 118 52 / 0.05) 45%, transparent 70%)'
+          }}
+        />
+
         {/* Rising gold dust */}
         <EmberCanvas active={!reduced && !doorsOpen} />
 
@@ -428,8 +554,32 @@ export function Loader({ onExit }: { onExit: () => void }) {
                   <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
                 </linearGradient>
                 <mask id="inkWipe" maskUnits="userSpaceOnUse" x="0" y="0" width="1120" height="490">
-                  <rect ref={wipeSolidRef} x="0" y="0" width="0.1" height="490" fill="#ffffff" />
-                  <rect ref={wipeSoftRef} x="0" y="0" width="140" height="490" fill="url(#wipeSoftGrad)" />
+                  {SIGNATURE_TEXT.split('').map((ch, i) =>
+                    ch === ' ' ? null : (
+                      <Fragment key={i}>
+                        <rect
+                          ref={(el) => {
+                            wipeSolidRefs.current[i] = el
+                          }}
+                          x="0"
+                          y="0"
+                          width="0.1"
+                          height="490"
+                          fill="#ffffff"
+                        />
+                        <rect
+                          ref={(el) => {
+                            wipeSoftRefs.current[i] = el
+                          }}
+                          x="0"
+                          y="0"
+                          width="140"
+                          height="490"
+                          fill="url(#wipeSoftGrad)"
+                        />
+                      </Fragment>
+                    )
+                  )}
                 </mask>
                 <mask id="reflMask">
                   <rect x="0" y="310" width="1120" height="175" fill="url(#reflFade)" />
@@ -492,9 +642,9 @@ export function Loader({ onExit }: { onExit: () => void }) {
               </g>
 
               {/* Pen nib riding the wet tip */}
-              <g ref={nibRef} opacity="0" filter="url(#nibGlow)" style={{ transition: 'opacity 180ms ease' }}>
+              <g ref={nibRef} opacity="0" filter="url(#nibGlow)" style={{ transition: 'opacity 120ms ease' }}>
                 <circle ref={nibHaloRef} r="17" fill="#f6c86a" opacity="0.8" />
-                <circle r="6" fill="#fff6e2" />
+                <circle ref={nibCoreRef} r="6" fill="#fff6e2" />
                 <circle r="2.4" fill="#ffffff" />
               </g>
             </svg>
