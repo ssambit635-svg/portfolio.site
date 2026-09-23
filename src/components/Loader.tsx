@@ -3,42 +3,25 @@ import { RotateCcw, Volume2, VolumeX, X } from 'lucide-react'
 import { SplitDoors } from './fx/SplitDoors'
 import { GradientField } from './fx/GradientField'
 import { onPointer } from '../lib/pointer'
-import { createPenScratch, playStamp, playWhoosh } from '../lib/audio'
+import { playWhoosh } from '../lib/audio'
 import { prefersReducedMotion } from '../lib/motion'
-import { SEAL, SIGNATURE_PATHS, SIGNATURE_STROKES, SIGNATURE_VIEWBOX } from './loader/signature'
 
 /**
- * The opening: an Italian chancery signature of "Sambit Swain" writes itself
- * in ink — a gold-nibbed gradient stroke, a chisel shadow for pen thickness,
- * a glowing nib that hunts along the freshly-laid line, a sheen that sweeps
- * the finished signature — then the wax seal is stamped and the doors part.
+ * Golden signature loader.
  *
- * Controls: skip (with a live progress ring), replay the signature, and an
- * opt-in sound toggle for the pen scratch. Keyboard: Esc/Enter skip, R replay.
+ * Replaces the previous hand-drawn SVG ink loader with the uploaded
+ * golden signature animation video (public/golden-signature.mp4).
+ * Keeps the same maison framing, progress ring, skip/replay controls,
+ * pointer parallax and the final SplitDoors reveal.
  */
 
-const WRITE_SECONDS = 2.6 // pen time for the whole signature
-const START_DELAY = 0.55 // let the backdrop bloom first
-const HOLD_AFTER_WRITE = 1.15 // sheen + seal, then the doors
-
-/** Flat list of stroke kinds, index-aligned with SIGNATURE_PATHS. */
-const PATH_KINDS = SIGNATURE_STROKES.flatMap((stroke) => stroke.d.map(() => stroke.kind))
-const SWASH_WEIGHT = 1.4
-
-type InkGroup = {
-  layers: SVGPathElement[]
-  len: number
-  delay: number
-  dur: number
-  kind: (typeof PATH_KINDS)[number]
-}
+const HOLD_AFTER_VIDEO = 0.9 // seconds to admire the finished signature before doors
+const FALLBACK_DURATION = 3.2 // if video metadata is missing
 
 export function Loader({ onExit }: { onExit: () => void }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
-  const svgRef = useRef<SVGSVGElement>(null)
-  const nibRef = useRef<HTMLDivElement>(null)
-  const bleedRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const ringRef = useRef<SVGCircleElement>(null)
   const rippleRef = useRef<HTMLSpanElement>(null)
 
@@ -47,255 +30,163 @@ export function Loader({ onExit }: { onExit: () => void }) {
   const [sealed, setSealed] = useState(false)
   const [doorsOpen, setDoorsOpen] = useState(false)
   const [soundOn, setSoundOn] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
-  const soundRef = useRef(soundOn)
-  soundRef.current = soundOn
-  const scratchRef = useRef<ReturnType<typeof createPenScratch> | null>(null)
   const exitedRef = useRef(false)
   const timersRef = useRef<number[]>([])
   const rafRef = useRef(0)
 
   const reduced = useMemo(() => prefersReducedMotion(), [runId])
 
-  const stopScratch = useCallback(() => {
-    scratchRef.current?.stop()
-    scratchRef.current = null
-  }, [])
-
   const finish = useCallback(() => {
     if (exitedRef.current) return
     exitedRef.current = true
-    stopScratch()
-    if (soundRef.current) playWhoosh(0.7, 0.11)
+    if (soundOn) playWhoosh(0.7, 0.11)
     setDoorsOpen(true)
-  }, [stopScratch])
+  }, [soundOn])
 
   const replay = useCallback(() => {
     exitedRef.current = false
     timersRef.current.forEach((t) => window.clearTimeout(t))
     timersRef.current = []
     cancelAnimationFrame(rafRef.current)
-    stopScratch()
+
     setWritten(false)
     setSealed(false)
     setDoorsOpen(false)
+    setVideoReady(false)
+    setHasError(false)
     setRunId((n) => n + 1)
-  }, [stopScratch])
 
-  /* ------------------------------------------------------------------- pen */
-  useEffect(() => {
-    const svg = svgRef.current
-    const wrap = wrapRef.current
-    if (!svg || !wrap) return
-
-    const inks = Array.from(svg.querySelectorAll<SVGPathElement>('path[data-ink]'))
-    const chisels = Array.from(svg.querySelectorAll<SVGPathElement>('path[data-chisel]'))
-    const highlights = Array.from(svg.querySelectorAll<SVGPathElement>('path[data-highlight]'))
-    if (!inks.length) return
-
-    const geometry = typeof SVGPathElement !== 'undefined' && typeof inks[0]?.getTotalLength === 'function'
-
-    const [vbX, vbY, vbW] = SIGNATURE_VIEWBOX.split(/\s+/).map(Number)
-    const timers: number[] = []
-    timersRef.current = timers
-
-    let plan: InkGroup[] = []
-    let total = START_DELAY
-    let penMoving = false
-
-    if (geometry && !reduced) {
-      const lengths = inks.map((path, i) => {
-        if (PATH_KINDS[i] === 'dot') return 0
-        try {
-          return Math.max(path.getTotalLength(), 1)
-        } catch {
-          return 1
-        }
-      })
-
-      const inkLength = lengths.reduce(
-        (sum, len, i) => sum + len * (PATH_KINDS[i] === 'flourish' ? SWASH_WEIGHT : 1),
-        0
-      )
-      const pace = inkLength / WRITE_SECONDS
-
-      lengths.forEach((len, i) => {
-        const kind = PATH_KINDS[i]
-        const isDot = kind === 'dot'
-        const dur = isDot ? 0.16 : Math.max((len * (kind === 'flourish' ? SWASH_WEIGHT : 1)) / pace, 0.05)
-        const layers = [inks[i], chisels[i], highlights[i]].filter(Boolean) as SVGPathElement[]
-
-        layers.forEach((layer) => {
-          if (isDot) {
-            layer.style.opacity = '0'
-            layer.style.transition = `opacity 220ms ease-out ${total.toFixed(3)}s`
-          } else {
-            layer.style.strokeDasharray = `${len}`
-            layer.style.strokeDashoffset = `${len}`
-            layer.style.transition = `stroke-dashoffset ${dur.toFixed(
-              3
-            )}s cubic-bezier(0.42, 0.06, 0.36, 0.98) ${total.toFixed(3)}s`
-          }
-        })
-
-        plan.push({ layers, len, delay: total, dur, kind })
-        total += isDot ? dur : dur * 0.97
-      })
-
-      const totalSeconds = total + HOLD_AFTER_WRITE
-
-      requestAnimationFrame(() => {
-        plan.forEach((group) => {
-          group.layers.forEach((layer) => {
-            if (group.kind === 'dot') layer.style.opacity = '1'
-            else layer.style.strokeDashoffset = '0'
-          })
-        })
-      })
-
-      /* The nib hunts along whichever stroke the pen is on. */
-      const started = performance.now()
-      const canTrack = typeof inks[0].getPointAtLength === 'function'
-
-      const track = (now: number) => {
-        const elapsed = (now - started) / 1000
-        const nib = nibRef.current
-        const bleed = bleedRef.current
-        const ring = ringRef.current
-
-        if (ring) {
-          const circumference = 2 * Math.PI * 15
-          const p = Math.min(elapsed / totalSeconds, 1)
-          ring.style.strokeDashoffset = `${(circumference * (1 - p)).toFixed(2)}`
-        }
-
-        if (!canTrack || !nib) {
-          if (elapsed < totalSeconds) rafRef.current = requestAnimationFrame(track)
-          return
-        }
-
-        const active = plan.find((g) => g.kind !== 'dot' && elapsed >= g.delay && elapsed <= g.delay + g.dur)
-        const rect = svg.getBoundingClientRect()
-        const wrapRect = wrap.getBoundingClientRect()
-
-        if (!active || rect.width < 4) {
-          nib.style.opacity = '0'
-          if (bleed) bleed.style.opacity = '0'
-          penMoving = false
-          scratchRef.current?.update(0, 0)
-          if (elapsed < totalSeconds) rafRef.current = requestAnimationFrame(track)
-          return
-        }
-
-        const t = Math.min((elapsed - active.delay) / active.dur, 1)
-        let point = { x: 0, y: 0 }
-        try {
-          point = active.layers[0].getPointAtLength(t * active.len)
-        } catch {
-          point = { x: 0, y: 0 }
-        }
-
-        const scale = rect.width / vbW
-        const x = rect.left - wrapRect.left + (point.x - vbX) * scale
-        const y = rect.top - wrapRect.top + (point.y - vbY) * scale
-        const speed = Math.min(active.len / Math.max(active.dur, 0.001) / 430, 1)
-
-        nib.style.opacity = '1'
-        nib.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) translate(-50%, -50%) scale(${(
-          0.85 +
-          speed * 0.55
-        ).toFixed(3)})`
-
-        if (bleed) {
-          bleed.style.opacity = '0.55'
-          bleed.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) translate(-50%, -50%) scale(${(
-            1.3 +
-            speed * 1.8
-          ).toFixed(3)})`
-        }
-
-        if (soundRef.current && !penMoving) {
-          penMoving = true
-          if (!scratchRef.current) scratchRef.current = createPenScratch()
-        }
-        scratchRef.current?.update(1, speed)
-
-        rafRef.current = requestAnimationFrame(track)
+    const v = videoRef.current
+    if (v) {
+      try {
+        v.currentTime = 0
+        void v.play()
+      } catch {
+        /* autoplay may be blocked – user can click replay again */
       }
-      rafRef.current = requestAnimationFrame(track)
-
-      timers.push(window.setTimeout(() => setWritten(true), (total + 0.1) * 1000))
-      timers.push(
-        window.setTimeout(
-          () => {
-            setSealed(true)
-            stopScratch()
-            if (soundRef.current) playStamp(0.2)
-
-            // Park the seal ripple exactly over the wax, in screen space.
-            const ripple = rippleRef.current
-            const rect = svg.getBoundingClientRect()
-            const wrapRect = wrap.getBoundingClientRect()
-            if (ripple && rect.width > 4) {
-              const scale = rect.width / vbW
-              ripple.style.left = `${rect.left - wrapRect.left + (SEAL.x - vbX) * scale}px`
-              ripple.style.top = `${rect.top - wrapRect.top + (SEAL.y - vbY) * scale}px`
-            }
-          },
-          (total + 0.55) * 1000
-        )
-      )
-      timers.push(window.setTimeout(finish, totalSeconds * 1000))
-    } else {
-      /* No SVG geometry API (jsdom) or reduced motion: show it complete. */
-      inks.concat(chisels, highlights).forEach((path) => {
-        path.style.transition = reduced ? 'none' : 'opacity 700ms ease-out'
-        path.style.strokeDasharray = 'none'
-        path.style.strokeDashoffset = '0'
-        path.style.opacity = reduced ? '1' : '0'
-      })
-      if (!reduced) {
-        requestAnimationFrame(() =>
-          inks.concat(chisels, highlights).forEach((path) => {
-            path.style.opacity = '1'
-          })
-        )
-      }
-
-      total = reduced ? 0.4 : START_DELAY + 0.9
-      const totalSeconds = total + (reduced ? 0.35 : HOLD_AFTER_WRITE)
-
-      const started = performance.now()
-      const tickRing = () => {
-        const ring = ringRef.current
-        const elapsed = (performance.now() - started) / 1000
-        if (ring) {
-          const circumference = 2 * Math.PI * 15
-          ring.style.strokeDashoffset = `${(circumference * (1 - Math.min(elapsed / totalSeconds, 1))).toFixed(2)}`
-        }
-        if (elapsed < totalSeconds) rafRef.current = requestAnimationFrame(tickRing)
-      }
-      rafRef.current = requestAnimationFrame(tickRing)
-
-      timers.push(window.setTimeout(() => setWritten(true), total * 1000))
-      timers.push(window.setTimeout(() => setSealed(true), (total + 0.25) * 1000))
-      timers.push(window.setTimeout(finish, totalSeconds * 1000))
     }
+  }, [])
+
+  /* ------------------------------------------------ video lifecycle */
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const timers = timersRef.current
+
+    const updateRing = (progress: number) => {
+      const ring = ringRef.current
+      if (!ring) return
+      const circumference = 2 * Math.PI * 15
+      const clamped = Math.min(Math.max(progress, 0), 1)
+      ring.style.strokeDashoffset = `${(circumference * (1 - clamped)).toFixed(2)}`
+    }
+
+    const onLoaded = () => {
+      setVideoReady(true)
+      // Autoplay – muted allows it in most browsers
+      video.muted = !soundOn
+      const playPromise = video.play()
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          /* autoplay blocked – keep poster and wait for user interaction */
+        })
+      }
+    }
+
+    const onTimeUpdate = () => {
+      if (!video.duration || Number.isNaN(video.duration)) return
+      const p = video.currentTime / video.duration
+      updateRing(p)
+    }
+
+    const onEnded = () => {
+      updateRing(1)
+      setWritten(true)
+      // small delay for seal ripple, then doors
+      timers.push(
+        window.setTimeout(() => {
+          setSealed(true)
+          const ripple = rippleRef.current
+          const wrap = wrapRef.current
+          const rect = video.getBoundingClientRect()
+          if (ripple && wrap && rect.width > 4) {
+            const wrapRect = wrap.getBoundingClientRect()
+            // park ripple at bottom-right of video (where seal would be) – centered
+            ripple.style.left = `${rect.left - wrapRect.left + rect.width * 0.78}px`
+            ripple.style.top = `${rect.top - wrapRect.top + rect.height * 0.72}px`
+          }
+        }, 220)
+      )
+      timers.push(window.setTimeout(finish, HOLD_AFTER_VIDEO * 1000))
+    }
+
+    const onError = () => {
+      setHasError(true)
+      setVideoReady(true)
+      // Fallback timeline if video fails
+      const total = reduced ? 0.8 : FALLBACK_DURATION
+      let start: number | null = null
+      const tick = (now: number) => {
+        if (start === null) start = now
+        const elapsed = (now - start) / 1000
+        updateRing(Math.min(elapsed / total, 1))
+        if (elapsed < total) {
+          rafRef.current = requestAnimationFrame(tick)
+        } else {
+          setWritten(true)
+          setSealed(true)
+          finish()
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    video.addEventListener('loadeddata', onLoaded)
+    video.addEventListener('canplay', onLoaded)
+    video.addEventListener('timeupdate', onTimeUpdate)
+    video.addEventListener('ended', onEnded)
+    video.addEventListener('error', onError)
+
+    // If metadata already loaded (replay)
+    if (video.readyState >= 2) {
+      onLoaded()
+    }
+
+    // Fallback ring animation using rAF if timeupdate is sparse
+    let lastTime = 0
+    const rafLoop = (now: number) => {
+      if (now - lastTime > 80) {
+        lastTime = now
+        if (video.duration && !Number.isNaN(video.duration) && !video.paused && !video.ended) {
+          updateRing(video.currentTime / video.duration)
+        }
+      }
+      rafRef.current = requestAnimationFrame(rafLoop)
+    }
+    rafRef.current = requestAnimationFrame(rafLoop)
 
     return () => {
+      video.removeEventListener('loadeddata', onLoaded)
+      video.removeEventListener('canplay', onLoaded)
+      video.removeEventListener('timeupdate', onTimeUpdate)
+      video.removeEventListener('ended', onEnded)
+      video.removeEventListener('error', onError)
       timers.forEach((t) => window.clearTimeout(t))
       cancelAnimationFrame(rafRef.current)
-      plan = []
     }
-  }, [runId, reduced, finish, stopScratch])
+  }, [runId, reduced, finish, soundOn])
 
-  /* --------------------------------------------------------------- sound */
+  /* ------------------------------------------------ sound toggle -> video muted */
   useEffect(() => {
-    if (!soundOn) stopScratch()
-    return () => stopScratch()
-  }, [soundOn, stopScratch])
+    const v = videoRef.current
+    if (v) v.muted = !soundOn
+  }, [soundOn])
 
-  /* ---------------------------------------------------- pointer parallax */
+  /* ------------------------------------------------ pointer parallax */
   useEffect(() => {
     if (reduced) return
     return onPointer((p) => {
@@ -306,7 +197,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
     })
   }, [reduced])
 
-  /* ------------------------------------------------------------ keyboard */
+  /* ------------------------------------------------ keyboard */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' || event.key === 'Enter') finish()
@@ -316,6 +207,8 @@ export function Loader({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [finish, replay])
 
+  const circumference = 2 * Math.PI * 15
+
   return (
     <>
       <div
@@ -323,7 +216,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
         style={{ zIndex: 100 }}
         role="status"
         aria-live="polite"
-        aria-label="Intro: the signature of Sambit Swain"
+        aria-label="Intro: golden signature animation"
       >
         <GradientField preset="maison" />
 
@@ -345,166 +238,102 @@ export function Loader({ onExit }: { onExit: () => void }) {
           style={{ zIndex: 10 }}
         >
           <div ref={wrapRef} className="relative flex flex-col items-center">
-            <svg
-              ref={svgRef}
-              viewBox={SIGNATURE_VIEWBOX}
-              className="w-[min(88vw,720px)] overflow-visible"
-              aria-hidden="true"
-              style={{ filter: 'drop-shadow(0 26px 44px rgb(0 0 0 / 0.6))' }}
-            >
-              <defs>
-                <linearGradient id="inkGold" x1="0%" y1="0%" x2="100%" y2="16%">
-                  <stop offset="0%" stopColor="#f6e3bd" />
-                  <stop offset="24%" stopColor="#e2b76a" />
-                  <stop offset="50%" stopColor="#fff6e2" />
-                  <stop offset="74%" stopColor="#d69884" />
-                  <stop offset="100%" stopColor="#f0cd92" />
-                </linearGradient>
-                <linearGradient id="inkChisel" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#6d4c1c" />
-                  <stop offset="100%" stopColor="#3a2a4d" />
-                </linearGradient>
-                <radialGradient id="sealGold" cx="34%" cy="26%" r="80%">
-                  <stop offset="0%" stopColor="#ffeec9" />
-                  <stop offset="36%" stopColor="#e2b76a" />
-                  <stop offset="72%" stopColor="#a9762f" />
-                  <stop offset="100%" stopColor="#543514" />
-                </radialGradient>
-              </defs>
-
-              {/* The italic hand: sheared 8° for the chancery slant. */}
-              <g transform="skewX(-8)">
-                <g
-                  transform="translate(3.5, 6)"
-                  stroke="url(#inkChisel)"
-                  strokeWidth={7}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={0.5}
-                >
-                  {SIGNATURE_PATHS.map((d, i) => (
-                    <path key={`chisel-${i}`} d={d} data-chisel="" />
-                  ))}
-                </g>
-
-                <g
-                  stroke="url(#inkGold)"
-                  strokeWidth={4.6}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ filter: 'drop-shadow(0 0 16px rgb(226 183 106 / 0.42))' }}
-                >
-                  {SIGNATURE_PATHS.map((d, i) => (
-                    <path key={`ink-${i}`} d={d} data-ink="" />
-                  ))}
-                </g>
-
-                <g
-                  transform="translate(-0.9, -1.5)"
-                  stroke="#fff8e8"
-                  strokeWidth={1.1}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={0.45}
-                >
-                  {SIGNATURE_PATHS.map((d, i) => (
-                    <path key={`hi-${i}`} d={d} data-highlight="" />
-                  ))}
-                </g>
-              </g>
-
-              {/* wax seal */}
-              <g
-                style={{
-                  transformOrigin: `${SEAL.x}px ${SEAL.y}px`,
-                  transform: sealed ? 'scale(1) rotate(0deg)' : 'scale(2.6) rotate(-30deg)',
-                  opacity: sealed ? 1 : 0,
-                  transition: reduced
-                    ? 'opacity 200ms linear'
-                    : 'transform 640ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease-out'
-                }}
-              >
-                <circle
-                  cx={SEAL.x}
-                  cy={SEAL.y}
-                  r={SEAL.r}
-                  fill="url(#sealGold)"
-                  stroke="rgb(255 240 210 / 0.3)"
-                  strokeWidth={1}
-                  style={{ filter: 'drop-shadow(0 12px 24px rgb(0 0 0 / 0.65))' }}
-                />
-                <circle
-                  cx={SEAL.x}
-                  cy={SEAL.y}
-                  r={SEAL.r - 6.5}
-                  fill="none"
-                  stroke="rgb(58 34 12 / 0.4)"
-                  strokeWidth={1.2}
-                />
-                <text
-                  x={SEAL.x}
-                  y={SEAL.y + 13}
-                  textAnchor="middle"
-                  fontFamily="'Playfair Display', Georgia, serif"
-                  fontStyle="italic"
-                  fontWeight={600}
-                  fontSize={36}
-                  fill="#3a230f"
-                  opacity={0.85}
-                >
-                  SS
-                </text>
-              </g>
-            </svg>
-
-            {/* sheen sweeping the finished signature */}
+            {/* video container */}
             <div
-              className="pointer-events-none absolute inset-0 overflow-hidden"
+              className="relative w-[min(88vw,780px)] overflow-hidden rounded-[2px]"
               style={{
-                opacity: written ? 1 : 0,
-                transition: 'opacity 700ms ease-out',
-                mixBlendMode: 'overlay'
+                aspectRatio: '16 / 9',
+                background: 'radial-gradient(120% 120% at 50% 50%, rgb(20 18 24 / 0.9), rgb(4 4 10) 70%)',
+                boxShadow: '0 26px 64px rgb(0 0 0 / 0.65), 0 0 0 1px rgb(226 183 106 / 0.12), 0 0 48px rgb(226 183 106 / 0.18)',
+                filter: written ? 'drop-shadow(0 0 22px rgb(226 183 106 / 0.28))' : undefined
               }}
-              aria-hidden="true"
             >
+              {/* subtle vignette */}
               <div
-                className="absolute inset-y-0 -left-1/3 w-1/3"
+                className="pointer-events-none absolute inset-0 z-[2]"
                 style={{
                   background:
-                    'linear-gradient(100deg, transparent, rgb(255 246 226 / 0.9) 45%, rgb(226 183 106 / 0.55) 55%, transparent)',
-                  filter: 'blur(7px)',
-                  animation:
-                    written && !reduced ? 'sheen-sweep 2.8s cubic-bezier(0.4,0,0.2,1) 0.25s infinite' : undefined
+                    'radial-gradient(90% 80% at 50% 50%, transparent 60%, rgb(4 4 10 / 0.55) 100%)'
+                }}
+                aria-hidden="true"
+              />
+
+              <video
+                key={runId}
+                ref={videoRef}
+                className="relative z-[1] h-full w-full object-contain"
+                playsInline
+                muted={!soundOn}
+                autoPlay
+                preload="auto"
+                // poster fallback could be added if you have a frame
+                // The public path is stable for both dev and build
+                src="/golden-signature.mp4"
+                aria-hidden="true"
+                style={{
+                  opacity: videoReady ? 1 : 0,
+                  transition: 'opacity 600ms ease-out',
+                  filter: 'contrast(1.08) brightness(1.05) saturate(1.1)'
                 }}
               />
+
+              {/* loading shimmer while video buffers */}
+              {!videoReady && !hasError && (
+                <div className="absolute inset-0 z-[3] grid place-items-center bg-[#08070c]">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="h-[1px] w-32 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full w-full origin-left"
+                        style={{
+                          background: 'linear-gradient(90deg, #f6e3bd, #e2b76a, #fff6e2)',
+                          animation: 'shimmer-line 1.2s ease-in-out infinite',
+                          backgroundSize: '200% 100%'
+                        }}
+                      />
+                    </div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/30">
+                      preparing seal
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* error fallback – keep maison aesthetic */}
+              {hasError && (
+                <div className="absolute inset-0 z-[3] grid place-items-center bg-[#08070c] p-8">
+                  <div className="text-center">
+                    <p className="font-display italic text-3xl text-white/80">Sambit Swain</p>
+                    <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.4em] text-white/30">
+                      golden signature unavailable — entering
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* sheen sweeping after finish */}
+              <div
+                className="pointer-events-none absolute inset-0 z-[4] overflow-hidden"
+                style={{
+                  opacity: written ? 1 : 0,
+                  transition: 'opacity 700ms ease-out',
+                  mixBlendMode: 'overlay'
+                }}
+                aria-hidden="true"
+              >
+                <div
+                  className="absolute inset-y-0 -left-1/3 w-1/3"
+                  style={{
+                    background:
+                      'linear-gradient(100deg, transparent, rgb(255 246 226 / 0.9) 45%, rgb(226 183 106 / 0.55) 55%, transparent)',
+                    filter: 'blur(7px)',
+                    animation:
+                      written && !reduced ? 'sheen-sweep 2.8s cubic-bezier(0.4,0,0.2,1) 0.25s infinite' : undefined
+                  }}
+                />
+              </div>
             </div>
 
-            {/* ink bleed + nib */}
-            <div
-              ref={bleedRef}
-              className="pointer-events-none absolute left-0 top-0 h-7 w-7 rounded-full opacity-0"
-              style={{
-                background: 'radial-gradient(circle, rgb(226 183 106 / 0.6), transparent 68%)',
-                filter: 'blur(7px)',
-                transition: 'opacity 260ms ease-out'
-              }}
-              aria-hidden="true"
-            />
-            <div
-              ref={nibRef}
-              className="pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 rounded-full opacity-0"
-              style={{
-                background: 'radial-gradient(circle at 34% 30%, #fffdf6, #e2b76a 58%, #a9762f)',
-                boxShadow: '0 0 18px 6px rgb(226 183 106 / 0.55)',
-                transition: 'opacity 220ms ease-out'
-              }}
-              aria-hidden="true"
-            />
-
-            {/* seal ripple, parked over the wax in screen space */}
+            {/* seal ripple – re-used for golden moment */}
             <span
               key={`ripple-${runId}`}
               ref={rippleRef}
@@ -521,7 +350,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
           <div
             className="mt-10 flex flex-col items-center gap-3 sm:mt-14"
             style={{
-              opacity: written ? 1 : 0,
+              opacity: written ? 1 : 0.65,
               transform: written ? 'translateY(0)' : 'translateY(12px)',
               transition: reduced
                 ? 'opacity 200ms linear'
@@ -529,7 +358,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
             }}
           >
             <div className="hairline-gold h-px w-40 opacity-70 sm:w-64" aria-hidden="true" />
-            <p className="font-display text-base italic tracking-wide text-white/80 sm:text-lg">firma autografa</p>
+            <p className="font-display text-base italic tracking-wide text-white/80 sm:text-lg">firma autografa · golden</p>
             <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/40 sm:text-[11px]">
               sambit swain · software developer · mmxxvi
             </p>
@@ -545,7 +374,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
             type="button"
             onClick={() => setSoundOn((s) => !s)}
             data-sfx="hover"
-            aria-label={soundOn ? 'Mute the pen sound' : 'Play the pen sound'}
+            aria-label={soundOn ? 'Mute video' : 'Unmute video'}
             aria-pressed={soundOn}
             className="cursor-target grid h-11 w-11 place-items-center rounded-full border backdrop-blur-md transition-all duration-300 hover:scale-105"
             style={{
@@ -561,7 +390,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
             type="button"
             onClick={replay}
             data-sfx="hover"
-            aria-label="Replay the signature"
+            aria-label="Replay the golden signature"
             className="cursor-target grid h-11 w-11 place-items-center rounded-full border text-white/60 backdrop-blur-md transition-all duration-500 hover:-rotate-90 hover:text-white"
             style={{ borderColor: 'rgb(255 255 255 / 0.16)', background: 'rgb(255 255 255 / 0.04)' }}
           >
@@ -578,7 +407,7 @@ export function Loader({ onExit }: { onExit: () => void }) {
           >
             <svg viewBox="0 0 36 36" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
               <defs>
-                <linearGradient id="skipRing" x1="0" y1="0" x2="1" y2="1">
+                <linearGradient id="skipRingGold" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor="#fff6e2" />
                   <stop offset="60%" stopColor="#e2b76a" />
                   <stop offset="100%" stopColor="#d69884" />
@@ -591,11 +420,11 @@ export function Loader({ onExit }: { onExit: () => void }) {
                 cy="18"
                 r="15"
                 fill="none"
-                stroke="url(#skipRing)"
+                stroke="url(#skipRingGold)"
                 strokeWidth="1.8"
                 strokeLinecap="round"
-                strokeDasharray={2 * Math.PI * 15}
-                strokeDashoffset={2 * Math.PI * 15}
+                strokeDasharray={circumference}
+                strokeDashoffset={circumference}
                 style={{ filter: 'drop-shadow(0 0 6px rgb(226 183 106 / 0.6))' }}
               />
             </svg>
