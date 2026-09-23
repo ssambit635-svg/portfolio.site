@@ -10,6 +10,10 @@
    signature moments (loader caption, section kickers, pull quotes). */
 @import '@fontsource/playfair-display/latin-400-italic.css';
 @import '@fontsource/playfair-display/latin-600-italic.css';
+/* Lolita-style signature face — smooth monoline script for the golden
+   name in the loader. (Ms Madi, OFL-licensed. If the paid Lolita OTF
+   is ever provided, swap the file + family name here.) */
+@import '@fontsource/ms-madi/latin-400.css';
 
 /* Dark mode is driven by a .dark class on <html> (toggled in the footer),
    not by the OS preference. */
@@ -108,6 +112,7 @@
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --font-display: 'Playfair Display', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-signature: 'Ms Madi', 'Snell Roundhand', 'Brush Script MT', cursive;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -283,6 +288,10 @@
 
   .font-display {
     font-family: var(--font-display);
+  }
+
+  .font-signature {
+    font-family: var(--font-signature);
   }
 
   /* Real, layered gradients — the "maison" ink used across the site. */
