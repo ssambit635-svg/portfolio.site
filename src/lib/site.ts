@@ -61,13 +61,6 @@ export const stats = [
   { label: 'Certifications', value: 6, suffix: '+' }
 ] as const
 
-export const tools = [
-  { id: 'react', label: 'React' },
-  { id: 'python', label: 'Python' },
-  { id: 'aws', label: 'AWS' },
-  { id: 'docker', label: 'Docker' }
-] as const
-
 export type Project = {
   id: string
   title: string
