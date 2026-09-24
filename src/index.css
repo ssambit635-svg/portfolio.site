@@ -145,9 +145,45 @@ body {
 }
 
 /* --- scramble ------------------------------------------------------------ */
+/* every character sits in a width-locked slot so decoding never reflows */
+.scr-slot {
+  display: inline-block;
+  text-align: center;
+}
 .scr-pending {
   color: var(--scr-color, var(--color-lime));
-  opacity: 0.85;
+  opacity: 0.9;
+}
+@keyframes scr-hit {
+  0% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.scr-hit {
+  animation: scr-hit 0.14s steps(3) 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scr-hit {
+    animation: none;
+  }
+}
+
+/* --- skill marks (real brand logos) -------------------------------------- */
+.sk-mark {
+  color: inherit;
+  transition: color 0.25s ease;
+}
+.skill-tile:hover .sk-mark,
+.skill-tile:focus-visible .sk-mark {
+  color: var(--brand, currentColor);
+}
+
+/* --- preloader ----------------------------------------------------------- */
+.loader-block {
+  will-change: transform, opacity;
 }
 
 /* --- dotted giant type --------------------------------------------------- */
