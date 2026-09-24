@@ -8,6 +8,9 @@ import certCpp from '../assets/certs/cpp-essentials.jpg'
 import certLinux from '../assets/certs/linux-unhatched.jpg'
 import certPython from '../assets/certs/python-essentials.jpg'
 
+import shotKivo from '../assets/projects/kivo.jpg'
+import shotShadow from '../assets/projects/shadow-quest.jpg'
+import shotAnnadata from '../assets/projects/annadata-connect.jpg'
 import shotCivic from '../assets/projects/civicreport.jpg'
 import shotWeather from '../assets/projects/weather-sense.jpg'
 import shotAws from '../assets/projects/aws-dashboard.jpg'
@@ -56,7 +59,7 @@ export const manifesto = {
 } as const
 
 export const stats = [
-  { label: 'Products Shipped', value: 5, suffix: '+' },
+  { label: 'Products Shipped', value: 8, suffix: '+' },
   { label: 'Years Coding', value: 3, suffix: '+' },
   { label: 'Certifications', value: 6, suffix: '+' }
 ] as const
@@ -74,6 +77,42 @@ export type Project = {
 }
 
 export const projects: Project[] = [
+  {
+    id: 'kivo',
+    title: 'kivo',
+    kind: 'HealthTech',
+    description:
+      'Point your camera at a paper lab report — kivo reads it, you verify every value, and it grows into a digital health twin with trends, risk awareness and a summary for your next doctor visit. Built for the iQOO Hackathon 2026.',
+    year: '2026',
+    stack: ['JavaScript', 'Node.js', 'Express', 'SQLite', 'Android'],
+    image: shotKivo,
+    href: 'https://kivo-api-qzqc.onrender.com/',
+    repo: 'https://github.com/ssambit635-svg/kivo.git'
+  },
+  {
+    id: 'shadow-quest',
+    title: 'Shadow Quest',
+    kind: 'Productivity',
+    description:
+      'A samurai-themed deep-work OS — pick a focus technique, watch an ensō ring fill while you focus and drain while you rest, and turn sealed goals into streaks. Built for Tech Zypher 2026.',
+    year: '2026',
+    stack: ['React', 'TypeScript', 'GSAP', 'MongoDB', 'Capacitor'],
+    image: shotShadow,
+    href: 'https://shadowquest.onrender.com/',
+    repo: 'https://github.com/ssambit635-svg/Shadow-quest.git'
+  },
+  {
+    id: 'annadata-connect',
+    title: 'Annadata Connect',
+    kind: 'AgriTech',
+    description:
+      'Farmers get a live queue token at the best procurement centre and compare MSP centres with above-MSP buyers before they sell — officers run the queue, authorities watch the whole state. Built for Smart India Hackathon 2026.',
+    year: '2026',
+    stack: ['React', 'Node.js', 'Express', 'Capacitor', 'Docker'],
+    image: shotAnnadata,
+    href: 'https://ssambit635-svg-annadata-connect.onrender.com/',
+    repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git'
+  },
   {
     id: 'civicreport',
     title: 'CivicReport',

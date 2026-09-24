@@ -8,7 +8,7 @@ import { useSound } from '../../hooks/useSound'
 import { cn } from '../../lib/utils'
 
 /* staggered vertical offsets so cards zig-zag like the reference */
-const OFFSETS = [220, -40, 300, 10, 240, -30, 260]
+const OFFSETS = [220, -40, 300, 10, 240, -30, 260, -20]
 
 function Card({ p, i }: { p: Project; i: number }) {
   const { tick } = useSound()

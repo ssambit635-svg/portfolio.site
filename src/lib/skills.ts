@@ -32,6 +32,11 @@ import fastapiRaw from 'simple-icons/icons/fastapi.svg?raw'
 import streamlitRaw from 'simple-icons/icons/streamlit.svg?raw'
 import leafletRaw from 'simple-icons/icons/leaflet.svg?raw'
 import geminiRaw from 'simple-icons/icons/googlegemini.svg?raw'
+import capacitorRaw from 'simple-icons/icons/capacitor.svg?raw'
+import expressRaw from 'simple-icons/icons/express.svg?raw'
+import mongodbRaw from 'simple-icons/icons/mongodb.svg?raw'
+import sqliteRaw from 'simple-icons/icons/sqlite.svg?raw'
+import androidRaw from 'simple-icons/icons/android.svg?raw'
 
 /** Pull every <path d="..."> out of an official Simple Icons SVG. */
 const pathsOf = (raw: string): string[] =>
@@ -62,9 +67,13 @@ export const skills: Skill[] = [
   { id: 'tailwind', label: 'Tailwind CSS', hex: '#06B6D4', paths: pathsOf(tailwindRaw) },
   { id: 'gsap', label: 'GSAP', hex: '#0AE448', paths: pathsOf(gsapRaw) },
   { id: 'vite', label: 'Vite', hex: '#9135FF', paths: pathsOf(viteRaw) },
+  { id: 'capacitor', label: 'Capacitor', hex: '#119EFF', paths: pathsOf(capacitorRaw) },
   { id: 'node', label: 'Node.js', hex: '#5FA04E', paths: pathsOf(nodeRaw) },
+  { id: 'express', label: 'Express', hex: '#0A0A0A', paths: pathsOf(expressRaw) },
   { id: 'fastapi', label: 'FastAPI', hex: '#009688', paths: pathsOf(fastapiRaw) },
   { id: 'streamlit', label: 'Streamlit', hex: '#FF4B4B', paths: pathsOf(streamlitRaw) },
+  { id: 'mongodb', label: 'MongoDB', hex: '#47A248', paths: pathsOf(mongodbRaw) },
+  { id: 'sqlite', label: 'SQLite', hex: '#003B57', paths: pathsOf(sqliteRaw) },
   { id: 'recharts', label: 'Recharts', hex: '#8884D8', domain: 'recharts.org' },
   { id: 'leaflet', label: 'Leaflet', hex: '#199900', paths: pathsOf(leafletRaw) },
   { id: 'gemini', label: 'Gemini AI', hex: '#8E75B2', paths: pathsOf(geminiRaw) },
@@ -73,6 +82,7 @@ export const skills: Skill[] = [
   { id: 'docker', label: 'Docker', hex: '#2496ED', paths: pathsOf(dockerRaw) },
   { id: 'localstack', label: 'LocalStack', hex: '#1F7BE5', domain: 'localstack.cloud' },
   { id: 'linux', label: 'Linux', hex: '#FCC624', paths: pathsOf(linuxRaw) },
+  { id: 'android', label: 'Android', hex: '#3DDC84', paths: pathsOf(androidRaw) },
   { id: 'git', label: 'Git', hex: '#F03C2E', paths: pathsOf(gitRaw) },
   { id: 'github', label: 'GitHub', hex: '#181717', paths: pathsOf(githubRaw) },
   { id: 'cryptography', label: 'cryptography', hex: '#4B8BBE', wordmark: true }
