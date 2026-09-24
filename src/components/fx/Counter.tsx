@@ -21,7 +21,7 @@ export default function Counter({ to, suffix = '', className }: { to: number; su
   }, [to, suffix])
   return (
     <span ref={ref} className={className}>
-      0{suffix}
+      {to}{suffix}
     </span>
   )
 }

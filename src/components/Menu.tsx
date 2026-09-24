@@ -7,8 +7,10 @@ import { cn } from '../lib/utils'
 import { getLenis } from '../hooks/useLenis'
 
 const items = [
-  { label: 'About', href: '#top' },
-  { label: 'Work', href: '#work' }
+  { label: 'Home', href: '#top' },
+  { label: 'About', href: '#about' },
+  { label: 'Projects', href: '#work' },
+  { label: 'Contact', href: '#contact' }
 ]
 
 export default function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -38,17 +40,35 @@ export default function Menu({ open, onClose }: { open: boolean; onClose: () => 
   }, [open])
 
   useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    if (!open) return
+    const previous = document.activeElement as HTMLElement | null
+    const p = panel.current!
+    const focusable = () => Array.from(p.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'))
+    focusable()[0]?.focus()
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key !== 'Tab') return
+      const nodes = focusable()
+      const first = nodes[0]
+      const last = nodes[nodes.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
+    }
     window.addEventListener('keydown', k)
-    return () => window.removeEventListener('keydown', k)
-  }, [onClose])
+    return () => { window.removeEventListener('keydown', k); previous?.focus() }
+  }, [open, onClose])
 
   return (
     <>
       <div ref={dim} onClick={onClose} className="pointer-events-none fixed inset-0 z-[90] bg-black/75 opacity-0" />
       <aside
         ref={panel}
-        className="pointer-events-none fixed top-5 right-5 bottom-5 z-[95] flex w-[380px] flex-col rounded-md bg-ink-2 p-6 opacity-0 max-sm:inset-x-3 max-sm:w-auto"
+        id="site-menu"
+        role="dialog"
+        aria-modal={open || undefined}
+        inert={!open}
+        aria-label="Site menu"
+        className="pointer-events-none fixed top-5 right-5 bottom-5 z-[95] flex overflow-y-auto w-[380px] flex-col rounded-md bg-ink-2 p-6 opacity-0 max-sm:inset-x-3 max-sm:w-auto"
       >
         <div className="flex items-center justify-between">
           <span className="t-label text-cream">/ Menu</span>
@@ -61,7 +81,7 @@ export default function Menu({ open, onClose }: { open: boolean; onClose: () => 
           </button>
         </div>
 
-        <nav className="mt-16 flex flex-col items-start gap-3">
+        <nav aria-label="Main navigation" className="mt-8 flex flex-col items-start gap-3">
           {items.map((it, i) => {
             const active = hover === null ? i === 0 : hover === i
             return (

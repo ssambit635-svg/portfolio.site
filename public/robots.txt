@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ssambit635-svg.github.io/portfolio.site/sitemap.xml

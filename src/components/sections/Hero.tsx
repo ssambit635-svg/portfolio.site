@@ -50,7 +50,7 @@ export default function Hero() {
         <h1 className="t-display text-[clamp(72px,11.5vw,168px)]">
           <span className="mb-[-0.06em] block pl-[0.32em] max-md:pl-0">
             <Scramble text={profile.first} trigger="mount" speed={70} />
-          </span>
+          </span>{' '}
           <span className="block">
             <Scramble text={profile.last} trigger="mount" speed={70} delay={200} />
           </span>

@@ -106,7 +106,7 @@ export const projects: Project[] = [
     title: 'Annadata Connect',
     kind: 'AgriTech',
     description:
-      'Farmers get a live queue token at the best procurement centre and compare MSP centres with above-MSP buyers before they sell — officers run the queue, authorities watch the whole state. Built for Smart India Hackathon 2026.',
+      'A farmer procurement platform: farmers get a live queue token at the best procurement centre and compare MSP centres with above-MSP buyers before they sell — officers run the queue, authorities watch the whole state. Built for Smart India Hackathon 2026.',
     year: '2026',
     stack: ['React', 'Node.js', 'Express', 'Capacitor', 'Docker'],
     image: shotAnnadata,

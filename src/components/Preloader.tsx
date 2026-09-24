@@ -3,7 +3,7 @@ import { gsap, ScrollTrigger } from '../lib/gsap'
 import { setScrollLocked } from '../hooks/useLenis'
 import { markReady } from '../lib/ready'
 import { prefersReducedMotion } from '../lib/utils'
-import { profile, projects } from '../lib/site'
+import { profile } from '../lib/site'
 import Scramble from './fx/Scramble'
 
 const PORTRAIT = `${import.meta.env.BASE_URL}portrait.png`
@@ -20,7 +20,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
   const root = useRef<HTMLDivElement>(null)
   const num = useRef<HTMLSpanElement>(null)
   const fill = useRef<HTMLSpanElement>(null)
-  const shots = useMemo(() => [PORTRAIT, ...projects.map((p) => p.image)], [])
+  const shots = useMemo(() => [PORTRAIT], [])
 
   useEffect(() => {
     const el = root.current
@@ -29,7 +29,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
 
     // start every visit at the top, scroll locked behind the curtain
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
-    window.scrollTo(0, 0)
+    if (!window.location.hash) window.scrollTo(0, 0)
     setScrollLocked(true)
     // Lenis is created by App (parent effect) a tick later — lock it again once it exists
     const relock = window.setTimeout(() => setScrollLocked(true), 60)
@@ -72,7 +72,15 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
       const cells = el.querySelectorAll('.loader-block')
       const chrome = el.querySelectorAll('.loader-chrome')
       const counter = el.querySelector('.loader-counter')
-      const tl = gsap.timeline({ onComplete: onDone })
+      const tl = gsap.timeline({ onComplete: () => {
+        onDone()
+        if (window.location.hash) {
+          // Restore section deep links after the entry animation / scroll pin setup.
+          let id = window.location.hash.slice(1)
+          try { id = decodeURIComponent(id) } catch { /* preserve malformed fragment */ }
+          document.getElementById(id)?.scrollIntoView()
+        }
+      } })
 
       if (reduced) {
         tl.to(el, { opacity: 0, duration: 0.4 })
