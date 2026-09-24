@@ -7,7 +7,10 @@ import { useSound } from '../../hooks/useSound'
 export default function Footer() {
   const { tick } = useSound()
   return (
-    <footer data-theme="lime" className="relative overflow-hidden bg-lime px-8 pt-10 text-ink max-md:px-4">
+    <footer id="contact" data-theme="lime" className="relative overflow-hidden bg-lime px-8 pt-10 text-ink max-md:px-4">
+      <nav aria-label="Portfolio sections" className="mb-8 flex flex-wrap gap-6 t-label">
+        <a href="#top">Home</a><a href="#about">About</a><a href="#work">Projects</a><a href="#contact">Contact</a>
+      </nav>
       <div className="flex items-start justify-between gap-8 max-md:flex-col" data-reveal>
         <div>
           <h2 className="font-label text-[clamp(26px,2.4vw,32px)] leading-[1.05] font-semibold uppercase">
@@ -21,9 +24,9 @@ export default function Footer() {
             <Button href={`mailto:${profile.email}`} className="[border-color:var(--color-purple)] [color:var(--color-purple)] hover:[background:var(--color-purple)] hover:[color:var(--color-lime)]">
               Shoot a message
             </Button>
-            <Button href={profile.resume} className="[border-color:var(--color-purple)] [color:var(--color-purple)] hover:[background:var(--color-purple)] hover:[color:var(--color-lime)]">
+            {profile.resume !== '#' && <Button href={profile.resume} className="[border-color:var(--color-purple)] [color:var(--color-purple)] hover:[background:var(--color-purple)] hover:[color:var(--color-lime)]">
               Download CV <span>↓</span>
-            </Button>
+            </Button>}
           </div>
         </div>
 

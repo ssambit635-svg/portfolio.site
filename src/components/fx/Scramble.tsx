@@ -193,7 +193,7 @@ export default function Scramble({
 
   return (
     <Tag ref={ref} className={className} style={color ? ({ '--scr-color': color } as React.CSSProperties) : undefined}>
-      {children}
+      {children ?? text}
     </Tag>
   )
 }

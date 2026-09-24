@@ -54,6 +54,9 @@ export default function Halftone({ src, className }: { src?: string; className?:
       }
     }
 
+    // Reuse the reveal surface rather than allocating a canvas every frame.
+    const tmp = document.createElement('canvas')
+    const tc = tmp.getContext('2d')!
     const R = 150 // reveal radius
 
     const draw = (t: number) => {
@@ -96,10 +99,10 @@ export default function Halftone({ src, className }: { src?: string; className?:
           g.addColorStop(1, 'rgba(0,0,0,0)')
           ctx.globalCompositeOperation = 'source-over'
           // draw photo, then keep only the gradient area
-          const tmp = document.createElement('canvas')
-          tmp.width = w
-          tmp.height = h
-          const tc = tmp.getContext('2d')!
+          if (tmp.width !== w) tmp.width = w
+          if (tmp.height !== h) tmp.height = h
+          tc.globalCompositeOperation = 'source-over'
+          tc.clearRect(0, 0, w, h)
           tc.drawImage(full, 0, 0)
           tc.globalCompositeOperation = 'destination-in'
           tc.fillStyle = g
@@ -167,5 +170,5 @@ export default function Halftone({ src, className }: { src?: string; className?:
     }
   }, [src])
 
-  return <canvas ref={ref} className={cn('block h-full w-full', className)} aria-hidden />
+  return <canvas ref={ref} className={cn('block h-full w-full', className)} role="img" aria-label="Sambit Swain - Software Developer" />
 }

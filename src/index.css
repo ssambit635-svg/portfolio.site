@@ -1,15 +1,15 @@
 @import 'tailwindcss';
-@import '@fontsource/big-shoulders-display/300';
-@import '@fontsource/big-shoulders-display/400';
-@import '@fontsource/big-shoulders-display/500';
-@import '@fontsource/big-shoulders-display/600';
-@import '@fontsource/chakra-petch/300';
-@import '@fontsource/chakra-petch/400';
-@import '@fontsource/chakra-petch/500';
-@import '@fontsource/chakra-petch/600';
-@import '@fontsource/dm-sans/300';
-@import '@fontsource/dm-sans/400';
-@import '@fontsource/dm-sans/500';
+@import '@fontsource/big-shoulders-display/latin-300';
+@import '@fontsource/big-shoulders-display/latin-400';
+@import '@fontsource/big-shoulders-display/latin-500';
+@import '@fontsource/big-shoulders-display/latin-600';
+@import '@fontsource/chakra-petch/latin-300';
+@import '@fontsource/chakra-petch/latin-400';
+@import '@fontsource/chakra-petch/latin-500';
+@import '@fontsource/chakra-petch/latin-600';
+@import '@fontsource/dm-sans/latin-300';
+@import '@fontsource/dm-sans/latin-400';
+@import '@fontsource/dm-sans/latin-500';
 
 @theme {
   --color-ink: #060606;
@@ -236,3 +236,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
 }
+
+/* Keyboard navigation without altering the resting design. */
+:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 200; padding: 12px 20px; background: #eef0e6; color: #180735; }
+.skip-link:focus { top: 12px; }
+section[id], footer[id], main[id] { scroll-margin-top: 88px; }
+header button { min-height: 44px; }
+@media (max-width: 767px) { #work a[id] { margin-top: 0 !important; } }

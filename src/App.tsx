@@ -15,9 +15,9 @@ import { useLenis } from './hooks/useLenis'
 import { useSectionTheme } from './hooks/useSectionTheme'
 import { useReveal } from './hooks/useReveal'
 
-export default function App() {
+export default function App({ staticRender = false }: { staticRender?: boolean }) {
   const [menu, setMenu] = useState(false)
-  const [entered, setEntered] = useState(false)
+  const [entered, setEntered] = useState(staticRender)
   const close = useCallback(() => setMenu(false), [])
   useLenis()
   useSectionTheme()
@@ -25,19 +25,20 @@ export default function App() {
 
   return (
     <SoundProvider>
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <Cursor />
       {!entered && <Preloader onDone={() => setEntered(true)} />}
-      <Header onMenu={() => setMenu(true)} />
+      <Header menuOpen={menu} onMenu={() => setMenu(true)} />
       <SideBadge />
       <Menu open={menu} onClose={close} />
-      <main>
+      <main id="main-content">
         <Hero />
         <Manifesto />
         <Stats />
         <Work />
         <WorkedAt />
-        <Footer />
       </main>
+      <Footer />
     </SoundProvider>
   )
 }

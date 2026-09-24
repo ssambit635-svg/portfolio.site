@@ -36,6 +36,9 @@ jobs:
         run: npm run typecheck
 
       - name: Build site
+        env:
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+          VITE_GOOGLE_SITE_VERIFICATION: ${{ vars.VITE_GOOGLE_SITE_VERIFICATION }}
         run: npm run build
 
       - name: Setup Pages

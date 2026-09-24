@@ -60,7 +60,7 @@ export default function WorkedAt() {
               <i key={c} className={cn('absolute h-[7px] w-[7px] bg-mute-2', c)} />
             ))}
             {cur.image ? (
-              <img key={cur.id} src={cur.image} alt={cur.org} className="h-full w-full object-cover opacity-90" />
+              <img key={cur.id} src={cur.image} alt={`${cur.org} — ${cur.role} certificate`} loading="lazy" decoding="async" width={460} height={288} className="h-full w-full object-cover opacity-90" />
             ) : (
               <div className="grid h-full place-items-center">
                 <span className="font-display text-[clamp(28px,4vw,52px)] font-medium tracking-wide text-[#b48cff] uppercase">

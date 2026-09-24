@@ -22,6 +22,7 @@ function Toggle({
         onClick()
       }}
       onMouseEnter={tick}
+      aria-label={`${label} ${on ? 'on' : 'off'}`}
       aria-pressed={on}
       className="t-label flex items-center gap-2 whitespace-nowrap [color:var(--hd-mute)] transition-opacity hover:opacity-70"
     >
@@ -34,7 +35,7 @@ function Toggle({
   )
 }
 
-export default function Header({ onMenu }: { onMenu: () => void }) {
+export default function Header({ onMenu, menuOpen }: { onMenu: () => void; menuOpen: boolean }) {
   const time = useClock(profile.timezone)
   const { sfx, music, toggleSfx, toggleMusic, tick, click } = useSound()
 
@@ -64,6 +65,8 @@ export default function Header({ onMenu }: { onMenu: () => void }) {
       </div>
 
       <button
+        aria-expanded={menuOpen}
+        aria-controls="site-menu"
         onClick={() => {
           click()
           onMenu()

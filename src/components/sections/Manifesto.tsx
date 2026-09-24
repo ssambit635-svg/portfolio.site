@@ -3,9 +3,13 @@ import Scramble from '../fx/Scramble'
 
 export default function Manifesto() {
   return (
-    <section data-theme="dark" className="relative overflow-hidden bg-ink px-8 pt-[10vh] pb-[24vh] text-cream max-md:px-5">
+    <section id="about" aria-labelledby="about-heading" data-theme="dark" className="relative overflow-hidden bg-ink px-8 pt-[10vh] pb-[24vh] text-cream max-md:px-5">
       <div className="grid-lines" style={{ '--cols': 5 } as React.CSSProperties}>
         <i /><i /><i /><i /><i />
+      </div>
+      <div className="relative mb-12 max-w-2xl">
+        <h2 id="about-heading" className="t-label mb-4 text-lime">About Sambit Swain</h2>
+        <p className="text-[16px] leading-relaxed text-cream/75">I’m Sambit Swain, a software developer and computer science student interested in web development and cloud technology. I build software projects and take part in hackathons, turning ideas into working products.</p>
       </div>
       <div className="relative grid grid-cols-5 max-md:grid-cols-1">
         <p className="t-display col-span-2 text-justify text-[clamp(30px,3.6vw,52px)] font-normal leading-[1.02] [text-align-last:justify] max-md:col-span-1">
