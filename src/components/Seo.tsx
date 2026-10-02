@@ -16,15 +16,15 @@ export default function Seo() {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={siteUrl} />
     <meta property="og:locale" content="en_IN" />
-    <meta property="og:image" content={`${siteUrl}portrait.png`} />
-    <meta property="og:image:width" content="720" />
-    <meta property="og:image:height" content="1024" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:alt" content="Sambit Swain - Software Developer" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={`${siteUrl}sambit-swain.jpg`} />
+    <meta property="og:image:width" content="1087" />
+    <meta property="og:image:height" content="1446" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content="Sambit Swain, software developer and computer science student" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={`${siteUrl}portrait.png`} />
+    <meta name="twitter:image" content={`${siteUrl}sambit-swain.jpg`} />
     <meta name="twitter:image:alt" content="Sambit Swain - Software Developer" />
     {import.meta.env.VITE_GOOGLE_SITE_VERIFICATION && <meta name="google-site-verification" content={import.meta.env.VITE_GOOGLE_SITE_VERIFICATION} />}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd }} />

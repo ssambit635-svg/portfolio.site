@@ -21,7 +21,7 @@ Built with expressive typography, a live halftone portrait and motion—backed b
 
 - **Identity first:** Sambit Swain, a software developer and computer science student in Berhampur, India.
 - **Eight projects:** product previews, visible descriptions and genuine live/repository links.
-- **Distinctive interaction:** GSAP scroll motion, Lenis scrolling, decode-text effects, a pixel preloader and pointer-reactive portrait.
+- **Distinctive interaction:** a portrait-signal tuner that resolves the real photo and local type, a project-name signal, custom iris handoff, plus the interactive halftone portrait and motion.
 - **Audio controls:** optional UI sounds and a browser-generated ambient soundtrack; preferences are remembered locally.
 - **Search-ready delivery:** real page content in the initial HTML, canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
@@ -66,7 +66,7 @@ There is **no lint script/configuration** in this repository. Type checking and 
 ```text
 .github/workflows/deploy.yml   GitHub Pages build and deployment
 public/
-  portrait.png                Existing portrait / social sharing image
+  sambit-swain.jpg             Current portrait used by the halftone hero and social previews
   favicon.svg                 Existing header mark adapted as a favicon
 scripts/
   prerender.mjs               Build-time rendering + sitemap / robots generation
@@ -99,7 +99,7 @@ Vite has no built-in sitemap or metadata routing API. Metadata uses React 19's n
 | --- | --- |
 | Name, contact, social profiles, project descriptions | `src/lib/site.ts` |
 | Skills / technologies | `src/lib/skills.ts` |
-| Portrait | `public/portrait.png` |
+| Portrait | `public/sambit-swain.jpg` |
 | Screenshots / certificates | `src/assets/projects/`, `src/assets/certs/` |
 | Metadata and social image tags | `src/components/Seo.tsx` |
 | Canonical and structured data | `src/lib/seo.ts` |
@@ -134,7 +134,7 @@ Relative asset paths preserve GitHub Pages subpath support. Canonicals and struc
 - One meaningful H1, descriptive H2/H3 sections and readable project descriptions.
 - Title and natural description associated with **Sambit Swain**.
 - Canonical URL, author, language, robots directive and theme color.
-- Open Graph and Twitter/X metadata using the existing 720 × 1024 portrait, not a fabricated preview image.
+- Open Graph and Twitter/X previews use Sambit’s actual 1087 × 1446 portrait, shared with the interactive halftone hero.
 - Safely serialized `Person` and `WebSite` JSON-LD with genuine linked profiles and a publisher relationship.
 - Sitemap includes only the canonical homepage: fragments, APIs, fake routes and external demos do not belong in it.
 - Static HTML lets search engines and AI retrieval tools read the same information visitors see.

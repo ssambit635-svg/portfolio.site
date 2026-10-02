@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from '../../lib/gsap'
-import { hasFinePointer } from '../../lib/utils'
+import { hasFinePointer, prefersReducedMotion } from '../../lib/utils'
 
 /** Thin ring that lags the pointer, expands on interactive targets. */
 export default function Cursor() {
   const ring = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!hasFinePointer()) return
+    if (!hasFinePointer() || prefersReducedMotion()) return
     const el = ring.current!
     const xTo = gsap.quickTo(el, 'x', { duration: 0.35, ease: 'power3' })
     const yTo = gsap.quickTo(el, 'y', { duration: 0.35, ease: 'power3' })
@@ -28,6 +28,8 @@ export default function Cursor() {
       window.removeEventListener('pointerover', over)
     }
   }, [])
+
+  if (!hasFinePointer() || prefersReducedMotion()) return null
 
   return (
     <div

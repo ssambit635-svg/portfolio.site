@@ -5,7 +5,7 @@
 - Framework: React 19, TypeScript, Vite, Tailwind CSS; GSAP/Lenis effects.
 - Routing: one homepage with section anchors, no project-detail/auth/API/dashboard routes.
 - Hosting: GitHub Pages workflow; production URL **https://ssambit635-svg.github.io/portfolio.site/** confirmed in existing profile/package/crawl files.
-- Existing public portrait reused. No favicon existed; the existing header triangle mark now supplies the favicon.
+- The homepage and social previews use the current real portrait at `public/sambit-swain.jpg`; the previous `public/portrait.png` asset has been removed. The existing header triangle mark supplies the favicon.
 - Previously the initial HTML had an empty root and animated headings rendered no initial text. Project descriptions existed in data but were not displayed.
 
 ## Changes made
@@ -14,15 +14,16 @@
 | --- | --- |
 | Metadata | Central React 19 component: title, description, author, language, robots, theme color and optional Search Console verification. |
 | Canonical | Configurable production URL, normalized trailing slash; identical canonical for homepage, index.html and tracking-query access. |
-| Structured data | Safely serialized Person and WebSite graph, existing portrait and genuine public profiles, publisher relationship. |
-| Social sharing | Open Graph and Twitter/X title, description, existing portrait, alt text; OG image dimensions/type. |
+| Structured data | Safely serialized Person and WebSite graph, current portrait and genuine public profiles, publisher relationship. |
+| Social sharing | Open Graph and Twitter/X title, description, current portrait, descriptive alt text, accurate image dimensions/type and large-image card. |
 | Sitemap / robots | Generated from the same canonical configuration during every build. Homepage only; no duplicate fragments or invented routes. |
 | Crawlability / GEO | Actual React page prerendered at build time. All eight project cards and descriptions appear in initial HTML; no hidden SEO copy. |
 | Semantics | One meaningful H1, project H3s, About H2, footer landmark outside main, stable section/project IDs. |
+| Entry sequence | Replaced the generic counter/percentage loader with a portrait-led signal tuner: real image/font gates, live project signal, startup checklist, fallback deadline and portrait-centered iris handoff. |
 | Content / linking | Natural About identity, visible existing project descriptions, Home/About/Projects/Contact navigation, genuine external links. Placeholder resume button withheld until a valid URL is supplied. |
 | Images | Descriptive preview/certificate alt text, sizing attributes, lazy loading and async decoding; accessible portrait canvas label. |
-| Performance | Latin-only local fonts, removed eager project-image loading from preloader, reused portrait canvas buffer. Existing effects retained. |
-| Accessibility / mobile | Skip link, focus indicators, 44px header button minimum, labelled toggles, menu expanded state, inert closed menu, keyboard focus trap/return, scrollable menu, removed desktop zig-zag margins on mobile cards. |
+| Performance | Latin-only local fonts, no eager project-image loading, reused portrait canvas buffers, and paused canvas effects when offscreen or when reduced motion is requested. |
+| Accessibility / mobile | Skip link, focus indicators, labelled controls, keyboard-managed menu and portrait reveal, tap-to-reveal portrait on touch screens, reduced-motion alternatives, and responsive project cards. |
 | Documentation | Rewritten README with architecture, commands, configuration, deployment and indexing runbook. |
 
 Project content remains based on existing repository descriptions. Shadow Quest is described as a focus/streak-based deep-work app; unverified RPG mechanics were not invented. Visible descriptions require additional card space, so the desktop project section gets an 880px minimum height to prevent clipping. Colors, typography, card imagery, scroll effects and other components remain in place.

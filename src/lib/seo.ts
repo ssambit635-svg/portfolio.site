@@ -8,14 +8,14 @@ if (!['https:', 'http:'].includes(parsed.protocol) || parsed.search || parsed.ha
 }
 export const siteUrl = `${parsed.origin}${parsed.pathname.replace(/\/+$/, '')}/`
 export const title = 'Sambit Swain | Software Developer Portfolio'
-export const description = 'Meet Sambit Swain, a Software Developer exploring web development and cloud technology. Discover software projects, hackathon builds and ways to connect.'
+export const description = 'Sambit Swain is a B.Tech Computer Science student and software developer in Berhampur, India. Explore web apps, cloud experiments and hackathon projects.'
 export const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'Person', '@id': `${siteUrl}#person`,
       name: profile.name, url: siteUrl, jobTitle: profile.role,
-      description, image: `${siteUrl}portrait.png`,
+      description, image: `${siteUrl}sambit-swain.jpg`,
       sameAs: [profile.github, profile.linkedin, profile.x, profile.hashnode, profile.avely]
     },
     {

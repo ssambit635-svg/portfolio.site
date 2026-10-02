@@ -22,11 +22,9 @@ export const profile = {
   first: 'Sambit',
   last: 'Swain',
   role: 'Software Developer',
-  tagline: 'a computer science student',
-  taglineSub: 'who ships products & experiments',
-  birthYear: "06'",
-  country: 'IN',
-  city: 'Berhampur, IN',
+  classTag: "CSE '29",
+  country: 'India',
+  city: 'Berhampur, India',
   coords: ["19°18'55.0\"N", "84°47'32.0\"E"],
   timezone: 'Asia/Kolkata',
   email: 'ssambit635@gmail.com',
@@ -45,24 +43,18 @@ export const profile = {
 } as const
 
 export const intro = {
-  before: "I'm a regular guy passionate about ",
-  art: 'Code',
-  mid: ' and ',
-  tech: '<design/>',
+  before: 'B.Tech Computer Science student at NIST University, ',
+  art: 'building',
+  mid: ' practical ',
+  tech: 'web & cloud apps',
   after:
-    ' Nothing excites me more than building in those spaces. If I ever got rich, I’d fund open-source tools for students.'
+    ' in Berhampur, India — from hackathon prototypes to tools for health, agriculture and everyday productivity.'
 } as const
 
 export const manifesto = {
   lines: ['I believe great', 'work isn’t made', 'by talent alone.', 'It’s forged through', 'late nights,', 'bad drafts,', '& one too many'],
   quote: ['“Just one', 'more', 'tweak”']
 } as const
-
-export const stats = [
-  { label: 'Products Shipped', value: 8, suffix: '+' },
-  { label: 'Years Coding', value: 3, suffix: '+' },
-  { label: 'Certifications', value: 6, suffix: '+' }
-] as const
 
 export type Project = {
   id: string
@@ -73,6 +65,7 @@ export type Project = {
   stack: string[]
   image: string
   href: string
+  action: string
   repo?: string
 }
 
@@ -82,11 +75,12 @@ export const projects: Project[] = [
     title: 'kivo',
     kind: 'HealthTech',
     description:
-      'Point your camera at a paper lab report — kivo reads it, you verify every value, and it grows into a digital health twin with trends, risk awareness and a summary for your next doctor visit. Built for the iQOO Hackathon 2026.',
+      'Photograph a paper lab report, verify each extracted value, and build a personal health timeline with trends, risk insights and a doctor-visit summary. Built for the iQOO Hackathon 2026.',
     year: '2026',
     stack: ['JavaScript', 'Node.js', 'Express', 'SQLite', 'Android'],
     image: shotKivo,
     href: 'https://kivo-api-qzqc.onrender.com/',
+    action: 'Open live demo',
     repo: 'https://github.com/ssambit635-svg/kivo.git'
   },
   {
@@ -94,11 +88,12 @@ export const projects: Project[] = [
     title: 'Shadow Quest',
     kind: 'Productivity',
     description:
-      'A samurai-themed deep-work OS — pick a focus technique, watch an ensō ring fill while you focus and drain while you rest, and turn sealed goals into streaks. Built for Tech Zypher 2026.',
+      'A samurai-inspired focus app with configurable work sessions, an ensō timer and goal streaks. Built for Tech Zypher 2026.',
     year: '2026',
     stack: ['React', 'TypeScript', 'GSAP', 'MongoDB', 'Capacitor'],
     image: shotShadow,
     href: 'https://shadowquest.onrender.com/',
+    action: 'Open live app',
     repo: 'https://github.com/ssambit635-svg/Shadow-quest.git'
   },
   {
@@ -106,11 +101,12 @@ export const projects: Project[] = [
     title: 'Annadata Connect',
     kind: 'AgriTech',
     description:
-      'A farmer procurement platform: farmers get a live queue token at the best procurement centre and compare MSP centres with above-MSP buyers before they sell — officers run the queue, authorities watch the whole state. Built for Smart India Hackathon 2026.',
+      'Connects farmers to procurement centres with live queue tokens, MSP comparisons and above-MSP buyers, with queue tools for officers and an overview for state authorities. Built for Smart India Hackathon 2026.',
     year: '2026',
     stack: ['React', 'Node.js', 'Express', 'Capacitor', 'Docker'],
     image: shotAnnadata,
     href: 'https://ssambit635-svg-annadata-connect.onrender.com/',
+    action: 'Open live demo',
     repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git'
   },
   {
@@ -118,11 +114,12 @@ export const projects: Project[] = [
     title: 'CivicReport',
     kind: 'Web App',
     description:
-      'Citizens photograph a problem — a broken streetlight, an overflowing drain — and Gemini classifies it, drops it on a live map and tracks it until it closes.',
+      'Citizens photograph a local issue; Gemini classifies it, places it on a Leaflet map and helps track the report through resolution.',
     year: '2026',
     stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet'],
     image: shotCivic,
     href: 'https://ssambit635-svg.github.io/Civic-report/',
+    action: 'Open live site',
     repo: 'https://github.com/ssambit635-svg/Civic-report.git'
   },
   {
@@ -130,11 +127,12 @@ export const projects: Project[] = [
     title: 'Weather Sense',
     kind: 'Data App',
     description:
-      'A seven-day forecast, air-quality index and lifestyle scores that tell you whether to carry an umbrella or skip the evening run.',
+      'Combines a seven-day forecast and air-quality index with practical lifestyle scores for plans like carrying an umbrella or going for a run.',
     year: '2025',
     stack: ['Python', 'Streamlit', 'Open-Meteo API'],
     image: shotWeather,
     href: 'https://weather-sense-pbwmsehcq8etxhy7vufp6i.streamlit.app/',
+    action: 'Open live app',
     repo: 'https://github.com/ssambit635-svg/Weather-sense.git'
   },
   {
@@ -142,32 +140,35 @@ export const projects: Project[] = [
     title: 'AWS Dashboard',
     kind: 'Cloud Tool',
     description:
-      'Lists live EC2 instances, S3 buckets and month-to-date billing, then breaks the spend down by service.',
+      'A cloud dashboard for viewing EC2 instances, S3 buckets and month-to-date AWS spend, with costs grouped by service.',
     year: '2025',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
     image: shotAws,
-    href: 'https://lnkd.in/dgA4fPCR'
+    href: 'https://lnkd.in/dgA4fPCR',
+    action: 'View project update'
   },
   {
     id: 'password-manager',
     title: 'Password Manager',
     kind: 'Security',
     description:
-      'Generate, store and retrieve credentials with AES Fernet encryption and a SHA-256 hashed master password. No cloud, no accounts.',
+      'A local password manager for generating and retrieving credentials, using Fernet encryption and a SHA-256 hashed master password. No cloud accounts.',
     year: '2025',
     stack: ['Python', 'cryptography', 'Streamlit'],
     image: shotPassword,
-    href: 'https://github.com/ssambit635-svg/password_manager_python.git'
+    href: 'https://github.com/ssambit635-svg/password_manager_python.git',
+    action: 'View source'
   },
   {
     id: 'portfolio',
     title: 'This Portfolio',
     kind: 'Web Design',
-    description: 'The site you are reading, rebuilt from zero.',
+    description: 'A one-page portfolio built with React, TypeScript, GSAP motion and a custom halftone portrait effect.',
     year: '2026',
     stack: ['React', 'TypeScript', 'GSAP', 'Tailwind'],
     image: shotPortfolio,
-    href: 'https://github.com/ssambit635-svg/portfolio.site.git'
+    href: 'https://github.com/ssambit635-svg/portfolio.site.git',
+    action: 'View source'
   }
 ]
 
@@ -185,7 +186,7 @@ export const experience: Experience[] = [
     org: 'NIST University',
     role: 'B.Tech CSE · 2025 — 2029',
     detail:
-      'Core computer science by day — data structures, operating systems, DBMS, networks — and shipping real products on the side. 8.2 CGPA.'
+      'B.Tech Computer Science and Engineering student, learning core CS alongside practical web, backend and cloud projects. CGPA: 8.2.'
   },
   {
     id: 'aws',
@@ -236,6 +237,12 @@ export const experience: Experience[] = [
     detail: 'The computer science paper is where this started: first loops, then wondering what happens behind the browser tab. 79.7%.'
   }
 ]
+
+export const stats = [
+  { label: 'Projects listed', value: projects.length, suffix: '' },
+  { label: 'Years coding', value: 3, suffix: '+' },
+  { label: 'Certifications', value: experience.filter((item) => item.image).length, suffix: '' }
+] as const
 
 export const connect = [
   { n: '01', label: 'LinkedIn', href: profile.linkedin },

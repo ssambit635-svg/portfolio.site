@@ -3,8 +3,8 @@ import { gsap } from '../lib/gsap'
 import { connect, profile } from '../lib/site'
 import { useSound } from '../hooks/useSound'
 import Scramble from './fx/Scramble'
-import { cn } from '../lib/utils'
-import { getLenis } from '../hooks/useLenis'
+import { cn, prefersReducedMotion } from '../lib/utils'
+import { setScrollLocked } from '../hooks/useLenis'
 
 const items = [
   { label: 'Home', href: '#top' },
@@ -16,6 +16,7 @@ const items = [
 export default function Menu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const panel = useRef<HTMLDivElement>(null)
   const dim = useRef<HTMLDivElement>(null)
+  const menuScrollLock = useRef(false)
   const [hover, setHover] = useState<number | null>(null)
   const { tick, click } = useSound()
 
@@ -23,8 +24,14 @@ export default function Menu({ open, onClose }: { open: boolean; onClose: () => 
     const p = panel.current!
     const d = dim.current!
     if (open) {
-      getLenis()?.stop()
+      menuScrollLock.current = true
+      setScrollLocked(true)
       gsap.set([p, d], { pointerEvents: 'auto' })
+      if (prefersReducedMotion()) {
+        gsap.set([p, d], { x: 0, opacity: 1 })
+        gsap.set(p.querySelectorAll('[data-stagger]'), { y: 0, opacity: 1 })
+        return
+      }
       gsap.to(d, { opacity: 1, duration: 0.4 })
       gsap.fromTo(p, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' })
       gsap.fromTo(
@@ -33,7 +40,16 @@ export default function Menu({ open, onClose }: { open: boolean; onClose: () => 
         { y: 0, opacity: 1, duration: 0.5, stagger: 0.04, delay: 0.15 }
       )
     } else {
-      getLenis()?.start()
+      if (menuScrollLock.current) {
+        setScrollLocked(false)
+        menuScrollLock.current = false
+      }
+      if (prefersReducedMotion()) {
+        gsap.set(d, { opacity: 0, pointerEvents: 'none' })
+        gsap.set(p, { x: 0, opacity: 0, pointerEvents: 'none' })
+        gsap.set(p.querySelectorAll('[data-stagger]'), { y: 0, opacity: 0 })
+        return
+      }
       gsap.to(d, { opacity: 0, duration: 0.3 })
       gsap.to(p, { x: 30, opacity: 0, duration: 0.3, onComplete: () => gsap.set([p, d], { pointerEvents: 'none' }) })
     }

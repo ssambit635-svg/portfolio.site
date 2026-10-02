@@ -17,6 +17,7 @@ export default function WorkedAt() {
     const on = i === active
     return (
       <button
+        aria-pressed={on}
         onMouseEnter={() => { setActive(i); tick() }}
         onClick={() => setActive(i)}
         data-scramble-hover
