@@ -1,11 +1,16 @@
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger } from '../../lib/gsap'
+import { prefersReducedMotion } from '../../lib/utils'
 
 /** Number that counts up when scrolled into view. */
 export default function Counter({ to, suffix = '', className }: { to: number; suffix?: string; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   useEffect(() => {
     const el = ref.current!
+    if (prefersReducedMotion()) {
+      el.textContent = `${to}${suffix}`
+      return
+    }
     const o = { v: 0 }
     const tw = gsap.to(o, {
       v: to,

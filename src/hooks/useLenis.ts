@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Lenis from 'lenis'
 import { gsap, ScrollTrigger } from '../lib/gsap'
+import { prefersReducedMotion } from '../lib/utils'
 
 let lenis: Lenis | null = null
 export const getLenis = () => lenis
@@ -16,7 +17,7 @@ export function setScrollLocked(locked: boolean) {
 
 export function useLenis(enabled = true) {
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || prefersReducedMotion()) return
     lenis = new Lenis({ lerp: 0.09, smoothWheel: true })
     lenis.on('scroll', ScrollTrigger.update)
     const raf = (t: number) => lenis?.raf(t * 1000)

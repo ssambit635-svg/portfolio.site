@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger } from '../../lib/gsap'
-import { cn } from '../../lib/utils'
+import { cn, prefersReducedMotion } from '../../lib/utils'
 
 type Props = {
   /** colour of the incoming blocks */
@@ -18,6 +18,7 @@ export default function PixelTransition({ color, edge = 'top', className }: Prop
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (prefersReducedMotion()) return
     const el = ref.current!
     const cell = 96
     const cols = Math.ceil(window.innerWidth / cell)
