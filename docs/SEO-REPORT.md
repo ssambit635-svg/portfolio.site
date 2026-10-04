@@ -19,7 +19,7 @@
 | Sitemap / robots | Generated from the same canonical configuration during every build. Homepage only; no duplicate fragments or invented routes. |
 | Crawlability / GEO | Actual React page prerendered at build time. All eight project cards and descriptions appear in initial HTML; no hidden SEO copy. |
 | Semantics | One meaningful H1, project H3s, About H2, footer landmark outside main, stable section/project IDs. |
-| Entry sequence | Replaced the generic counter/percentage loader with a portrait-led signal tuner: real image/font gates, live project signal, startup checklist, fallback deadline and portrait-centered iris handoff. |
+| Entry sequence | Player-card boot sequence: real portrait/type gates, a startup checklist, a hand-drawn signature (Mrs Saint Delafield, bundled locally) with seal and verification stamp, a skip control, a hard fallback deadline and a session-scoped fast path for return visits. |
 | Content / linking | Natural About identity, visible existing project descriptions, Home/About/Projects/Contact navigation, genuine external links. Placeholder resume button withheld until a valid URL is supplied. |
 | Images | Descriptive preview/certificate alt text, sizing attributes, lazy loading and async decoding; accessible portrait canvas label. |
 | Performance | Latin-only local fonts, no eager project-image loading, reused portrait canvas buffers, and paused canvas effects when offscreen or when reduced motion is requested. |
