@@ -21,7 +21,7 @@ Built with expressive typography, a live halftone portrait and motion—backed b
 
 - **Identity first:** Sambit Swain, a software developer and computer science student in Berhampur, India.
 - **Eight projects:** product previews, visible descriptions and genuine live/repository links.
-- **Distinctive interaction:** a boot-sequence entry — a player card resolves the real portrait and local type, then a handwritten signature is drawn stroke by stroke and stamped before the page opens; plus the interactive halftone portrait and motion.
+- **Distinctive interaction:** a four-second entry sequence — the name is rasterised into a dotted atlas, drawn on the GPU and swept by a three-handle rig (Originkit Vector Wordmark) before the page opens; plus the interactive halftone portrait and motion.
 - **Audio controls:** optional UI sounds and a browser-generated ambient soundtrack; preferences are remembered locally.
 - **Search-ready delivery:** real page content in the initial HTML, canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
@@ -104,7 +104,8 @@ Vite has no built-in sitemap or metadata routing API. Metadata uses React 19's n
 | Metadata and social image tags | `src/components/Seo.tsx` |
 | Canonical and structured data | `src/lib/seo.ts` |
 | Color tokens and fonts | `src/index.css` |
-| Entry sequence (card, checklist, signature) | `src/components/Preloader.tsx` |
+| Entry sequence (four-second wordmark sweep) | `src/components/Preloader.tsx` |
+| GPU wordmark (dotted atlas, three-handle rig) | `src/components/VectorWordmark.tsx` |
 
 The resume is currently `#` in profile data, so the nonfunctional download button is not shown. Set `profile.resume` to a genuine public resume URL to enable it. Do not add placeholder professional profiles or unsupported project features.
 

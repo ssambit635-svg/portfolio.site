@@ -5,10 +5,17 @@ import { markReady } from '../lib/ready'
 import { useSound } from '../hooks/useSound'
 import { hasFinePointer, prefersReducedMotion } from '../lib/utils'
 import { profile } from '../lib/site'
+import VectorWordmark from './VectorWordmark'
 
-const PORTRAIT = `${import.meta.env.BASE_URL}sambit-swain.jpg`
+/** The wordmark component is authored against a 1200x800 stage. */
+const MARK_W = 1200
+/** The atlas band sits in the middle of the authored height, so height is scaled against this. */
+const MARK_BAND_H = 560
+const MARK_MAX_SCALE = 1.25
+const MARK_FONT_SIZE = 280
+const MARK_FAMILY = "'Big Shoulders Display', 'Arial Narrow', sans-serif"
 
-/** Remember that this session already watched the sequence. */
+/** Remember that this session already watched the mark draw itself. */
 const SEEN_KEY = 'ss:boot'
 const seenThisSession = () => {
   try {
@@ -25,45 +32,64 @@ const rememberSeen = () => {
   }
 }
 
-type Gate = 'pending' | 'ready' | 'fallback'
-
-/** The four stat lines printed on the card. Values come from the real profile. */
-const CARD_FIELDS = [
-  { key: 'NAME', value: profile.name },
-  { key: 'ROLE', value: profile.role },
-  { key: 'CLASS', value: `${profile.classTag} · NIST UNIVERSITY` },
-  { key: 'BASE', value: profile.city }
-] as const
-
-/** Startup beats, mirroring the site's instrument-panel vocabulary. */
-const BOOT_STEPS = [
-  { code: '01', label: 'PROFILE' },
-  { code: '02', label: 'TYPE' },
-  { code: '03', label: 'SIGNATURE' }
-] as const
+/** The whole entry beat: one four-second sweep of the wordmark. */
+const HOLD = 4
+/** Where the mark starts leaving — every other beat lands on the 4s mark. */
+const EXIT_AT = HOLD - 0.55
+/** If the display face has not resolved by here, draw in whatever is available. */
+const TYPE_DEADLINE = 2200
 
 /**
- * Entry sequence: the visitor's player card is issued, decoded and then signed
- * by hand — the sign-off is what unlocks the door to the site.
+ * The name never fills the authored box edge to edge, and the atlas pads the
+ * glyphs by 12% on each side — so measure the real ink before deciding a scale.
+ * Mirrors the component's own measurement, at the same font size it rasterises.
+ */
+function markInkWidth() {
+  const probe = document.createElement('canvas').getContext('2d')
+  if (!probe) return MARK_W
+  probe.font = `500 ${MARK_FONT_SIZE}px ${MARK_FAMILY}`
+  try {
+    if ('letterSpacing' in probe) {
+      ;(probe as unknown as { letterSpacing: string }).letterSpacing = '-0.01em'
+    }
+  } catch {
+    /* older engines simply keep the default spacing */
+  }
+  const pad = MARK_FONT_SIZE * 0.12
+  return Math.min(MARK_W, Math.max(1, probe.measureText(profile.name).width + pad * 2))
+}
+
+const META = [
+  { b: 'PLAYER 01', s: 'NIST UNIVERSITY' },
+  { b: profile.city, s: profile.coords[0] }
+] as const
+
+/** A WebGL context is what the wordmark draws with — check before promising it. */
+function webglAvailable() {
+  if (typeof document === 'undefined') return false
+  try {
+    const probe = document.createElement('canvas')
+    return Boolean(probe.getContext('webgl2') || probe.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Entry sequence: the name is rasterised into a dotted atlas, drawn on the GPU
+ * and swept by a three-handle rig that snaps to a drifting grid. The page opens
+ * after one four-second pass — or sooner, via the skip control.
  *
- * Real gates still decide when the page may open (portrait bytes, local fonts,
- * a minimum story beat and a hard deadline), so a slow or stalled asset can
- * never trap anyone behind the card.
+ * Real gates still decide when the page may open (local fonts, a live WebGL
+ * context, the hard four-second hold), and a stalled asset can never trap
+ * anyone: a deadline falls back to system type and the page still opens on time.
  */
 export default function Preloader({ onDone }: { onDone: () => void }) {
   const root = useRef<HTMLDivElement>(null)
   const cursorNib = useRef<HTMLDivElement>(null)
   const hud = useRef<HTMLElement>(null)
-  const card = useRef<HTMLDivElement>(null)
-  const photo = useRef<HTMLDivElement>(null)
-  const fields = useRef<HTMLDivElement>(null)
-  const paper = useRef<HTMLDivElement>(null)
-  const signature = useRef<HTMLSpanElement>(null)
-  const swash = useRef<HTMLSpanElement>(null)
-  const pen = useRef<HTMLSpanElement>(null)
-  const seal = useRef<HTMLSpanElement>(null)
-  const stamp = useRef<HTMLSpanElement>(null)
-  const brief = useRef<HTMLDivElement>(null)
+  const stage = useRef<HTMLDivElement>(null)
+  const mark = useRef<HTMLDivElement>(null)
   const floor = useRef<HTMLElement>(null)
   const track = useRef<HTMLSpanElement>(null)
   const readout = useRef<HTMLSpanElement>(null)
@@ -77,26 +103,34 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
   tone.current = { tick, click }
 
   // Deep links (#work, …) always get the full sequence; returning visitors in the
-  // same session go straight through so the card never becomes a toll booth.
+  // same session go straight through so the mark never becomes a toll booth.
   const [instant] = useState(
     () => typeof window !== 'undefined' && seenThisSession() && !window.location.hash
   )
   const [phase, setPhase] = useState<'tuning' | 'releasing'>('tuning')
-  const [beats, setBeats] = useState<[boolean, boolean, boolean]>([false, false, false])
-  const [portraitGate, setPortraitGate] = useState<Gate>('pending')
-  const [typeGate, setTypeGate] = useState<Gate>('pending')
+  const [typeReady, setTypeReady] = useState(false)
+  const [fine] = useState(() => hasFinePointer())
+  const [reduced] = useState(() => prefersReducedMotion())
+  const [gl] = useState(() => webglAvailable())
+
+  const draws = gl && !reduced
 
   /* ---------------------------------------------------------------- cursor */
   useEffect(() => {
-    if (instant) return
-    if (!hasFinePointer() || prefersReducedMotion()) return
+    if (instant || reduced || !fine) return
     const el = cursorNib.current
     const host = root.current
     if (!el || !host) return
     host.dataset.pointer = 'nib'
     const xTo = gsap.quickTo(el, 'x', { duration: 0.16, ease: 'power3' })
     const yTo = gsap.quickTo(el, 'y', { duration: 0.16, ease: 'power3' })
-    gsap.set(el, { xPercent: -50, yPercent: -50, x: window.innerWidth / 2, y: window.innerHeight / 2, autoAlpha: 1 })
+    gsap.set(el, {
+      xPercent: -50,
+      yPercent: -50,
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      autoAlpha: 1
+    })
     const move = (e: PointerEvent) => {
       xTo(e.clientX)
       yTo(e.clientY)
@@ -112,7 +146,44 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
       window.removeEventListener('pointerover', over)
       delete host.dataset.pointer
     }
-  }, [instant])
+  }, [instant, fine, reduced])
+
+  /* ------------------------------------------------------------ fit to view */
+  // The component keeps its authored 1200x800 canvas (so the atlas is rasterised
+  // once, never on resize); the shell scales that stage to the viewport instead.
+  useEffect(() => {
+    if (!draws) return
+    const host = root.current
+    const box = stage.current
+    if (!host || !box) return
+    const fit = () => {
+      const cs = getComputedStyle(box)
+      const innerW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      const innerH = box.clientHeight
+      const scale = Math.min(
+        MARK_MAX_SCALE,
+        Math.max(innerW, 1) / markInkWidth(),
+        Math.max(innerH, 1) / MARK_BAND_H
+      )
+      host.style.setProperty('--boot-fit', String(scale))
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(box)
+    return () => ro.disconnect()
+  }, [draws, typeReady])
+
+  /* --------------------------------------------------------- real type gate */
+  // The wordmark is measured into a canvas atlas, so it must not be shown until
+  // the display face is on the canvas — otherwise the first frames rasterise in
+  // a fallback font and the letters change under the visitor.
+  useEffect(() => {
+    if (instant || !draws) return
+    const done = () => setTypeReady(true)
+    const timer = window.setTimeout(done, TYPE_DEADLINE)
+    document.fonts?.ready.then(done, done)
+    return () => window.clearTimeout(timer)
+  }, [instant, draws])
 
   /* ------------------------------------------------------------- sequence */
   useEffect(() => {
@@ -123,42 +194,24 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
     }
     const el = root.current
     if (!el) return
-    const reduced = prefersReducedMotion()
+
+    let finished = false
+    let exit: gsap.core.Timeline | null = null
+    let meter: gsap.core.Tween | null = null
+    let cues: gsap.core.Tween[] = []
     const els = {
+      mark: mark.current,
       hud: hud.current,
-      card: card.current,
-      photo: photo.current,
-      fields: fields.current,
-      paper: paper.current,
-      signature: signature.current,
-      swash: swash.current,
-      pen: pen.current,
-      seal: seal.current,
-      stamp: stamp.current,
-      brief: brief.current,
       floor: floor.current,
       flash: flash.current
     }
 
-    let active = true
-    let finished = false
-    let imageResolved = false
-    let fontsResolved = false
-    let minimumElapsed = false
-    let forceFinish = false
-    let relock = 0
-    let minimumTimer = 0
-    let deadlineTimer = 0
-    let exit: gsap.core.Timeline | null = null
-    let cues: gsap.core.Tween[] = []
-
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
     if (!window.location.hash) window.scrollTo(0, 0)
     setScrollLocked(true)
-    relock = window.setTimeout(() => setScrollLocked(true), 60)
+    const relock = window.setTimeout(() => setScrollLocked(true), 60)
 
     const enter = () => {
-      if (!active) return
       onDoneRef.current()
       if (window.location.hash) {
         let id = window.location.hash.slice(1)
@@ -172,106 +225,59 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
     }
 
     const finish = () => {
-      if (finished || !active) return
+      if (finished) return
       finished = true
       window.clearTimeout(relock)
-      window.clearTimeout(minimumTimer)
-      window.clearTimeout(deadlineTimer)
+      window.clearTimeout(holdTimer)
       setPhase('releasing')
       rememberSeen()
       markReady()
       setScrollLocked(false)
       ScrollTrigger.refresh()
-      setPortraitGate((t) => (t === 'pending' ? 'fallback' : t))
 
       if (readout.current) readout.current.textContent = '100'
       gsap.set(track.current, { scaleX: 1 })
-      story.pause()
-      tone.current.click()
 
       if (reduced) {
         exit = gsap.timeline({ onComplete: enter })
-        exit.to(el, { opacity: 0, duration: 0.2 }, 0)
+        exit.to(el, { autoAlpha: 0, duration: 0.2, delay: 0.5 }, 0)
         exit.set(el, { display: 'none' })
         return
       }
 
+      // No transforms here: the mark's own scale belongs to the fit-to-view rule.
       exit = gsap.timeline({ onComplete: enter, defaults: { ease: 'power2.inOut' } })
       exit
         .to(cursorNib.current, { autoAlpha: 0, duration: 0.2 }, 0)
-        .to([els.card, els.brief, els.hud, els.floor].filter(Boolean), { autoAlpha: 0, y: -12, duration: 0.34 }, 0)
-        .to(els.flash, { autoAlpha: 0.28, duration: 0.18, ease: 'power1.out' }, 0.06)
-        .to(els.flash, { autoAlpha: 0, duration: 0.3 }, 0.24)
-        .to(el, { scale: 1.035, duration: 0.78 }, 0)
-        .to(el, { autoAlpha: 0, duration: 0.42 }, 0.22)
+        .to(els.mark, { autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0)
+        .to([els.hud, els.floor].filter(Boolean), { autoAlpha: 0, y: -10, duration: 0.34 }, 0.04)
+        .to(els.flash, { autoAlpha: 0.2, duration: 0.16, ease: 'power1.out' }, 0.18)
+        .to(els.flash, { autoAlpha: 0, duration: 0.28 }, 0.34)
+        .to(el, { autoAlpha: 0, duration: 0.4 }, 0.2)
     }
-
-    const maybeFinish = () => {
-      if (forceFinish || (imageResolved && fontsResolved && minimumElapsed)) finish()
-    }
-
-    const beat = (index: number) => {
-      setBeats((prev) => (prev[index] ? prev : ((prev.map((v, i) => (i === index ? true : v)) as [boolean, boolean, boolean]))))
-      tone.current.tick()
-    }
-
-    const fieldRows = Array.from(els.fields?.children ?? [])
 
     /* ------------------------------------------------------------ storyboard */
-    const story = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
-    let exitAt = 3.5
+    let exitAt = EXIT_AT
     if (reduced) {
-      story.set([els.hud, els.card, els.brief, els.floor, els.seal, els.stamp].filter(Boolean), { autoAlpha: 1 })
-      cues = [
-        gsap.delayedCall(0.2, () => beat(0)),
-        gsap.delayedCall(0.42, () => beat(1)),
-        gsap.delayedCall(0.62, () => beat(2))
-      ]
-      exitAt = 0.9
+      gsap.set([els.hud, el, els.floor].filter(Boolean), { autoAlpha: 1 })
+      exitAt = 0.4
     } else {
+      const story = gsap.timeline({ defaults: { ease: 'power3.out' } })
       story
-        .fromTo(els.hud, { autoAlpha: 0, y: -14 }, { autoAlpha: 1, y: 0, duration: 0.45 }, 0)
-        .fromTo(els.brief, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.6 }, 0.06)
-        .fromTo(
-          els.card,
-          { autoAlpha: 0, y: 30, rotateX: 12, rotateY: -16 },
-          { autoAlpha: 1, y: 0, rotateX: 0, rotateY: 0, duration: 0.85, ease: 'power4.out' },
-          0.3
-        )
-        // the portrait decodes, scanline and all
-        .fromTo(els.photo, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'power2.inOut' }, 0.62)
-        .fromTo('[data-boot-ghost]', { autoAlpha: 0.85 }, { autoAlpha: 0, duration: 0.4, ease: 'steps(5)' }, 0.9)
-        .call(() => beat(0), undefined, 0.95)
-        .fromTo(fieldRows, { autoAlpha: 0, y: 7 }, { autoAlpha: 1, y: 0, duration: 0.28, stagger: 0.06 }, 1.0)
-        .call(() => beat(1), undefined, 1.2)
-        // the blank card slides in, then gets signed
-        .fromTo(els.paper, { autoAlpha: 0, yPercent: 14 }, { autoAlpha: 1, yPercent: 0, duration: 0.4 }, 1.32)
-        .to(els.pen, { autoAlpha: 1, duration: 0.1 }, 1.42)
-        .fromTo(
-          els.signature,
-          { clipPath: 'inset(-40% 100% -40% 0%)' },
-          { clipPath: 'inset(-40% 0% -40% 0%)', duration: 1.25, ease: 'power1.inOut' },
-          1.5
-        )
-        .to(els.pen, { x: () => (els.signature?.offsetWidth ?? 240) * 0.97, duration: 1.25, ease: 'power1.inOut' }, 1.5)
-        .to(els.pen, { y: -3.5, duration: 0.22, yoyo: true, repeat: 5, ease: 'sine.inOut' }, 1.5)
-        .fromTo(els.swash, { scaleX: 0 }, { scaleX: 1, duration: 0.36, ease: 'power2.out' }, 2.56)
-        .to(els.pen, { autoAlpha: 0, duration: 0.16 }, 2.78)
-        // stamped and sealed
-        .call(() => beat(2), undefined, 2.82)
-        .fromTo(els.seal, { autoAlpha: 0, scale: 1.8, rotate: -30 }, { autoAlpha: 1, scale: 1, rotate: -12, duration: 0.36, ease: 'power4.in' }, 2.9)
-        .fromTo(els.stamp, { autoAlpha: 0, scale: 1.5, rotate: -2 }, { autoAlpha: 1, scale: 1, rotate: -8, duration: 0.22, ease: 'power4.in' }, 3.08)
-        .fromTo(els.stamp, { x: -3 }, { x: 0, duration: 0.1, repeat: 2, ease: 'power2.out' }, 3.3)
-        .fromTo(els.flash, { autoAlpha: 0 }, { autoAlpha: 0.14, duration: 0.2 }, 3.08)
-        .to(els.flash, { autoAlpha: 0, duration: 0.36 }, 3.28)
+        .fromTo(els.hud, { autoAlpha: 0, y: -14 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.06)
+        .fromTo(els.floor, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.6 }, 0.14)
+      cues = [
+        gsap.delayedCall(HOLD * 0.5, () => tone.current.tick()),
+        gsap.delayedCall(HOLD * 0.78, () => tone.current.tick())
+      ]
     }
 
-    // the meter climbs honestly while the story runs, then snaps to 100 on exit
-    const meter = gsap.to(
+    // the meter climbs honestly over the four seconds, then snaps to 100 on exit
+    meter = gsap.to(
       { v: 0 },
       {
-        v: 96,
-        duration: Math.max(0.4, exitAt - 0.15),
+        v: 98,
+        duration: Math.max(0.3, exitAt - 0.1),
         ease: 'none',
         onUpdate () {
           const v = Math.round(this.targets()[0].v as number)
@@ -281,93 +287,53 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
       }
     )
 
-    const started = performance.now()
-    gsap.delayedCall(reduced ? 0.05 : 0.12, () => story.play())
-    const minimum = setInterval(() => {
-      if (performance.now() - started < (reduced ? 1000 : 4200)) return
-      clearInterval(minimum)
-      minimumElapsed = true
-      maybeFinish()
-    }, 120)
-
-    const resolvePortrait = (ok: boolean) => {
-      if (imageResolved) return
-      imageResolved = true
-      setPortraitGate(ok ? 'ready' : 'fallback')
-      maybeFinish()
-    }
-    const image = new Image()
-    image.onload = () => resolvePortrait(true)
-    image.onerror = () => resolvePortrait(false)
-    image.src = PORTRAIT
-    if (image.complete) queueMicrotask(() => resolvePortrait(image.naturalWidth > 0))
-
-    if (document.fonts?.ready) document.fonts.ready.then(() => {
-      if (fontsResolved) return
-      fontsResolved = true
-      setTypeGate('ready')
-      maybeFinish()
-    }, () => {
-      if (fontsResolved) return
-      fontsResolved = true
-      setTypeGate('fallback')
-      maybeFinish()
-    })
-    else {
-      fontsResolved = true
-      setTypeGate('fallback')
-    }
-
-    // hard ceiling: nobody waits on a stalled asset, story or not
-    deadlineTimer = window.setTimeout(() => {
-      forceFinish = true
-      if (!imageResolved) {
-        imageResolved = true
-        setPortraitGate('fallback')
-      }
-      if (!fontsResolved) {
-        fontsResolved = true
-        setTypeGate('fallback')
-      }
-      maybeFinish()
-    }, reduced ? 1800 : 7600)
+    // the four-second hold is the contract: nothing below may extend it
+    const holdTimer = window.setTimeout(finish, reduced ? 1000 : HOLD * 1000)
 
     return () => {
-      active = false
       window.clearTimeout(relock)
-      window.clearTimeout(minimumTimer)
-      window.clearTimeout(deadlineTimer)
-      clearInterval(minimum)
-      image.onload = null
-      image.onerror = null
-      meter.kill()
+      window.clearTimeout(holdTimer)
+      meter?.kill()
       cues.forEach((cue) => cue.kill())
-      story.kill()
       exit?.kill()
       setScrollLocked(false)
       ScrollTrigger.refresh()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instant])
+  }, [instant, reduced])
 
-  const gateLabel = (gate: Gate, ready: string, fallback: string) =>
-    gate === 'ready' ? ready : gate === 'fallback' ? fallback : 'TUNING'
+  /* --------------------------------------------------- the mark fades up in */
+  // Opacity only: the mark's transform is the fit-to-view rule and must not be
+  // overwritten by the animation library.
+  useEffect(() => {
+    if (instant || !draws || !typeReady) return
+    const el = mark.current
+    if (!el) return
+    const tween = gsap.fromTo(el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.7, ease: 'power2.out' })
+    return () => {
+      tween.kill()
+    }
+  }, [instant, draws, typeReady])
+
+  const gateLabel = !gl ? 'UNAVAILABLE' : reduced ? 'STATIC' : typeReady ? 'ATLAS OK' : 'MEASURING'
 
   return (
     <div
       ref={root}
       className="boot"
       data-phase={phase}
+      data-draws={draws ? 'gl' : 'static'}
       role="status"
       aria-live="polite"
     >
       <div className="boot__bg" aria-hidden="true" />
-      <div className="boot__glow boot__glow--one" aria-hidden="true" />
-      <div className="boot__glow boot__glow--two" aria-hidden="true" />
+      <div className="boot__scan" aria-hidden="true" />
       <div ref={flash} className="boot__flash" aria-hidden="true" />
       <div ref={cursorNib} className="boot__nib" aria-hidden="true" />
 
-      <p className="sr-only">{phase === 'releasing' ? 'Portfolio ready.' : 'Preparing the portfolio.'}</p>
+      <p className="sr-only">
+        {phase === 'releasing' ? 'Portfolio ready.' : `Drawing the name ${profile.name}.`}
+      </p>
 
       {/* Same band as the site header, so the handoff reads as one element. */}
       <header ref={hud} className="boot__hud" aria-hidden="true">
@@ -379,112 +345,43 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           {profile.name}
         </span>
         <span className="boot__hud-meta">
-          <span className="boot__hud-cell">
-            <b>PLAYER 01</b>
-            <small>NIST UNIVERSITY</small>
-          </span>
-          <span className="boot__hud-cell">
-            <b>{profile.city}</b>
-            <small>{profile.coords[0]}</small>
-          </span>
+          {META.map((cell) => (
+            <span key={cell.b} className="boot__hud-cell">
+              <b>{cell.b}</b>
+              <small>{cell.s}</small>
+            </span>
+          ))}
         </span>
       </header>
 
-      <div className="boot__stage" aria-hidden="true">
-        <div ref={brief} className="boot__brief">
-          <p className="boot__eyebrow">
-            <i className="boot__pulse" /> IDENTITY CARD · ISSUE 029
-          </p>
-          <h2 className="boot__title">
-            Player one
-          </h2>
-          <p className="boot__lede">
-            Ideas enter as signals. <em>Useful things</em> leave as software — signed below.
-          </p>
-          <div className="boot__steps">
-            {BOOT_STEPS.map((step, i) => (
-              <div
-                key={step.code}
-                className="boot__step"
-                data-state={beats[i] ? 'ready' : 'pending'}
-              >
-                <span className="boot__step-node" />
-                <span className="boot__step-code">{step.code}</span>
-                <span className="boot__step-label">{step.label}</span>
-                <span className="boot__step-state">
-                  {i === 0 ? (
-                    gateLabel(portraitGate, 'BYTES OK', 'BUFFERED')
-                  ) : i === 1 ? (
-                    gateLabel(typeGate, 'LOCAL FONTS', 'SYSTEM')
-                  ) : (
-                    <>
-                      <em>PENDING</em>
-                      <b>HAND-SIGNED</b>
-                    </>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="boot__card-wrap">
-        <span className="boot__watermark" aria-hidden="true">029</span>
-        <div ref={card} className="boot__card">
-          <p className="boot__card-head">
-            <span>PLAYER CARD</span>
-            <span>SS / 029</span>
-          </p>
-
-          <div ref={photo} className="boot__photo">
-            <img src={PORTRAIT} alt="" className="boot__photo-img" />
-            <img data-boot-ghost src={PORTRAIT} alt="" className="boot__photo-ghost" />
-            <span className="boot__photo-scan" />
-            <span className="boot__photo-tag">
-              FIG. 01 · {portraitGate === 'ready' ? 'SYNCED' : portraitGate === 'fallback' ? 'BUFFERED' : 'INCOMING'}
-            </span>
-          </div>
-
-          <div ref={fields} className="boot__fields">
-            {CARD_FIELDS.map((field) => (
-              <p key={field.key} className="boot__field">
-                <span className="boot__field-key">{field.key}</span>
-                <span className="boot__field-lead" />
-                <span className="boot__field-value">{field.value}</span>
-              </p>
-            ))}
-          </div>
-
-          <span ref={stamp} className="boot__stamp">
-            <b>VERIFIED</b>
-            <i>READY TO SHIP</i>
-          </span>
-
-          <div ref={paper} className="boot__paper">
-            <div className="boot__sign">
-              <span ref={signature} className="boot__sign-name">{profile.first} {profile.last}</span>
-              <span ref={swash} className="boot__swash" />
-              <span ref={pen} className="boot__pen" />
-            </div>
-            <p className="boot__paper-meta">
-              <span>Signature — author</span>
-              <span>Folio 029 / 2026</span>
-            </p>
-          </div>
-        </div>
-
-          {/* hangs off the card edge, so it lives outside the clipped box */}
-          <span ref={seal} className="boot__seal">
-            <svg viewBox="0 0 120 120" aria-hidden="true">
-              <circle cx="60" cy="60" r="57" className="boot__seal-ring" />
-              <circle cx="60" cy="60" r="49" className="boot__seal-ticks" />
-              <circle cx="60" cy="60" r="34" className="boot__seal-ring-2" />
-              <text x="60" y="56" className="boot__seal-mark" textAnchor="middle">SS</text>
-              <text x="60" y="80" className="boot__seal-year" textAnchor="middle">2026</text>
-              <circle cx="40" cy="76" r="2.2" className="boot__seal-dot" />
-              <circle cx="80" cy="76" r="2.2" className="boot__seal-dot" />
-            </svg>
-          </span>
+      <div ref={stage} className="boot__stage">
+        <div ref={mark} className="boot__mark" aria-hidden="true">
+          {draws ? (
+            <VectorWordmark
+              text={profile.name}
+              background="transparent"
+              textColor="#f4f0ff"
+              shade="#8f6fd8"
+              accent="rgba(180, 140, 255, 0.55)"
+              font={{
+                fontFamily: MARK_FAMILY,
+                fontWeight: 500,
+                fontSize: `${MARK_FONT_SIZE}px`,
+                lineHeight: '1em',
+                letterSpacing: '-0.01em',
+                textAlign: 'left'
+              }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                minWidth: 0,
+                minHeight: 0,
+                background: 'transparent'
+              }}
+            />
+          ) : (
+            <p className="boot__mark-static">{profile.name}</p>
+          )}
         </div>
       </div>
 
@@ -496,8 +393,12 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
           <p className="boot__status" aria-hidden="true">
             <i className="boot__status-dot" />
             <span>
-              <b>{phase === 'releasing' ? 'ENTERING THE FIELD' : 'SIGNING IN'}</b>
-              <small>The portrait, local type and one hand-signed card.</small>
+              <b>{phase === 'releasing' ? 'ENTERING THE FIELD' : 'DRAWING THE WORDMARK'}</b>
+              <small>
+                {draws && fine
+                  ? 'Move the cursor — the dots sharpen under the handles.'
+                  : 'One four-second sweep, then the page opens.'}
+              </small>
             </span>
           </p>
           <p className="boot__readout" aria-hidden="true">
@@ -519,6 +420,11 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             Skip intro
           </button>
         </div>
+        <p className="boot__gate" aria-hidden="true">
+          <span className="boot__gate-cell">VECTOR · {gateLabel}</span>
+          <span className="boot__gate-cell">TYPE · LOCAL</span>
+          <span className="boot__gate-cell">SWEEP · 1 / 1</span>
+        </p>
       </footer>
     </div>
   )
