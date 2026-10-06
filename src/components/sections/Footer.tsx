@@ -49,8 +49,9 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* giant dotted marquee — dots warp around the cursor */}
-      <div className="mt-10 -mx-8 h-[clamp(120px,17vw,250px)] select-none max-md:-mx-4" data-cursor>
+      {/* giant dotted marquee — dots warp around the pointer; it rises into
+          the fold for a last touch of depth */}
+      <div data-plx="-70" className="mt-10 -mx-8 h-[clamp(120px,17vw,250px)] select-none max-md:-mx-4">
         <DotText text={`Portfolio/${profile.first}`} />
       </div>
     </footer>

@@ -19,6 +19,8 @@ assert.equal(data['@graph'][0].name, 'Sambit Swain')
 assert.equal(data['@graph'][0].url, canonical)
 assert.equal(data['@graph'][0].image, `${canonical}sambit-swain.jpg`)
 assert.equal(data['@graph'][1].publisher['@id'], data['@graph'][0]['@id'])
+assert.equal(data['@graph'][1].logo, `${canonical}logo.png`, 'WebSite JSON-LD must expose the site logo for Google Search')
+assert.match(html, /rel="apple-touch-icon"[^>]*href="[^"]*logo\.png"/, 'The logo must be linked as a touch icon')
 
 for (const id of ['top', 'about', 'work', 'contact', 'main-content', 'project-annadata-connect', 'project-shadow-quest']) {
   assert.ok(html.includes(`id="${id}"`), `Missing page target #${id}`)
@@ -55,5 +57,6 @@ assert.match(css, /boot__mark-static/, 'The reduced-motion wordmark fallback sho
 assert.match(css, /prefers-reduced-motion:reduce/, 'Reduced-motion styles should be present')
 for (const match of html.matchAll(/(?:src|href)="\.\/(assets\/[^"#]+)"/g)) await access(`dist/${match[1]}`)
 await access('dist/favicon.svg')
+await access('dist/logo.png')
 await access('dist/sambit-swain.jpg')
 console.log('Site checks passed: content, landmarks, anchors, project links/stacks, metadata, JSON-LD, loader bundles, reduced motion, social image and crawl files.')

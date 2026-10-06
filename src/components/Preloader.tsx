@@ -86,7 +86,6 @@ function webglAvailable() {
  */
 export default function Preloader({ onDone }: { onDone: () => void }) {
   const root = useRef<HTMLDivElement>(null)
-  const cursorNib = useRef<HTMLDivElement>(null)
   const hud = useRef<HTMLElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const mark = useRef<HTMLDivElement>(null)
@@ -116,37 +115,8 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
   const draws = gl && !reduced
 
   /* ---------------------------------------------------------------- cursor */
-  useEffect(() => {
-    if (instant || reduced || !fine) return
-    const el = cursorNib.current
-    const host = root.current
-    if (!el || !host) return
-    host.dataset.pointer = 'nib'
-    const xTo = gsap.quickTo(el, 'x', { duration: 0.16, ease: 'power3' })
-    const yTo = gsap.quickTo(el, 'y', { duration: 0.16, ease: 'power3' })
-    gsap.set(el, {
-      xPercent: -50,
-      yPercent: -50,
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
-      autoAlpha: 1
-    })
-    const move = (e: PointerEvent) => {
-      xTo(e.clientX)
-      yTo(e.clientY)
-    }
-    const over = (e: PointerEvent) => {
-      const hot = (e.target as HTMLElement).closest('a,button,[data-cursor]')
-      gsap.to(el, { scale: hot ? 2.1 : 1, duration: 0.25 })
-    }
-    window.addEventListener('pointermove', move, { passive: true })
-    window.addEventListener('pointerover', over, { passive: true })
-    return () => {
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerover', over)
-      delete host.dataset.pointer
-    }
-  }, [instant, fine, reduced])
+  // The native pointer is used everywhere now (including here): no custom
+  // ring, no nib — the footer's purple could never swallow it again.
 
   /* ------------------------------------------------------------ fit to view */
   // The component keeps its authored 1200x800 canvas (so the atlas is rasterised
@@ -248,7 +218,6 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
       // No transforms here: the mark's own scale belongs to the fit-to-view rule.
       exit = gsap.timeline({ onComplete: enter, defaults: { ease: 'power2.inOut' } })
       exit
-        .to(cursorNib.current, { autoAlpha: 0, duration: 0.2 }, 0)
         .to(els.mark, { autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0)
         .to([els.hud, els.floor].filter(Boolean), { autoAlpha: 0, y: -10, duration: 0.34 }, 0.04)
         .to(els.flash, { autoAlpha: 0.2, duration: 0.16, ease: 'power1.out' }, 0.18)
@@ -329,7 +298,6 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
       <div className="boot__bg" aria-hidden="true" />
       <div className="boot__scan" aria-hidden="true" />
       <div ref={flash} className="boot__flash" aria-hidden="true" />
-      <div ref={cursorNib} className="boot__nib" aria-hidden="true" />
 
       <p className="sr-only">
         {phase === 'releasing' ? 'Portfolio ready.' : `Drawing the name ${profile.name}.`}

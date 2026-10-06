@@ -9,6 +9,9 @@ import { cn } from '../../lib/utils'
 
 /* Smaller stagger keeps the longer, more informative cards inside the pin. */
 const OFFSETS = [180, 40, 240, 0, 210, 60, 240, 15]
+/* Cards also breathe in and out of the screen plane as the track slides —
+   alternating depth so the row never reads as a flat strip. */
+const DEPTHS = [-40, 30, -18, 44, -32, 22, -44, 14]
 
 function Card({ p, i }: { p: Project; i: number }) {
   const { tick } = useSound()
@@ -17,6 +20,7 @@ function Card({ p, i }: { p: Project; i: number }) {
       id={`project-${p.id}`}
       data-project-card
       data-reveal={i * 60}
+      data-reveal-fade
       className="project-card relative block w-[300px] shrink-0 max-md:w-[78vw]"
       style={{ marginTop: OFFSETS[i % OFFSETS.length] }}
     >
@@ -34,7 +38,6 @@ function Card({ p, i }: { p: Project; i: number }) {
         rel="noopener noreferrer"
         onMouseEnter={tick}
         data-scramble-hover
-        data-cursor
         aria-label={`${p.action}: ${p.title}`}
         className="group block"
       >
@@ -93,28 +96,47 @@ function Card({ p, i }: { p: Project; i: number }) {
 export default function Work() {
   const pin = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLDivElement>(null)
+  const bar = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const mm = gsap.matchMedia()
     mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
       const t = track.current!
       const dist = () => t.scrollWidth - window.innerWidth
+      const range = () => ({ trigger: pin.current, start: 'top top', end: () => `+=${dist()}` })
       const tw = gsap.to(t, {
         x: () => -dist(),
         ease: 'none',
         scrollTrigger: {
-          trigger: pin.current,
-          start: 'top top',
-          end: () => `+=${dist()}`,
+          ...range(),
           pin: true,
           scrub: 0.6,
           invalidateOnRefresh: true,
           anticipatePin: 1
         }
       })
+      /* depth: cards drift on the z-axis-ish while the track slides sideways */
+      const cards = gsap.to('[data-project-card]', {
+        y: (i: number) => DEPTHS[i % DEPTHS.length],
+        ease: 'none',
+        scrollTrigger: { ...range(), scrub: 0.9, invalidateOnRefresh: true }
+      })
+      /* a horizontal-scroll progress line along the bottom edge */
+      const progress = bar.current
+        ? gsap.fromTo(bar.current, { scaleX: 0 }, {
+            scaleX: 1,
+            ease: 'none',
+            transformOrigin: 'left center',
+            scrollTrigger: { ...range(), scrub: 0.4, invalidateOnRefresh: true }
+          })
+        : null
       return () => {
         tw.scrollTrigger?.kill()
         tw.kill()
+        cards.scrollTrigger?.kill()
+        cards.kill()
+        progress?.scrollTrigger?.kill()
+        progress?.kill()
       }
     })
     ScrollTrigger.refresh()
@@ -126,6 +148,10 @@ export default function Work() {
       <div ref={pin} className="work-pin h-[max(100svh,880px)] overflow-hidden max-md:h-auto max-md:pb-16">
         {/* horizontal baseline */}
         <i aria-hidden className="absolute top-[74%] left-0 h-px w-full bg-black/15 max-md:hidden" />
+        {/* horizontal-scroll progress line */}
+        <i aria-hidden className="absolute bottom-9 left-8 right-8 h-[2px] bg-black/10 max-md:hidden">
+          <i ref={bar} className="block h-full w-full bg-purple" />
+        </i>
         <div ref={track} className="project-track flex h-full items-start gap-[120px] px-8 pt-[110px] will-change-transform max-md:flex-col max-md:gap-16 max-md:pt-24">
           {/* heading block */}
           <div className="w-[300px] shrink-0 pt-6 max-md:w-auto">

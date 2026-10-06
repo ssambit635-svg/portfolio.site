@@ -1,14 +1,13 @@
 /**
- * Every skill mentioned anywhere in this repo — project stacks, certifications
- * and the build toolchain — with its REAL brand mark.
+ * The real, substantial skills shown in the Toolbox section — languages,
+ * frameworks, platforms and tools that carry projects on their own.
+ * One-off libraries and services (Streamlit, Leaflet, Recharts, Open-Meteo,
+ * LocalStack …) stay in the project stacks where they belong, not here.
  *
  * Marks come from Simple Icons (CC0 1.0, official brand vectors) and are
  * bundled into the build, so they also work offline / on GitHub Pages.
  * Amazon AWS was dropped from recent Simple Icons releases, so its official
  * vector is vendored at src/assets/logos/aws.svg (Simple Icons v11).
- * The few tools that ship no brand mark in any icon set (Recharts,
- * LocalStack, Open-Meteo) fall back to the real favicon served from the
- * project's own domain, and finally to a typographic wordmark.
  */
 import awsRaw from '../assets/logos/aws.svg?raw'
 
@@ -29,8 +28,6 @@ import githubRaw from 'simple-icons/icons/github.svg?raw'
 import dockerRaw from 'simple-icons/icons/docker.svg?raw'
 import linuxRaw from 'simple-icons/icons/linux.svg?raw'
 import fastapiRaw from 'simple-icons/icons/fastapi.svg?raw'
-import streamlitRaw from 'simple-icons/icons/streamlit.svg?raw'
-import leafletRaw from 'simple-icons/icons/leaflet.svg?raw'
 import geminiRaw from 'simple-icons/icons/googlegemini.svg?raw'
 import capacitorRaw from 'simple-icons/icons/capacitor.svg?raw'
 import expressRaw from 'simple-icons/icons/express.svg?raw'
@@ -71,21 +68,15 @@ export const skills: Skill[] = [
   { id: 'node', label: 'Node.js', hex: '#5FA04E', paths: pathsOf(nodeRaw) },
   { id: 'express', label: 'Express', hex: '#0A0A0A', paths: pathsOf(expressRaw) },
   { id: 'fastapi', label: 'FastAPI', hex: '#009688', paths: pathsOf(fastapiRaw) },
-  { id: 'streamlit', label: 'Streamlit', hex: '#FF4B4B', paths: pathsOf(streamlitRaw) },
   { id: 'mongodb', label: 'MongoDB', hex: '#47A248', paths: pathsOf(mongodbRaw) },
   { id: 'sqlite', label: 'SQLite', hex: '#003B57', paths: pathsOf(sqliteRaw) },
-  { id: 'recharts', label: 'Recharts', hex: '#8884D8', domain: 'recharts.org' },
-  { id: 'leaflet', label: 'Leaflet', hex: '#199900', paths: pathsOf(leafletRaw) },
   { id: 'gemini', label: 'Gemini AI', hex: '#8E75B2', paths: pathsOf(geminiRaw) },
-  { id: 'openmeteo', label: 'Open-Meteo', hex: '#1E88E5', domain: 'open-meteo.com' },
   { id: 'aws', label: 'AWS', hex: '#FF9900', paths: pathsOf(awsRaw) },
   { id: 'docker', label: 'Docker', hex: '#2496ED', paths: pathsOf(dockerRaw) },
-  { id: 'localstack', label: 'LocalStack', hex: '#1F7BE5', domain: 'localstack.cloud' },
   { id: 'linux', label: 'Linux', hex: '#FCC624', paths: pathsOf(linuxRaw) },
   { id: 'android', label: 'Android', hex: '#3DDC84', paths: pathsOf(androidRaw) },
   { id: 'git', label: 'Git', hex: '#F03C2E', paths: pathsOf(gitRaw) },
-  { id: 'github', label: 'GitHub', hex: '#181717', paths: pathsOf(githubRaw) },
-  { id: 'cryptography', label: 'cryptography', hex: '#4B8BBE', wordmark: true }
+  { id: 'github', label: 'GitHub', hex: '#181717', paths: pathsOf(githubRaw) }
 ]
 
 export const skillCount = skills.length

@@ -21,6 +21,9 @@ export const structuredData = {
     {
       '@type': 'WebSite', '@id': `${siteUrl}#website`,
       name: 'Sambit Swain — Portfolio', url: siteUrl, description,
+      // The site's own logo icon — this is what Google Search pulls for the
+      // site-name result / knowledge card.
+      logo: `${siteUrl}logo.png`,
       inLanguage: 'en', publisher: { '@id': `${siteUrl}#person` }
     }
   ]

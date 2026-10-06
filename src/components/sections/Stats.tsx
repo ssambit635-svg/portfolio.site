@@ -13,7 +13,6 @@ function Card({ title, children, className }: { title?: string; children: React.
   return (
     <div
       onMouseEnter={tick}
-      data-cursor
       data-reveal
       className={cn(
         'notch-card group relative flex h-[180px] flex-col justify-between bg-lime-deep px-6 py-4 pl-9 transition-colors duration-200',
@@ -32,7 +31,6 @@ function Skill({ skill, i }: { skill: (typeof skills)[number]; i: number }) {
   return (
     <div
       onMouseEnter={tick}
-      data-cursor
       data-reveal={(i % 5) * 45}
       title={skill.label}
       style={{ '--brand': readableOnDark(skill.hex) } as React.CSSProperties}
@@ -60,19 +58,19 @@ export default function Stats() {
         <div className="flex items-end justify-between gap-8 max-md:flex-col max-md:items-start" data-reveal>
           <div>
             <Tag tone="ink">Toolbox</Tag>
-            <h2 className="t-display mt-3 text-[clamp(40px,5.4vw,80px)] font-normal">
+            <h2 data-plx="-45" className="t-display mt-3 text-[clamp(40px,5.4vw,80px)] font-normal">
               <Scramble text="Everything" speed={40} />
               <br />
               <Scramble text="I ship with" speed={40} delay={220} />
             </h2>
           </div>
-          <p className="t-label max-w-[300px] text-right text-ink/55 leading-[1.9] max-md:text-left">
-            Every language, framework and service in this repo — all {skillCount} of them, no filler.
+          <p data-plx="30" className="t-label max-w-[300px] text-right text-ink/55 leading-[1.9] max-md:text-left">
+            Languages, frameworks and platforms I actually ship with — all {skillCount} of them. One-off libraries stay in the project stacks, no filler.
           </p>
         </div>
 
         {/* counters */}
-        <div className="mt-12 grid grid-cols-[repeat(10,1fr)] gap-3 max-md:grid-cols-2">
+        <div data-plx="-25" className="mt-12 grid grid-cols-[repeat(10,1fr)] gap-3 max-md:grid-cols-2">
           {stats.map((s, i) => (
             <Card
               key={s.label}

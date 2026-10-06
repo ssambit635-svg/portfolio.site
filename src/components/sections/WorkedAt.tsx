@@ -42,19 +42,19 @@ export default function WorkedAt() {
       <PixelTransition color="#060606" edge="top" />
       <div className="text-center" data-reveal>
         <Tag>I’ve been</Tag>
-        <h2 className="t-display mt-3 text-[clamp(52px,6vw,88px)] font-normal">
+        <h2 data-plx="-40" className="t-display mt-3 text-[clamp(52px,6vw,88px)] font-normal">
           <Scramble text="Learning at" speed={40} />
         </h2>
       </div>
 
       <div className="mx-auto mt-12 grid max-w-[1300px] grid-cols-[260px_1fr_260px] gap-8 max-md:grid-cols-1">
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2" data-plx="-25">
           {left.map((e, i) => (
             <li key={e.id}><Item e={e} i={i} /></li>
           ))}
         </ul>
 
-        <div className="relative max-md:order-first">
+        <div className="relative max-md:order-first" data-plx="-70">
           <div className="relative mx-auto aspect-[16/10] w-full max-w-[460px] border border-mute-2/60">
             {/* corner ticks */}
             {['-top-1 -left-1', '-top-1 -right-1', '-bottom-1 -left-1', '-bottom-1 -right-1'].map((c) => (
@@ -75,7 +75,7 @@ export default function WorkedAt() {
           </p>
         </div>
 
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2" data-plx="25">
           {right.map((e, i) => (
             <li key={e.id}><Item e={e} i={i + 4} /></li>
           ))}
