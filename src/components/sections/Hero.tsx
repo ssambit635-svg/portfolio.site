@@ -19,8 +19,8 @@ export default function Hero() {
       </div>
 
       {/* Contact details are useful context on wide screens; the footer is the
-          compact-screen contact point. */}
-      <div className="absolute top-[100px] left-8 z-10 border-l-2 border-lime pl-4 max-md:hidden">
+          compact-screen contact point. Foreground layer — races up as you leave. */}
+      <div data-plx="-130" className="absolute top-[100px] left-8 z-10 border-l-2 border-lime pl-4 max-md:hidden">
         <p className="t-label flex gap-8 text-mute">
           {profile.phoneParts.map((part) => (
             <Scramble key={part} text={part} trigger="mount" delay={600} />
@@ -34,7 +34,7 @@ export default function Hero() {
       </div>
 
       {/* A more specific introduction: what I study, build and where. */}
-      <p className="absolute top-[31%] left-8 z-10 w-[min(38vw,500px)] font-body text-[15px] leading-[1.7] text-[#b4b7b0] max-md:top-[21%] max-md:right-5 max-md:left-5 max-md:w-auto max-md:text-[14px]">
+      <p data-plx="-100" className="absolute top-[31%] left-8 z-10 w-[min(38vw,500px)] font-body text-[15px] leading-[1.7] text-[#b4b7b0] max-md:top-[21%] max-md:right-5 max-md:left-5 max-md:w-auto max-md:text-[14px]">
         {intro.before}
         <em className="font-medium italic text-red">{intro.art}</em>
         {intro.mid}
@@ -43,10 +43,10 @@ export default function Hero() {
       </p>
 
       {/* The real portrait is halftoned until the pointer, a tap or keyboard
-          focus reveals the original photo. */}
-      <div className="absolute top-[12%] right-[6%] z-0 aspect-[3/4] w-[clamp(280px,42vw,560px)] max-lg:top-[12%] max-lg:right-[4%] max-lg:w-[38vw] max-md:top-[40%] max-md:right-[5%] max-md:w-[50vw]">
+          focus reveals the original photo. Background layer — lags behind
+          the text so the hero reads as deep space. */}
+      <div data-plx="85" className="absolute top-[12%] right-[6%] z-0 aspect-[3/4] w-[clamp(280px,42vw,560px)] max-lg:top-[12%] max-lg:right-[4%] max-lg:w-[38vw] max-md:top-[40%] max-md:right-[5%] max-md:w-[50vw]">
         <div
-          data-cursor
           className="notch-item relative h-full w-full overflow-hidden border border-white/10 bg-ink-2 shadow-[0_24px_80px_rgba(0,0,0,0.32)]"
         >
           <Halftone src={PORTRAIT} />
@@ -61,7 +61,7 @@ export default function Hero() {
       </div>
 
       {/* Name and first action anchor the bottom edge. */}
-      <div className="absolute bottom-[4%] left-8 z-20 max-md:left-5">
+      <div data-plx="-55" className="absolute bottom-[4%] left-8 z-20 max-md:left-5">
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <Tag>{profile.role}</Tag>
           <Button href="#work" className="border-cream/40 px-3 py-[7px] text-cream hover:bg-cream hover:text-ink">
@@ -78,11 +78,11 @@ export default function Hero() {
         </h1>
       </div>
 
-      <p className="t-label absolute top-[105px] left-[70%] z-10 bg-ink/70 px-2 py-1 text-mute backdrop-blur-sm max-md:hidden">Based in</p>
-      <p className="t-display absolute top-[100px] right-8 z-10 bg-ink/70 px-2 py-1 text-[60px] text-cream backdrop-blur-sm max-md:top-[88px] max-md:right-5 max-md:text-[36px]">
+      <p data-plx="-80" className="t-label absolute top-[105px] left-[70%] z-10 bg-ink/70 px-2 py-1 text-mute backdrop-blur-sm max-md:hidden">Based in</p>
+      <p data-plx="-80" className="t-display absolute top-[100px] right-8 z-10 bg-ink/70 px-2 py-1 text-[60px] text-cream backdrop-blur-sm max-md:top-[88px] max-md:right-5 max-md:text-[36px]">
         <Scramble text={profile.country} trigger="mount" speed={120} delay={300} />
       </p>
-      <p className="t-label vertical-rl absolute right-8 bottom-[6%] z-10 text-mute max-md:hidden">
+      <p data-plx="70" className="t-label vertical-rl absolute right-8 bottom-[6%] z-10 text-mute max-md:hidden">
         Scroll to explore <span className="blink ml-2">›››</span>
       </p>
     </section>

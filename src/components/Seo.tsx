@@ -9,7 +9,11 @@ export default function Seo() {
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#060606" />
     <link rel="canonical" href={siteUrl} />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    {/* Page-relative so they resolve at any base (GitHub Pages project path,
+        preview hosts, localhost) — the prerendered BASE_URL is root-absolute. */}
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="512x512" href="logo.png" />
+    <link rel="apple-touch-icon" href="logo.png" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Sambit Swain — Portfolio" />
     <meta property="og:title" content={title} />
