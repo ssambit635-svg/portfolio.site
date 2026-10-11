@@ -1,14 +1,15 @@
 import { cn } from '../../lib/utils'
 
-export default function Tag({ children, className, tone = 'lime' }: { children: React.ReactNode; className?: string; tone?: 'lime' | 'ink' }) {
+export default function Tag({
+  children,
+  className
+}: {
+  children: React.ReactNode
+  className?: string
+  tone?: string
+}) {
   return (
-    <span
-      className={cn(
-        't-label notch-tag inline-block px-3 py-[5px] font-semibold',
-        tone === 'lime' ? 'bg-lime text-ink' : 'bg-ink text-lime',
-        className
-      )}
-    >
+    <span className={cn('t-kicker text-mute', className)}>
       {children}
     </span>
   )

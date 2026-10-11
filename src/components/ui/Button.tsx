@@ -1,23 +1,19 @@
 import { cn } from '../../lib/utils'
-import { useSound } from '../../hooks/useSound'
 
-type Props = React.ComponentPropsWithoutRef<'a'> & { as?: 'a' | 'button'; onClick?: () => void }
+type Props = React.ComponentPropsWithoutRef<'a'> & { tone?: 'ink' | 'paper' | 'ghost' }
 
-export default function Button({ className, children, as = 'a', onClick, ...rest }: Props) {
-  const { click, tick } = useSound()
-  const cls = cn(
-    't-label inline-flex items-center gap-2 border px-5 py-3 font-semibold transition-colors duration-200',
-    '[border-color:var(--hd-btn-bd)] [color:var(--hd-btn-fg)] hover:[background:var(--hd-btn-bd)]',
-    className
-  )
-  if (as === 'button')
-    return (
-      <button className={cls} onMouseEnter={tick} onClick={() => { click(); onClick?.() }}>
-        {children}
-      </button>
-    )
+export default function Button({ className, children, tone = 'ink', ...rest }: Props) {
   return (
-    <a className={cls} onMouseEnter={tick} onClick={click} {...rest}>
+    <a
+      className={cn(
+        't-kicker inline-flex min-h-11 items-center gap-2 px-4 py-2.5 transition-colors',
+        tone === 'ink' && 'bg-ink text-paper hover:bg-rust',
+        tone === 'paper' && 'bg-paper text-ink hover:bg-paper-2',
+        tone === 'ghost' && 'border border-current hover:bg-ink hover:text-paper',
+        className
+      )}
+      {...rest}
+    >
       {children}
     </a>
   )

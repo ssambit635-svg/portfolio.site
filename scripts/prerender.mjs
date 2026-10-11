@@ -9,7 +9,7 @@ import { readFile, readdir, writeFile, cp, rm } from 'node:fs/promises'
  */
 async function fontPreloadHead() {
   const files = await readdir('dist/assets')
-  const needed = ['big-shoulders-display-latin-500-normal', 'chakra-petch-latin-500-normal']
+  const needed = ['newsreader-latin-400-normal', 'ibm-plex-sans-latin-400-normal']
   const links = needed
     .map((stem) => files.find((file) => file.startsWith(stem) && file.endsWith('.woff2')))
     .filter(Boolean)
