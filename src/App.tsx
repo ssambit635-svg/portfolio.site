@@ -1,38 +1,132 @@
-import Header from './components/Header'
-import Hero from './components/sections/Hero'
-import Systems from './components/sections/Systems'
-import Work from './components/sections/Work'
-import About from './components/sections/About'
-import Stats from './components/sections/Stats'
-import WorkedAt from './components/sections/WorkedAt'
-import Footer from './components/sections/Footer'
+import { useEffect, useState } from 'react'
+import HardwareConsole from './components/HardwareConsole'
+import { credentials, experience, headline, profile, projects } from './lib/site'
 import { useLenis } from './hooks/useLenis'
-import { useReveal } from './hooks/useReveal'
-import { useSectionTheme } from './hooks/useSectionTheme'
-import { useParallax } from './hooks/useParallax'
+
+const links = [
+  ['Home', '#home'],
+  ['Works', '#works'],
+  ['Certified', '#certified'],
+  ['About me', '#about'],
+  ['Contact', '#contact']
+] as const
+
+function Arrow() {
+  return <span aria-hidden="true">↗</span>
+}
+
+function Nav() {
+  const [open, setOpen] = useState(false)
+  return (
+    <header className="side-nav">
+      <a className="nav-name" href="#home" aria-label="Sambit Swain — home">SS</a>
+      <button className="menu-toggle" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Toggle navigation">{open ? 'Close' : 'Menu'}</button>
+      <nav className={open ? 'is-open' : ''} aria-label="Main navigation">
+        {links.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}
+      </nav>
+    </header>
+  )
+}
+
+function Television() {
+  return (
+    <div className="hero-stage" aria-hidden="true">
+      <div className="green-glow" />
+      <div className="tv">
+        <div className="tv-shell">
+          <div className="tv-screen"><div className="screen-noise" /></div>
+          <div className="tv-panel"><i /><i /><b /></div>
+        </div>
+        <div className="tv-foot left"/><div className="tv-foot right"/>
+      </div>
+      <div className="desk">
+        <div className="camera"><i/><span/></div>
+        <div className="book"><span>CLOUD</span><b>01</b></div>
+      </div>
+    </div>
+  )
+}
+
+function Hero() {
+  return (
+    <section id="home" className="hero">
+      <div className="hero-copy">
+        <p className="eyebrow">FULL-STACK DEVELOPER · CLOUD BUILDER</p>
+        <h1>{headline}<br/><em>Cloud.</em></h1>
+      </div>
+      <Television />
+      <p className="hero-note">Based in Berhampur, India<br/>Building for the web and the box beneath it.</p>
+      <a className="scroll-cue" href="#works">Scroll to explore <span>↓</span></a>
+    </section>
+  )
+}
+
+function Works() {
+  return (
+    <section id="works" className="section works">
+      <div className="section-head"><p>Selected projects · 2025—26</p><h2>Works</h2></div>
+      <div className="work-list">
+        {projects.map((project, index) => (
+          <article className="work" id={`project-${project.id}`} key={project.id}>
+            <div className="work-meta"><span>{String(index + 1).padStart(2, '0')}</span><span>{project.kind}</span><span>{project.year}</span></div>
+            <a className="work-media" href={project.href} target="_blank" rel="noreferrer" aria-label={`Open ${project.title}`}>
+              <img src={project.image} alt={`${project.title} project preview`} loading="lazy" />
+              <div className="play">View<br/>project <Arrow /></div>
+              <span className="video-label">PROJECT PREVIEW</span>
+            </a>
+            <div className="work-copy">
+              <h3>{project.title}</h3><p>{project.description}</p>
+              <div className="chips">{project.stack.map(item => <span key={item}>{item}</span>)}</div>
+              <div className="project-links"><a href={project.href} target="_blank" rel="noreferrer">{project.action} <Arrow /></a>{project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source <Arrow /></a>}</div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Certified() {
+  return (
+    <section id="certified" className="section certified">
+      <div className="section-head"><p>Things I learned properly</p><h2>Certified</h2></div>
+      <div className="cert-grid">
+        {credentials.map((cert, i) => <article className="cert" key={cert.id}>
+          <span className="cert-no">{String(i + 1).padStart(2, '0')}</span>
+          {cert.image ? <img src={cert.image} alt="" loading="lazy"/> : <div className="cert-placeholder">SS<br/>/26</div>}
+          <div><p>{cert.issuer}</p><h3>{cert.title}</h3><span>{cert.detail}</span></div>
+        </article>)}
+      </div>
+      <a className="white-button" href="dashboard/">All certificates & achievements <Arrow /></a>
+    </section>
+  )
+}
+
+function About() {
+  const education = experience.filter(item => item.id === 'nist' || item.id === 'dhss')
+  return <section id="about" className="section about">
+    <div className="section-head"><p>The human behind the terminal</p><h2>About me</h2></div>
+    <div className="about-grid">
+      <div className="portrait-wrap"><img src="sambit-swain.jpg" alt="Portrait of Sambit Swain" loading="lazy"/></div>
+      <div className="bio"><p>I’m a Computer Science student and product-minded developer working from interface to infrastructure. I turn real-world problems into dependable web products—then containerise and ship them.</p><p>I learn by building in public, joining hackathons, and following each idea all the way from a rough screen to a running service.</p></div>
+    </div>
+    <div className="education"><h3>Education</h3>{education.map(item => <div className="edu-row" key={item.id}><span>{item.role}</span><h4>{item.org}</h4><p>{item.detail}</p></div>)}</div>
+    <div className="personal"><span>Berhampur, India</span><span>{profile.coords.join(' · ')}</span><span>CSE ’29</span><span>Available for good ideas</span></div>
+  </section>
+}
+
+function Footer() {
+  return <footer id="contact">
+    <p className="footer-kicker">Have a project, a strange idea, or just want to say hello?</p>
+    <h2>Let’s make<br/>it <em>run.</em></h2>
+    <HardwareConsole />
+    <div className="footer-bottom"><span>© {new Date().getFullYear()} Sambit Swain</span><span>{profile.email}</span><span>Designed to keep moving.</span></div>
+  </footer>
+}
 
 export default function App({ staticRender = false }: { staticRender?: boolean }) {
   void staticRender
   useLenis()
-  useSectionTheme()
-  useReveal()
-  useParallax()
-
-  return (
-    <>
-      <a href="#main-content" className="skip-link">
-        Skip to content
-      </a>
-      <Header />
-      <main id="main-content">
-        <Hero />
-        <Systems />
-        <Work />
-        <About />
-        <Stats />
-        <WorkedAt />
-      </main>
-      <Footer />
-    </>
-  )
+  useEffect(() => { document.documentElement.dataset.theme = 'reference' }, [])
+  return <><a className="skip-link" href="#works">Skip to work</a><Nav/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
 }

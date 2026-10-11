@@ -18,7 +18,13 @@ export function setScrollLocked(locked: boolean) {
 export function useLenis(enabled = true) {
   useEffect(() => {
     if (!enabled || prefersReducedMotion()) return
-    lenis = new Lenis({ lerp: 0.09, smoothWheel: true })
+    lenis = new Lenis({
+      duration: 1.65,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      wheelMultiplier: 0.52,
+      touchMultiplier: 0.75
+    })
     lenis.on('scroll', ScrollTrigger.update)
     const raf = (t: number) => lenis?.raf(t * 1000)
     gsap.ticker.add(raf)
