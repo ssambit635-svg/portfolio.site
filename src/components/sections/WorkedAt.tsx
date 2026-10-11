@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { experience } from '../../lib/site'
+import { dashboardHref } from '../../lib/seo'
 import Tag from '../ui/Tag'
-import Scramble from '../fx/Scramble'
 import PixelTransition from '../fx/PixelTransition'
-import { useSound } from '../../hooks/useSound'
 import { cn } from '../../lib/utils'
 
 export default function WorkedAt() {
   const [active, setActive] = useState(0)
-  const { tick } = useSound()
   const cur = experience[active]
   const left = experience.slice(0, 4)
   const right = experience.slice(4, 8)
@@ -18,19 +16,16 @@ export default function WorkedAt() {
     return (
       <button
         aria-pressed={on}
-        onMouseEnter={() => { setActive(i); tick() }}
+        onMouseEnter={() => setActive(i)}
         onClick={() => setActive(i)}
-        data-scramble-hover
         className={cn(
           'notch-list flex w-full items-center gap-6 px-5 py-3 text-left transition-colors duration-200',
-          on ? 'bg-cream text-ink' : 'bg-ink-2 text-cream'
+          on ? 'bg-cream text-ink' : 'bg-ink-3 text-cream'
         )}
       >
-        <span className={cn('t-label', on ? 'text-mute' : 'text-mute-2')}>0{i + 1}</span>
+        <span className={cn('t-label', on ? 'text-mute' : 'text-mute')}>0{i + 1}</span>
         <span>
-          <span className="block font-label text-[16px] font-medium uppercase">
-            <Scramble text={e.org} trigger="hover" speed={30} />
-          </span>
+          <span className="block font-label text-[16px] font-medium uppercase">{e.org}</span>
           <span className={cn('t-label block', on ? 'text-mute' : 'text-mute')}>{e.role}</span>
         </span>
       </button>
@@ -38,19 +33,21 @@ export default function WorkedAt() {
   }
 
   return (
-    <section data-theme="dark" className="relative bg-ink px-8 pt-[110px] pb-[80px] text-cream max-md:px-4">
-      <PixelTransition color="#060606" edge="top" />
+    <section id="learning" aria-labelledby="learning-heading" data-theme="dark" className="relative bg-ink-2 px-8 pt-[110px] pb-[80px] text-cream max-md:px-4">
+      <PixelTransition color="#0f0e0d" edge="top" />
       <div className="text-center" data-reveal>
-        <Tag>I’ve been</Tag>
-        <h2 data-plx="-40" className="t-display mt-3 text-[clamp(52px,6vw,88px)] font-normal">
-          <Scramble text="Learning at" speed={40} />
+        <Tag tone="violet">I’ve been</Tag>
+        <h2 id="learning-heading" data-plx="-40" className="t-display mt-3 text-[clamp(52px,6vw,88px)] font-normal">
+          Learning at
         </h2>
       </div>
 
       <div className="mx-auto mt-12 grid max-w-[1300px] grid-cols-[260px_1fr_260px] gap-8 max-md:grid-cols-1">
         <ul className="flex flex-col gap-2" data-plx="-25">
           {left.map((e, i) => (
-            <li key={e.id}><Item e={e} i={i} /></li>
+            <li key={e.id}>
+              <Item e={e} i={i} />
+            </li>
           ))}
         </ul>
 
@@ -61,25 +58,48 @@ export default function WorkedAt() {
               <i key={c} className={cn('absolute h-[7px] w-[7px] bg-mute-2', c)} />
             ))}
             {cur.image ? (
-              <img key={cur.id} src={cur.image} alt={`${cur.org} — ${cur.role} certificate`} loading="lazy" decoding="async" width={460} height={288} className="h-full w-full object-cover opacity-90" />
+              <img
+                key={cur.id}
+                src={cur.image}
+                alt={`${cur.org} — ${cur.role} certificate`}
+                loading="lazy"
+                decoding="async"
+                width={460}
+                height={288}
+                className="h-full w-full object-cover opacity-90"
+              />
             ) : (
-              <div className="grid h-full place-items-center">
-                <span className="font-display text-[clamp(28px,4vw,52px)] font-medium tracking-wide text-[#b48cff] uppercase">
-                  <Scramble key={cur.id} text={cur.org} trigger="mount" speed={35} color="#b48cff" />
+              <div className="grid h-full place-items-center px-6 text-center">
+                <span className="font-display text-[clamp(28px,4vw,52px)] font-medium tracking-wide text-violet uppercase">
+                  {cur.org}
                 </span>
               </div>
             )}
           </div>
-          <p key={cur.id + 'd'} className="mx-auto mt-6 max-w-[520px] text-center font-body text-[15px] leading-[1.55] text-[#9a9e96]">
-            <Scramble text={cur.detail} trigger="mount" speed={6} />
+          <p key={cur.id + 'd'} className="mx-auto mt-6 max-w-[520px] text-center font-body text-[15px] leading-[1.55] text-cream/55">
+            {cur.detail}
           </p>
         </div>
 
         <ul className="flex flex-col gap-2" data-plx="25">
           {right.map((e, i) => (
-            <li key={e.id}><Item e={e} i={i + 4} /></li>
+            <li key={e.id}>
+              <Item e={e} i={i + 4} />
+            </li>
           ))}
         </ul>
+      </div>
+
+      {/* Everything else lives on its own page — the landing page stays a timeline. */}
+      <div className="mx-auto mt-16 flex max-w-[1300px] flex-col items-center gap-4 border-t border-mute-2/60 pt-10 text-center">
+        <p className="t-label text-mute">Every certificate, plus hackathon builds and results</p>
+        <a
+          href={dashboardHref}
+          className="t-label inline-flex items-center gap-2 border border-mute-2 bg-ink-3 px-7 py-3.5 font-semibold text-cream transition-colors hover:bg-cream hover:text-ink"
+        >
+          More certificates &amp; achievements
+          <span aria-hidden>→</span>
+        </a>
       </div>
     </section>
   )

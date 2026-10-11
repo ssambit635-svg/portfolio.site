@@ -302,36 +302,109 @@ export const experience: Experience[] = [
   }
 ]
 
+export type Credential = {
+  id: string
+  issuer: string
+  title: string
+  detail: string
+  /** Certificate scan. Optional: cards without one fall back to a type-only tile. */
+  image?: string
+  href?: string
+  action?: string
+}
+
+/**
+ * Every certificate, shown as square tiles on /dashboard only — the landing
+ * page keeps the short learning timeline in `experience`.
+ */
+export const credentials: Credential[] = [
+  {
+    id: 'docker-basics',
+    issuer: 'Simplilearn',
+    title: 'Docker Basics',
+    detail: 'Images, containers and the Dockerfile workflow — Simplilearn SkillUp free course.',
+    // image: certDocker — drop the scan in src/assets/certs/ and import it above.
+    href: 'https://www.simplilearn.com/learn-docker-basics-free-course-skillup',
+    action: 'Course'
+  },
+  {
+    id: 'aws-foundations',
+    issuer: 'AWS Training',
+    title: 'Cloud Essentials',
+    detail: 'AWS Foundations: compute, storage, networking and billing.',
+    image: certAws
+  },
+  {
+    id: 'python-essentials',
+    issuer: 'Cisco NetAcad',
+    title: 'Python Essentials 1',
+    detail: 'Python fundamentals — Cisco Networking Academy.',
+    image: certPython
+  },
+  {
+    id: 'cpp-essentials',
+    issuer: 'Cisco NetAcad',
+    title: 'C++ Essentials',
+    detail: 'OOP, memory and the STL.',
+    image: certCpp
+  },
+  {
+    id: 'linux-unhatched',
+    issuer: 'Cisco NetAcad',
+    title: 'Linux Unhatched',
+    detail: 'Shell, filesystem and permissions — the base layer for what I deploy.',
+    image: certLinux
+  },
+  {
+    id: 'cloud-computing',
+    issuer: 'Simplilearn',
+    title: 'Cloud Computing',
+    detail: 'Service models, deployment models, architecture basics.',
+    image: certCloud
+  },
+  {
+    id: 'c-programming',
+    issuer: 'ExcelR',
+    title: 'Programming in C',
+    detail: '30-hour live training on C.',
+    image: certC
+  }
+]
+
+export type Achievement = { id: string; title: string; detail: string }
+
+export const achievements: Achievement[] = [
+  {
+    id: 'sih-2026',
+    title: 'Smart India Hackathon 2026',
+    detail: 'Annadata Connect — farmer procurement with live queue tokens and MSP comparison.'
+  },
+  {
+    id: 'iqoo-2026',
+    title: 'iQOO Hackathon 2026',
+    detail: 'Kivo — paper lab reports turned into a verified health timeline.'
+  },
+  {
+    id: 'tech-zypher-2026',
+    title: 'Tech Zypher 2026',
+    detail: 'Shadow Quest — a focus timer with work sessions and goal streaks.'
+  },
+  {
+    id: 'nist-cgpa',
+    title: 'NIST University · CGPA 8.2',
+    detail: 'B.Tech Computer Science and Engineering, 2025 — 2029.'
+  },
+  {
+    id: 'class-xii',
+    title: 'Class XII · PCM + CS',
+    detail: 'Dhenkanal Higher Secondary School — 79.7%.'
+  }
+]
+
 export const stats = [
   { label: 'Shipped projects', value: projects.length, suffix: '' },
   { label: 'Years building', value: 3, suffix: '+' },
   { label: 'Certifications', value: experience.filter((item) => item.image).length, suffix: '' }
-] as const
-
-export const stackGroups = [
-  {
-    title: 'Languages',
-    items: ['TypeScript', 'JavaScript', 'Python', 'C', 'C++']
-  },
-  {
-    title: 'Product',
-    items: ['React', 'HTML / CSS', 'Tailwind', 'Capacitor']
-  },
-  {
-    title: 'Backend',
-    items: ['Node.js', 'Express', 'FastAPI', 'SQLite', 'MongoDB']
-  },
-  {
-    title: 'Cloud & ops',
-    items: ['AWS', 'Docker', 'Linux', 'Git', 'GitHub']
-  }
-] as const
-
-export const connect = [
-  { n: '01', label: 'LinkedIn', href: profile.linkedin },
-  { n: '02', label: 'GitHub', href: profile.github },
-  { n: '03', label: 'X', href: profile.x },
-  { n: '04', label: 'Hashnode', href: profile.hashnode }
 ] as const
 
 export const footerCols = [
@@ -345,17 +418,3 @@ export const footerCols = [
     ]
   }
 ] as const
-
-/** @deprecated kept so older imports don't break during the cutover */
-export const intro = {
-  before: '',
-  art: '',
-  mid: '',
-  tech: '',
-  after: headline
-} as const
-
-export const manifesto = {
-  lines: ['I believe great', 'work isn’t made', 'by talent alone.', 'It’s forged through', 'late nights,', 'bad drafts,', '& one too many'],
-  quote: ['“Just one', 'more', 'tweak”']
-} as const

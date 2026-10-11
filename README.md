@@ -4,7 +4,7 @@
 ### Software Developer · Web Development · Cloud Technology
 
 A personal portfolio for the projects, experiments and hackathon builds I ship.
-Built with expressive typography, a live halftone portrait and motion—backed by crawlable HTML.
+Editorial paper layout, a systems map of the work and a separate certificates dashboard—backed by crawlable HTML.
 
 [**Explore the portfolio ↗**](https://ssambit635-svg.github.io/portfolio.site/) · [GitHub](https://github.com/ssambit635-svg) · [LinkedIn](https://www.linkedin.com/in/sambit-swain-7032a8378) · [Email](mailto:ssambit635@gmail.com)
 
@@ -21,9 +21,9 @@ Built with expressive typography, a live halftone portrait and motion—backed b
 
 - **Identity first:** Sambit Swain, a software developer and computer science student in Berhampur, India.
 - **Eight projects:** product previews, visible descriptions and genuine live/repository links.
-- **Distinctive interaction:** a four-second entry sequence — the name is rasterised into a dotted atlas, drawn on the GPU and swept by a three-handle rig (Originkit Vector Wordmark) before the page opens; plus the interactive halftone portrait and motion.
-- **Audio controls:** optional UI sounds and a browser-generated ambient soundtrack; preferences are remembered locally.
-- **Search-ready delivery:** real page content in the initial HTML, canonical metadata, social previews, JSON-LD and generated crawl files.
+- **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
+- **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, no blocking intro sequence, no audio.
+- **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
 
 ## Selected work
@@ -65,33 +65,45 @@ There is **no lint script/configuration** in this repository. Type checking and 
 
 ```text
 .github/workflows/deploy.yml   GitHub Pages build and deployment
+dashboard/
+  index.html                 Certificates & achievements page (served at /dashboard/)
 public/
-  sambit-swain.jpg             Current portrait used by the halftone hero and social previews
+  sambit-swain.jpg             Current portrait used by the hero and social previews
   favicon.svg                 Existing header mark adapted as a favicon
 scripts/
-  prerender.mjs               Build-time rendering + sitemap / robots generation
+  prerender.mjs               Build-time rendering of both pages + sitemap / robots generation
   test-seo.mjs                Production HTML and crawl-file assertions
 src/
-  assets/                    Project screenshots, certificates, AWS logo
+  assets/                    Project screenshots, certificate scans, AWS logo
   components/
-    Seo.tsx                  Central React 19 metadata
-    sections/                Hero, About, skills, projects, learning, contact
-    fx/                      Animation / canvas effects
-  hooks/                     Scrolling, reveal, clock, audio, theme
-  lib/site.ts                Profile, descriptions, experience, external links
-  lib/seo.ts                 Production URL and Schema.org identity graph
+    Seo.tsx                  Central React 19 metadata (per page)
+    sections/                Hero, Systems, Work, About, Stats (Toolbox), WorkedAt (Learning)
+    fx/                      Counter, pixel dissolve, skill logos
+  pages/Dashboard.tsx        Certificates + achievements page
+  hooks/                     Scrolling, reveal, clock, theme
+  lib/site.ts                Profile, projects, experience, credentials, achievements
+  lib/seo.ts                 Production URL, page metadata and Schema.org graphs
   lib/skills.ts              Skills and brand marks
-  entry-server.tsx           Render the same React page at build time
-  main.tsx                   Interactive client entry
+  entry-server.tsx           Render the landing page at build time
+  entry-dashboard.tsx        Render the dashboard at build time
+  main.tsx                   Interactive client entry (landing page)
+  dashboard.tsx              Interactive client entry (dashboard)
 ```
 
 ### Rendering and routing
 
-This is **one public page**, not a multi-route application. Home, About, Projects and Contact are section links (`#top`, `#about`, `#work`, `#contact`). Project cards have stable `#project-…` anchors and link to their existing external destinations; there are no invented detail pages.
+There are **two real pages**, both plain files in the build — there is no client-side router:
 
-The build renders the actual React component tree into `dist/index.html`. The client mounts the interactive version over that static content rather than hydrating it, preserving the existing preloader and stateful effects. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
+| Page | File | Served at |
+| --- | --- | --- |
+| Portfolio | `dist/index.html` | `/` |
+| Certificates & achievements | `dist/dashboard/index.html` | `/dashboard/` |
 
-Vite has no built-in sitemap or metadata routing API. Metadata uses React 19's native elements in one component; a small build script generates crawl files. Temporary server output is removed after rendering—no Node server is deployed.
+On the landing page, Home, Work, Systems, Toolbox, About, Learning and Contact are section links (`#top`, `#work`, `#systems`, `#toolbox`, `#about`, `#learning`, `#contact`). Project cards have stable `#project-…` anchors and link to their existing external destinations; there are no invented detail pages. The Learning section ends with a **More certificates & achievements** button that opens `/dashboard/`.
+
+The build renders the actual React component tree into both HTML files. The client mounts the interactive version over that static content rather than hydrating it. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
+
+Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders both pages and generates crawl files. Links between pages are relative (`dashboard/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
 
 ## Customize content
 
@@ -100,12 +112,12 @@ Vite has no built-in sitemap or metadata routing API. Metadata uses React 19's n
 | Name, contact, social profiles, project descriptions | `src/lib/site.ts` |
 | Skills / technologies | `src/lib/skills.ts` |
 | Portrait | `public/sambit-swain.jpg` |
-| Screenshots / certificates | `src/assets/projects/`, `src/assets/certs/` |
+| Screenshots / certificate scans | `src/assets/projects/`, `src/assets/certs/` |
+| Certificates and achievements (dashboard) | `credentials` / `achievements` in `src/lib/site.ts` |
 | Metadata and social image tags | `src/components/Seo.tsx` |
-| Canonical and structured data | `src/lib/seo.ts` |
-| Color tokens and fonts | `src/index.css` |
-| Entry sequence (four-second wordmark sweep) | `src/components/Preloader.tsx` |
-| GPU wordmark (dotted atlas, three-handle rig) | `src/components/VectorWordmark.tsx` |
+| Page paths, titles and structured data | `pages` in `src/lib/seo.ts` |
+| Color tokens, fonts and label styles | `src/index.css` |
+| Certificates & achievements page | `src/pages/Dashboard.tsx` |
 
 The resume is currently `#` in profile data, so the nonfunctional download button is not shown. Set `profile.resume` to a genuine public resume URL to enable it. Do not add placeholder professional profiles or unsupported project features.
 
@@ -198,8 +210,10 @@ Before promoting a deployment, test:
 
 - Homepage, metadata, social preview image, `/sitemap.xml` and `/robots.txt` over HTTP.
 - Mobile widths (320, 375, 390, 768 px), project-card text, menu scrolling and footer wrapping.
-- Keyboard-only navigation, menu open/close/Escape, focus return, anchors and resume if configured.
-- Preloader, portrait, scroll animations, audio toggles, certificate selection and external links.
+- Keyboard-only navigation, the learning-list buttons, anchors and resume if configured.
+- Both pages — `/` and `/dashboard/` — and the link between them.
+- Scroll reveals, parallax and the pixel dissolve between blocks, including with reduced motion enabled.
+- Certificate tiles on the dashboard, including a credential whose scan has not been uploaded yet.
 - JavaScript-disabled content and a slow mobile connection.
 - PageSpeed Insights / Lighthouse on the deployed URL; field Core Web Vitals require real traffic.
 
