@@ -21,7 +21,7 @@ export default function Work() {
 
         <ol className="mt-16">
           {list.map((p, i) => (
-            <li key={p.id} data-reveal={i * 40} className="border-t border-line py-10 md:py-12">
+            <li key={p.id} id={`project-${p.id}`} data-reveal={i * 40} className="border-t border-line py-10 md:py-12">
               <article className="grid gap-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
                 <div>
                   <p className="t-kicker text-mute">
@@ -29,7 +29,7 @@ export default function Work() {
                   </p>
                   <h3 className="t-display mt-3 text-[clamp(32px,4vw,48px)]">{p.title}</h3>
                   <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink/75">{p.description}</p>
-                  <ul className="mt-5 flex flex-wrap gap-x-3 gap-y-1">
+                  <ul aria-label={`Technologies used for ${p.title}`} className="mt-5 flex flex-wrap gap-x-3 gap-y-1">
                     {p.stack.map((t) => (
                       <li key={t} className="t-kicker text-mute">
                         {t}
@@ -37,17 +37,23 @@ export default function Work() {
                     ))}
                   </ul>
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Button href={p.href} target="_blank" rel="noopener noreferrer">
+                    <Button href={p.href} target="_blank" rel="noopener noreferrer" aria-label={`${p.action} for ${p.title}`}>
                       {p.action}
                     </Button>
                     {p.repo && (
-                      <Button href={p.repo} target="_blank" rel="noopener noreferrer" tone="ghost">
+                      <Button href={p.repo} target="_blank" rel="noopener noreferrer" tone="ghost" aria-label={`View source code for ${p.title}`}>
                         Source
                       </Button>
                     )}
                   </div>
                 </div>
-                <a href={p.href} target="_blank" rel="noopener noreferrer" className="block overflow-hidden bg-paper-2">
+                <a
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${p.title} preview — opens ${p.action.toLowerCase()}`}
+                  className="block overflow-hidden bg-paper-2"
+                >
                   <img
                     src={p.image}
                     alt=""

@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -25,6 +26,13 @@ export default defineConfig({
     target: 'es2020',
     cssCodeSplit: true,
     assetsInlineLimit: 2048,
-    chunkSizeWarningLimit: 1400
+    chunkSizeWarningLimit: 1400,
+    rollupOptions: {
+      // Two real pages: the landing page and the certificates dashboard.
+      input: {
+        home: fileURLToPath(new URL('./index.html', import.meta.url)),
+        dashboard: fileURLToPath(new URL('./dashboard/index.html', import.meta.url))
+      }
+    }
   }
 })

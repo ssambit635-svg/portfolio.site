@@ -8,20 +8,59 @@
 @import '@fontsource/ibm-plex-sans/latin-600';
 @import '@fontsource/ibm-plex-mono/latin-400';
 @import '@fontsource/ibm-plex-mono/latin-500';
+@import '@fontsource/chakra-petch/latin-400';
+@import '@fontsource/chakra-petch/latin-500';
+@import '@fontsource/chakra-petch/latin-600';
 
 @theme {
+  /* paper editorial palette (Hero, Work, About, Footer, dashboard) */
   --color-paper: #f3efe7;
   --color-paper-2: #eae4d8;
   --color-ink: #161513;
-  --color-ink-2: #1c1b18;
   --color-mute: #6a655c;
   --color-line: #d9d2c5;
   --color-rust: #b4451a;
   --color-signal: #c9f27a;
 
+  /* darker surfaces for the Toolbox / Learning blocks */
+  --color-ink-2: #0f0e0d;
+  --color-ink-3: #232120;
+  --color-mute-2: #3a3d38;
+  --color-violet: #b48cff;
+  --color-violet-deep: #9a6cf5;
+  --color-plum: #180735;
+  --color-cream: #eef0e6;
+
   --font-display: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-label: 'Chakra Petch', ui-monospace, monospace;
   --font-body: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/* Fixed chrome colours, swapped by whichever section sits under the header. */
+:root {
+  --hd-bg: rgba(243, 239, 231, 0.9);
+  --hd-fg: var(--color-ink);
+  --hd-mute: var(--color-mute);
+  --hd-line: var(--color-line);
+  --hd-hover: var(--color-ink);
+  --mark-cut: var(--color-paper);
+}
+:root[data-theme='dark'] {
+  --hd-bg: rgba(15, 14, 13, 0.9);
+  --hd-fg: var(--color-cream);
+  --hd-mute: rgba(238, 240, 230, 0.55);
+  --hd-line: rgba(238, 240, 230, 0.16);
+  --hd-hover: var(--color-violet);
+  --mark-cut: var(--color-ink-2);
+}
+:root[data-theme='violet'] {
+  --hd-bg: rgba(180, 140, 255, 0.9);
+  --hd-fg: var(--color-plum);
+  --hd-mute: rgba(24, 7, 53, 0.6);
+  --hd-line: rgba(24, 7, 53, 0.2);
+  --hd-hover: var(--color-plum);
+  --mark-cut: var(--color-violet);
 }
 
 html {
@@ -62,6 +101,15 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+/* Small techno label used by the Toolbox / Learning blocks. */
+.t-label {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
 .t-display {
   font-family: var(--font-display);
   font-weight: 400;
@@ -73,6 +121,36 @@ body {
   height: 1px;
   background: var(--color-line);
   border: 0;
+}
+
+/* --- shapes -------------------------------------------------------------- */
+.notch-tag {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+}
+.notch-card {
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% 100%,
+    12px 100%,
+    12px 62%,
+    0 62%,
+    0 22%,
+    12px 22%
+  );
+}
+.notch-list {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+
+/* --- skill marks (real brand logos) -------------------------------------- */
+.sk-mark {
+  color: inherit;
+  transition: color 0.25s ease;
+}
+.skill-tile:hover .sk-mark,
+.skill-tile:focus-visible .sk-mark {
+  color: var(--brand, currentColor);
 }
 
 [data-reveal] {

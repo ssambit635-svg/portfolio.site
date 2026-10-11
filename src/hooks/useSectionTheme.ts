@@ -9,7 +9,7 @@ export function useSectionTheme() {
     const secs = Array.from(document.querySelectorAll<HTMLElement>('[data-theme]'))
     const update = () => {
       const y = 40
-      let cur = 'dark'
+      let cur = 'paper'
       for (const s of secs) {
         const r = s.getBoundingClientRect()
         if (r.top <= y && r.bottom > y) cur = s.dataset.theme ?? 'dark'

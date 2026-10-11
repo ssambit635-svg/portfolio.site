@@ -8,7 +8,7 @@ export default function Systems() {
   const current = featured.find((p) => p.id === active) ?? featured[0]
 
   return (
-    <section id="systems" aria-labelledby="systems-heading" className="bg-ink text-paper">
+    <section id="systems" aria-labelledby="systems-heading" data-theme="dark" className="bg-ink text-paper">
       <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
         <div className="flex flex-wrap items-end justify-between gap-6" data-reveal>
           <div>
