@@ -1,178 +1,67 @@
-import { useEffect, useRef } from 'react'
-import { gsap, ScrollTrigger } from '../../lib/gsap'
-import { projects, type Project } from '../../lib/site'
-import Tag from '../ui/Tag'
+import { projects, profile } from '../../lib/site'
 import Button from '../ui/Button'
-import Scramble from '../fx/Scramble'
-import { useSound } from '../../hooks/useSound'
-import { cn } from '../../lib/utils'
-
-/* Smaller stagger keeps the longer, more informative cards inside the pin. */
-const OFFSETS = [180, 40, 240, 0, 210, 60, 240, 15]
-/* Cards also breathe in and out of the screen plane as the track slides —
-   alternating depth so the row never reads as a flat strip. */
-const DEPTHS = [-40, 30, -18, 44, -32, 22, -44, 14]
-
-function Card({ p, i }: { p: Project; i: number }) {
-  const { tick } = useSound()
-  return (
-    <article
-      id={`project-${p.id}`}
-      data-project-card
-      data-reveal={i * 60}
-      data-reveal-fade
-      className="project-card relative block w-[300px] shrink-0 max-md:w-[78vw]"
-      style={{ marginTop: OFFSETS[i % OFFSETS.length] }}
-    >
-      {/* connector line */}
-      <i
-        aria-hidden
-        className={cn(
-          'absolute top-1/2 -left-[190px] h-px w-[190px] bg-black/25 max-md:hidden',
-          i === 0 && 'hidden'
-        )}
-      />
-      <a
-        href={p.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onMouseEnter={tick}
-        data-scramble-hover
-        aria-label={`${p.action}: ${p.title}`}
-        className="group block"
-      >
-        <div className="relative aspect-[300/220] overflow-hidden bg-ink">
-          <img
-            src={p.image}
-            alt={`${p.title} — ${p.kind} project preview`}
-            width={1200}
-            height={880}
-            decoding="async"
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(180,140,255,0.6)_100%)]" />
-          <Tag tone="ink" className="absolute bottom-3 left-3">
-            {p.kind}
-          </Tag>
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <h3 className="font-label text-[13px] font-semibold tracking-[0.06em] text-ink uppercase">
-            <Scramble text={p.title} trigger="hover" speed={30} color="#180735" />
-          </h3>
-          <span className="t-label shrink-0 text-[9px] text-ink/60">
-            {p.action} <span className="text-purple">↗</span>
-          </span>
-        </div>
-        <p className="mt-3 text-[13px] leading-relaxed text-ink/80">{p.description}</p>
-      </a>
-
-      <ul aria-label={`Technologies used for ${p.title}`} className="mt-3 flex flex-wrap gap-1.5">
-        {p.stack.map((tool) => (
-          <li
-            key={tool}
-            className="border border-purple/20 px-1.5 py-1 font-label text-[9px] font-medium tracking-[0.03em] text-purple/85"
-          >
-            {tool}
-          </li>
-        ))}
-      </ul>
-      {p.repo && (
-        <a
-          href={p.repo}
-          target="_blank"
-          rel="noopener noreferrer"
-          onMouseEnter={tick}
-          className="mt-2 inline-flex min-h-9 items-center gap-1 pr-2 font-label text-[10px] font-semibold tracking-wide text-ink/65 transition-colors hover:text-purple focus-visible:text-purple"
-          aria-label={`View source code for ${p.title}`}
-        >
-          Source code <span aria-hidden>↗</span>
-        </a>
-      )}
-    </article>
-  )
-}
 
 export default function Work() {
-  const pin = useRef<HTMLDivElement>(null)
-  const track = useRef<HTMLDivElement>(null)
-  const bar = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const mm = gsap.matchMedia()
-    mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
-      const t = track.current!
-      const dist = () => t.scrollWidth - window.innerWidth
-      const range = () => ({ trigger: pin.current, start: 'top top', end: () => `+=${dist()}` })
-      const tw = gsap.to(t, {
-        x: () => -dist(),
-        ease: 'none',
-        scrollTrigger: {
-          ...range(),
-          pin: true,
-          scrub: 0.6,
-          invalidateOnRefresh: true,
-          anticipatePin: 1
-        }
-      })
-      /* depth: cards drift on the z-axis-ish while the track slides sideways */
-      const cards = gsap.to('[data-project-card]', {
-        y: (i: number) => DEPTHS[i % DEPTHS.length],
-        ease: 'none',
-        scrollTrigger: { ...range(), scrub: 0.9, invalidateOnRefresh: true }
-      })
-      /* a horizontal-scroll progress line along the bottom edge */
-      const progress = bar.current
-        ? gsap.fromTo(bar.current, { scaleX: 0 }, {
-            scaleX: 1,
-            ease: 'none',
-            transformOrigin: 'left center',
-            scrollTrigger: { ...range(), scrub: 0.4, invalidateOnRefresh: true }
-          })
-        : null
-      return () => {
-        tw.scrollTrigger?.kill()
-        tw.kill()
-        cards.scrollTrigger?.kill()
-        cards.kill()
-        progress?.scrollTrigger?.kill()
-        progress?.kill()
-      }
-    })
-    ScrollTrigger.refresh()
-    return () => mm.revert()
-  }, [])
+  const list = projects.filter((p) => p.id !== 'portfolio')
 
   return (
-    <section id="work" data-theme="lime" className="relative bg-lime text-ink">
-      <div ref={pin} className="work-pin h-[max(100svh,880px)] overflow-hidden max-md:h-auto max-md:pb-16">
-        {/* horizontal baseline */}
-        <i aria-hidden className="absolute top-[74%] left-0 h-px w-full bg-black/15 max-md:hidden" />
-        {/* horizontal-scroll progress line */}
-        <i aria-hidden className="absolute bottom-9 left-8 right-8 h-[2px] bg-black/10 max-md:hidden">
-          <i ref={bar} className="block h-full w-full bg-purple" />
-        </i>
-        <div ref={track} className="project-track flex h-full items-start gap-[120px] px-8 pt-[110px] will-change-transform max-md:flex-col max-md:gap-16 max-md:pt-24">
-          {/* heading block */}
-          <div className="w-[300px] shrink-0 pt-6 max-md:w-auto">
-            <Tag tone="ink">Keep Scrolling</Tag>
-            <h2 className="t-display mt-3 text-[clamp(56px,6.2vw,92px)] font-medium leading-[0.9] text-purple">
-              <Scramble text="Selected" speed={40} />
-              <br />
-              <Scramble text="Work" speed={40} delay={250} />
+    <section id="work" aria-labelledby="work-heading" className="bg-paper">
+      <div className="mx-auto max-w-[1280px] px-5 py-20 md:px-8 md:py-28">
+        <div className="flex flex-wrap items-end justify-between gap-6" data-reveal>
+          <div>
+            <p className="t-kicker text-mute">Selected</p>
+            <h2 id="work-heading" className="t-display mt-3 text-[clamp(40px,6vw,72px)]">
+              Work
             </h2>
-            <p className="t-label mt-10 max-w-[270px] leading-[1.8] text-ink/55">
-              A selection of web, cloud and applied-tech projects. Open a live build or jump straight to its source.
-            </p>
-            <Button href="https://github.com/ssambit635-svg?tab=repositories" target="_blank" rel="noopener noreferrer" className="mt-4 [border-color:var(--color-purple)] [color:var(--color-purple)] hover:[background:var(--color-purple)] hover:[color:var(--color-lime)]">
-              More projects on GitHub
-            </Button>
           </div>
-          {projects.map((project, i) => (
-            <Card key={project.id} p={project} i={i} />
-          ))}
-          <div className="w-[10vw] shrink-0 max-md:hidden" />
+          <Button href={profile.github} target="_blank" rel="noopener noreferrer" tone="ghost">
+            All repositories
+          </Button>
         </div>
+
+        <ol className="mt-16">
+          {list.map((p, i) => (
+            <li key={p.id} data-reveal={i * 40} className="border-t border-line py-10 md:py-12">
+              <article className="grid gap-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
+                <div>
+                  <p className="t-kicker text-mute">
+                    {String(i + 1).padStart(2, '0')} · {p.kind} · {p.year}
+                  </p>
+                  <h3 className="t-display mt-3 text-[clamp(32px,4vw,48px)]">{p.title}</h3>
+                  <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink/75">{p.description}</p>
+                  <ul className="mt-5 flex flex-wrap gap-x-3 gap-y-1">
+                    {p.stack.map((t) => (
+                      <li key={t} className="t-kicker text-mute">
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <Button href={p.href} target="_blank" rel="noopener noreferrer">
+                      {p.action}
+                    </Button>
+                    {p.repo && (
+                      <Button href={p.repo} target="_blank" rel="noopener noreferrer" tone="ghost">
+                        Source
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <a href={p.href} target="_blank" rel="noopener noreferrer" className="block overflow-hidden bg-paper-2">
+                  <img
+                    src={p.image}
+                    alt=""
+                    width={1200}
+                    height={880}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[16/11] w-full object-cover transition-transform duration-700 ease-out hover:scale-[1.03]"
+                  />
+                </a>
+              </article>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )

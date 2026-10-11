@@ -21,7 +21,7 @@ export const profile = {
   name: 'Sambit Swain',
   first: 'Sambit',
   last: 'Swain',
-  role: 'Software Developer',
+  role: 'Full-stack & cloud',
   classTag: "CSE '29",
   country: 'India',
   city: 'Berhampur, India',
@@ -42,19 +42,16 @@ export const profile = {
   resume: '#'
 } as const
 
-export const intro = {
-  before: 'B.Tech Computer Science student at NIST University, ',
-  art: 'building',
-  mid: ' practical ',
-  tech: 'web & cloud apps',
-  after:
-    ' in Berhampur, India — from hackathon prototypes to tools for health, agriculture and everyday productivity.'
-} as const
+export const headline =
+  'I ship full-stack products and the infrastructure they run on — from the interface down to the box it deploys into.'
 
-export const manifesto = {
-  lines: ['I believe great', 'work isn’t made', 'by talent alone.', 'It’s forged through', 'late nights,', 'bad drafts,', '& one too many'],
-  quote: ['“Just one', 'more', 'tweak”']
-} as const
+export const about = {
+  p1: 'I’m Sambit Swain, a B.Tech Computer Science student at NIST University (2025–2029) in Berhampur, India. I work across the stack: React and TypeScript on the client, Node and FastAPI on the server, Docker and AWS underneath.',
+  p2: 'Hackathons are how I force a brief into a working system — health records, farmer procurement, civic reporting. The interesting part is never the demo. It’s the path from a phone camera or a queue token to a database, an API, and something an operator can actually run.'
+}
+
+export const planes = ['Client', 'API', 'Data', 'Infra'] as const
+export type Plane = (typeof planes)[number]
 
 export type Project = {
   id: string
@@ -67,12 +64,15 @@ export type Project = {
   href: string
   action: string
   repo?: string
+  status: 'live' | 'lab' | 'local'
+  plane: Record<Plane, string>
+  featured?: boolean
 }
 
 export const projects: Project[] = [
   {
     id: 'kivo',
-    title: 'kivo',
+    title: 'Kivo',
     kind: 'HealthTech',
     description:
       'Photograph a paper lab report, verify each extracted value, and build a personal health timeline with trends, risk insights and a doctor-visit summary. Built for the iQOO Hackathon 2026.',
@@ -80,8 +80,16 @@ export const projects: Project[] = [
     stack: ['JavaScript', 'Node.js', 'Express', 'SQLite', 'Android'],
     image: shotKivo,
     href: 'https://kivo-api-qzqc.onrender.com/',
-    action: 'Open live demo',
-    repo: 'https://github.com/ssambit635-svg/kivo.git'
+    action: 'Live demo',
+    repo: 'https://github.com/ssambit635-svg/kivo.git',
+    status: 'live',
+    featured: true,
+    plane: {
+      Client: 'Android capture',
+      API: 'Express / Node',
+      Data: 'SQLite',
+      Infra: 'Render'
+    }
   },
   {
     id: 'shadow-quest',
@@ -90,11 +98,19 @@ export const projects: Project[] = [
     description:
       'A samurai-inspired focus app with configurable work sessions, an ensō timer and goal streaks. Built for Tech Zypher 2026.',
     year: '2026',
-    stack: ['React', 'TypeScript', 'GSAP', 'MongoDB', 'Capacitor'],
+    stack: ['React', 'TypeScript', 'MongoDB', 'Capacitor'],
     image: shotShadow,
     href: 'https://shadowquest.onrender.com/',
-    action: 'Open live app',
-    repo: 'https://github.com/ssambit635-svg/Shadow-quest.git'
+    action: 'Live app',
+    repo: 'https://github.com/ssambit635-svg/Shadow-quest.git',
+    status: 'live',
+    featured: true,
+    plane: {
+      Client: 'React / Capacitor',
+      API: 'Node',
+      Data: 'MongoDB',
+      Infra: 'Render'
+    }
   },
   {
     id: 'annadata-connect',
@@ -106,46 +122,78 @@ export const projects: Project[] = [
     stack: ['React', 'Node.js', 'Express', 'Capacitor', 'Docker'],
     image: shotAnnadata,
     href: 'https://ssambit635-svg-annadata-connect.onrender.com/',
-    action: 'Open live demo',
-    repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git'
+    action: 'Live demo',
+    repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git',
+    status: 'live',
+    featured: true,
+    plane: {
+      Client: 'React / Capacitor',
+      API: 'Express',
+      Data: 'Application store',
+      Infra: 'Docker · Render'
+    }
   },
   {
     id: 'civicreport',
     title: 'CivicReport',
-    kind: 'Web App',
+    kind: 'Civic',
     description:
       'Citizens photograph a local issue; Gemini classifies it, places it on a Leaflet map and helps track the report through resolution.',
     year: '2026',
     stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet'],
     image: shotCivic,
     href: 'https://ssambit635-svg.github.io/Civic-report/',
-    action: 'Open live site',
-    repo: 'https://github.com/ssambit635-svg/Civic-report.git'
+    action: 'Live site',
+    repo: 'https://github.com/ssambit635-svg/Civic-report.git',
+    status: 'live',
+    featured: true,
+    plane: {
+      Client: 'Static web',
+      API: 'Gemini',
+      Data: 'Client + map',
+      Infra: 'GitHub Pages'
+    }
   },
   {
     id: 'weather-sense',
     title: 'Weather Sense',
-    kind: 'Data App',
+    kind: 'Data',
     description:
       'Combines a seven-day forecast and air-quality index with practical lifestyle scores for plans like carrying an umbrella or going for a run.',
     year: '2025',
     stack: ['Python', 'Streamlit', 'Open-Meteo API'],
     image: shotWeather,
     href: 'https://weather-sense-pbwmsehcq8etxhy7vufp6i.streamlit.app/',
-    action: 'Open live app',
-    repo: 'https://github.com/ssambit635-svg/Weather-sense.git'
+    action: 'Live app',
+    repo: 'https://github.com/ssambit635-svg/Weather-sense.git',
+    status: 'live',
+    featured: false,
+    plane: {
+      Client: 'Streamlit',
+      API: 'Open-Meteo',
+      Data: 'Forecast feed',
+      Infra: 'Streamlit Cloud'
+    }
   },
   {
     id: 'aws-dashboard',
     title: 'AWS Dashboard',
-    kind: 'Cloud Tool',
+    kind: 'Cloud',
     description:
       'A cloud dashboard for viewing EC2 instances, S3 buckets and month-to-date AWS spend, with costs grouped by service.',
     year: '2025',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
     image: shotAws,
     href: 'https://lnkd.in/dgA4fPCR',
-    action: 'View project update'
+    action: 'Project note',
+    status: 'lab',
+    featured: true,
+    plane: {
+      Client: 'React / Recharts',
+      API: 'FastAPI',
+      Data: 'AWS APIs',
+      Infra: 'LocalStack · Docker'
+    }
   },
   {
     id: 'password-manager',
@@ -157,18 +205,34 @@ export const projects: Project[] = [
     stack: ['Python', 'cryptography', 'Streamlit'],
     image: shotPassword,
     href: 'https://github.com/ssambit635-svg/password_manager_python.git',
-    action: 'View source'
+    action: 'Source',
+    status: 'local',
+    featured: false,
+    plane: {
+      Client: 'Streamlit',
+      API: 'Local process',
+      Data: 'Fernet store',
+      Infra: 'Offline'
+    }
   },
   {
     id: 'portfolio',
-    title: 'This Portfolio',
-    kind: 'Web Design',
-    description: 'A one-page portfolio built with React, TypeScript, GSAP motion and a custom halftone portrait effect.',
+    title: 'This site',
+    kind: 'Site',
+    description: 'Personal site: React, TypeScript, a paper editorial layout and a systems map of the work.',
     year: '2026',
-    stack: ['React', 'TypeScript', 'GSAP', 'Tailwind'],
+    stack: ['React', 'TypeScript', 'Vite', 'Tailwind'],
     image: shotPortfolio,
     href: 'https://github.com/ssambit635-svg/portfolio.site.git',
-    action: 'View source'
+    action: 'Source',
+    status: 'live',
+    featured: false,
+    plane: {
+      Client: 'React',
+      API: '—',
+      Data: 'Static',
+      Infra: 'GitHub Pages'
+    }
   }
 ]
 
@@ -186,75 +250,112 @@ export const experience: Experience[] = [
     org: 'NIST University',
     role: 'B.Tech CSE · 2025 — 2029',
     detail:
-      'B.Tech Computer Science and Engineering student, learning core CS alongside practical web, backend and cloud projects. CGPA: 8.2.'
+      'B.Tech Computer Science and Engineering. Core CS alongside web, backend and cloud work. CGPA 8.2.'
   },
   {
     id: 'aws',
     org: 'AWS Training',
     role: 'Cloud Essentials',
-    detail: 'AWS Foundations: Cloud Essentials — compute, storage, networking and billing fundamentals.',
+    detail: 'AWS Foundations: compute, storage, networking and billing.',
     image: certAws
   },
   {
     id: 'cisco-py',
     org: 'Cisco NetAcad',
     role: 'Python Essentials 1',
-    detail: 'Python fundamentals, data types, control flow and functions — Cisco Networking Academy.',
+    detail: 'Python fundamentals — Cisco Networking Academy.',
     image: certPython
   },
   {
     id: 'cisco-cpp',
     org: 'Cisco NetAcad',
     role: 'C++ Essentials',
-    detail: 'Object-oriented programming, memory and the STL in C++.',
+    detail: 'OOP, memory and the STL.',
     image: certCpp
   },
   {
     id: 'cisco-linux',
     org: 'Cisco NetAcad',
     role: 'Linux Unhatched',
-    detail: 'Shell, filesystem and permissions — the base layer for everything I deploy.',
+    detail: 'Shell, filesystem and permissions — the base layer for what I deploy.',
     image: certLinux
   },
   {
     id: 'simplilearn',
     org: 'Simplilearn',
     role: 'Cloud Computing',
-    detail: 'Cloud service models, deployment models and architecture basics.',
+    detail: 'Service models, deployment models, architecture basics.',
     image: certCloud
   },
   {
     id: 'excelr',
     org: 'ExcelR',
     role: 'Programming in C',
-    detail: '30-hour live training on the foundations of programming using C.',
+    detail: '30-hour live training on C.',
     image: certC
   },
   {
     id: 'dhss',
     org: 'Dhenkanal HSS',
     role: 'Class XII · PCM + CS',
-    detail: 'The computer science paper is where this started: first loops, then wondering what happens behind the browser tab. 79.7%.'
+    detail: 'Where this started. 79.7%.'
   }
 ]
 
 export const stats = [
-  { label: 'Projects listed', value: projects.length, suffix: '' },
-  { label: 'Years coding', value: 3, suffix: '+' },
+  { label: 'Shipped projects', value: projects.length, suffix: '' },
+  { label: 'Years building', value: 3, suffix: '+' },
   { label: 'Certifications', value: experience.filter((item) => item.image).length, suffix: '' }
+] as const
+
+export const stackGroups = [
+  {
+    title: 'Languages',
+    items: ['TypeScript', 'JavaScript', 'Python', 'C', 'C++']
+  },
+  {
+    title: 'Product',
+    items: ['React', 'HTML / CSS', 'Tailwind', 'Capacitor']
+  },
+  {
+    title: 'Backend',
+    items: ['Node.js', 'Express', 'FastAPI', 'SQLite', 'MongoDB']
+  },
+  {
+    title: 'Cloud & ops',
+    items: ['AWS', 'Docker', 'Linux', 'Git', 'GitHub']
+  }
 ] as const
 
 export const connect = [
   { n: '01', label: 'LinkedIn', href: profile.linkedin },
   { n: '02', label: 'GitHub', href: profile.github },
   { n: '03', label: 'X', href: profile.x },
-  { n: '04', label: 'Hashnode', href: profile.hashnode },
-  { n: '05', label: 'Discord', href: profile.discord },
-  { n: '06', label: 'Avely', href: profile.avely }
+  { n: '04', label: 'Hashnode', href: profile.hashnode }
 ] as const
 
 export const footerCols = [
-  { title: 'Portfolio', items: [{ label: 'GitHub', href: profile.github }, { label: 'Hashnode', href: profile.hashnode }] },
+  { title: 'Work', items: [{ label: 'GitHub', href: profile.github }, { label: 'Hashnode', href: profile.hashnode }] },
   { title: 'Social', items: [{ label: 'LinkedIn', href: profile.linkedin }, { label: 'X', href: profile.x }] },
-  { title: 'Talk', items: [{ label: 'Discord', href: profile.discord }, { label: 'Avely', href: profile.avely }] }
+  {
+    title: 'Talk',
+    items: [
+      { label: 'Email', href: `mailto:${profile.email}` },
+      { label: 'Discord', href: profile.discord }
+    ]
+  }
 ] as const
+
+/** @deprecated kept so older imports don't break during the cutover */
+export const intro = {
+  before: '',
+  art: '',
+  mid: '',
+  tech: '',
+  after: headline
+} as const
+
+export const manifesto = {
+  lines: ['I believe great', 'work isn’t made', 'by talent alone.', 'It’s forged through', 'late nights,', 'bad drafts,', '& one too many'],
+  quote: ['“Just one', 'more', 'tweak”']
+} as const
