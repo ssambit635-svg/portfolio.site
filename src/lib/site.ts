@@ -45,6 +45,21 @@ export const profile = {
 export const headline =
   'I ship full-stack products and the infrastructure they run on — from the interface down to the box it deploys into.'
 
+export const tagline = 'I ship full-stack products and the infrastructure they run on'
+
+/** Contact-console keycaps — [label, href, colour-kind]. */
+export const consoleKeys: [string, string, string][] = [
+  ['Home', '#home', 'wide'],
+  ['GH', profile.github, 'sky'],
+  ['IN', profile.linkedin, 'insta'],
+  ['@', `mailto:${profile.email}`, 'tan'],
+  ['Hire me', `mailto:${profile.email}?subject=Let%27s%20work%20together`, 'wide'],
+  ['X', profile.x, ''],
+  ['Discord', profile.discord, 'wide'],
+  ['HN', profile.hashnode, 'pink'],
+  ['AV', profile.avely, 'blue'],
+]
+
 export const about = {
   p1: 'I’m Sambit Swain, a B.Tech Computer Science student at NIST University (2025–2029) in Berhampur, India. I work across the stack: React and TypeScript on the client, Node and FastAPI on the server, Docker and AWS underneath.',
   p2: 'Hackathons are how I force a brief into a working system — health records, farmer procurement, civic reporting. The interesting part is never the demo. It’s the path from a phone camera or a queue token to a database, an API, and something an operator can actually run.'

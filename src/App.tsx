@@ -1,7 +1,55 @@
 import { useEffect, useState } from 'react'
 import HardwareConsole from './components/HardwareConsole'
-import { credentials, experience, headline, profile, projects } from './lib/site'
-import { useLenis } from './hooks/useLenis'
+import HardwareConsolePhoto from './components/HardwareConsolePhoto'
+import RevealText from './components/RevealText'
+import PegBoard from './components/PegBoard'
+import { credentials, experience, profile, projects, tagline } from './lib/site'
+import { setScrollLocked, useLenis } from './hooks/useLenis'
+import { prefersReducedMotion } from './lib/utils'
+import heroTv from './assets/hero-tv.jpg'
+
+/** Preloader greeting sequence — 0.9s per language, 5 languages = 4.5s, then a 0.5s fade. */
+const WELCOMES = [
+  ['en', 'Welcome'],
+  ['hi', 'स्वागत है'],
+  ['or', 'ସ୍ୱାଗତ'],
+  ['fr', 'Bienvenue'],
+  ['ja', 'ようこそ'],
+] as const
+
+function Preloader() {
+  const [done, setDone] = useState(false)
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    if (prefersReducedMotion()) {
+      setReduced(true)
+      return
+    }
+    document.documentElement.dataset.boot = '1'
+    setScrollLocked(true)
+    const t = setTimeout(() => {
+      setDone(true)
+      setScrollLocked(false)
+    }, 6100)
+    return () => {
+      clearTimeout(t)
+      setScrollLocked(false)
+    }
+  }, [])
+  if (done || reduced) return null
+  return (
+    <div className="preloader" aria-hidden="true">
+      <div className="pre-glow" />
+      <div className="pre-words">
+        {WELCOMES.map(([lang, word]) => (
+          <span key={lang} lang={lang}>
+            {word}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 const links = [
   ['Home', '#home'],
@@ -28,35 +76,21 @@ function Nav() {
   )
 }
 
-function Television() {
-  return (
-    <div className="hero-stage" aria-hidden="true">
-      <div className="green-glow" />
-      <div className="tv">
-        <div className="tv-shell">
-          <div className="tv-screen"><div className="screen-noise" /></div>
-          <div className="tv-panel"><i /><i /><b /></div>
-        </div>
-        <div className="tv-foot left"/><div className="tv-foot right"/>
-      </div>
-      <div className="desk">
-        <div className="camera"><i/><span/></div>
-        <div className="book"><span>CLOUD</span><b>01</b></div>
-      </div>
-    </div>
-  )
-}
-
 function Hero() {
   return (
     <section id="home" className="hero">
-      <div className="hero-copy">
-        <p className="eyebrow">FULL-STACK DEVELOPER · CLOUD BUILDER</p>
-        <h1>{headline}<br/><em>Cloud.</em></h1>
+      <div className="hero-frame">
+        <img src={heroTv} alt="" />
+        <p className="tv-hello" aria-hidden="true">
+          <span>h</span><span>e</span><span>l</span><span>l</span><span>o</span>
+        </p>
+        <div className="tv-screen-fx" aria-hidden="true">
+          <i className="flicker" />
+          <i className="scan" />
+          <i className="roll" />
+        </div>
       </div>
-      <Television />
-      <p className="hero-note">Based in Berhampur, India<br/>Building for the web and the box beneath it.</p>
-      <a className="scroll-cue" href="#works">Scroll to explore <span>↓</span></a>
+      <h1 className="sr-only">{tagline}</h1>
     </section>
   )
 }
@@ -107,8 +141,8 @@ function About() {
   return <section id="about" className="section about">
     <div className="section-head"><p>The human behind the terminal</p><h2>About me</h2></div>
     <div className="about-grid">
-      <div className="portrait-wrap"><img src="sambit-swain.jpg" alt="Portrait of Sambit Swain" loading="lazy"/></div>
-      <div className="bio"><p>I’m a Computer Science student and product-minded developer working from interface to infrastructure. I turn real-world problems into dependable web products—then containerise and ship them.</p><p>I learn by building in public, joining hackathons, and following each idea all the way from a rough screen to a running service.</p></div>
+      <PegBoard />
+      <div className="bio"><RevealText text="I’m a Computer Science student and product-minded developer working from interface to infrastructure. I turn real-world problems into dependable web products—then containerise and ship them." /><RevealText text="I learn by building in public, joining hackathons, and following each idea all the way from a rough screen to a running service." /></div>
     </div>
     <div className="education"><h3>Education</h3>{education.map(item => <div className="edu-row" key={item.id}><span>{item.role}</span><h4>{item.org}</h4><p>{item.detail}</p></div>)}</div>
     <div className="personal"><span>Berhampur, India</span><span>{profile.coords.join(' · ')}</span><span>CSE ’29</span><span>Available for good ideas</span></div>
@@ -120,6 +154,7 @@ function Footer() {
     <p className="footer-kicker">Have a project, a strange idea, or just want to say hello?</p>
     <h2>Let’s make<br/>it <em>run.</em></h2>
     <HardwareConsole />
+    <HardwareConsolePhoto />
     <div className="footer-bottom"><span>© {new Date().getFullYear()} Sambit Swain</span><span>{profile.email}</span><span>Designed to keep moving.</span></div>
   </footer>
 }
@@ -128,5 +163,5 @@ export default function App({ staticRender = false }: { staticRender?: boolean }
   void staticRender
   useLenis()
   useEffect(() => { document.documentElement.dataset.theme = 'reference' }, [])
-  return <><a className="skip-link" href="#works">Skip to work</a><Nav/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
+  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><Nav/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
 }
