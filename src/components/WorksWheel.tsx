@@ -467,7 +467,11 @@ export function WorksWheel({
       aria-label={label}
       className={className ? `ww ${className}` : 'ww'}
       style={
-        { ...style, '--ww-span': `${(1 + units * scrollPerItem) * 100}svh` } as React.CSSProperties
+        {
+          ...style,
+          '--ww-span': `${(1 + units * scrollPerItem) * 100}svh`,
+          '--ww-cardw': `${metrics.cardW}px`,
+        } as React.CSSProperties
       }
       {...props}
     >

@@ -123,10 +123,12 @@
   transform: none;
 }
 
+/* Top-right, above the index: the top-left of every section on this site
+   belongs to the fixed nav. */
 .ww-kicker {
   position: absolute;
-  left: max(20px, 5vw);
-  top: 6%;
+  right: max(20px, 2.5vw);
+  top: 3.5%;
   margin: 0;
   display: flex;
   align-items: center;
@@ -159,11 +161,17 @@
   pointer-events: none;
 }
 
+/* The type sits in whatever room the front card leaves on the left. --ww-cardw
+   is the measured card width, so the column can never creep under the card. */
 .ww-front {
   position: absolute;
-  left: max(20px, 6vw);
+  left: max(20px, 5vw);
   top: 50%;
-  width: min(30%, 360px);
+  width: clamp(
+    180px,
+    calc(50% - var(--ww-cardw, 34vmin) / 2 - max(20px, 5vw) - 30px),
+    360px
+  );
   transform: translateY(-50%);
   opacity: 0;
   visibility: hidden;
@@ -236,7 +244,7 @@
 .ww-index {
   position: absolute;
   right: max(20px, 2.5vw);
-  top: 7%;
+  top: 8.5%;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -300,8 +308,11 @@
    away — it is unreadable at that size, and the list below the wheel carries
    every link anyway. */
 @media (max-width: 850px) {
+  /* The nav crosses the corner on a phone, so the chrome drops below it. */
   .ww-kicker {
-    top: 4%;
+    right: auto;
+    left: 20px;
+    top: 12%;
   }
   .ww-front {
     left: 20px;
@@ -330,7 +341,7 @@
     display: none;
   }
   .ww-hint {
-    top: 4%;
+    top: 12%;
     bottom: auto;
     right: 20px;
     left: auto;
