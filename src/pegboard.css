@@ -1,0 +1,151 @@
+/* Warm light from the board's top and bottom now shares one amber tone. */
+.about .board-wrap {
+  isolation: isolate;
+}
+.about .board-wrap::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 7%;
+  right: 7%;
+  bottom: -7%;
+  height: 23%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 66% 76% at 58% 0%, rgba(255, 190, 128, 0.26), transparent 74%);
+  filter: blur(24px);
+  opacity: 0.85;
+}
+.about .board > img {
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.8),
+    0 20px 38px rgba(255, 184, 119, 0.1);
+}
+.board-underlight {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: 8px;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 18% at 58% 103%, rgba(255, 190, 128, 0.2), transparent 74%);
+  mix-blend-mode: screen;
+}
+
+/* A flat ribbon ties the ESP32 back to the contact panel, routed beneath the can. */
+.esp32-cable {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.led-module { z-index: 3; }
+
+/* The transparent hit target wakes a photographic close-up—no artificial
+   blue halo or 3D glow around the ESP32 itself. */
+.esp32-hotspot {
+  position: absolute;
+  z-index: 6;
+  left: 71.1%;
+  top: 8.4%;
+  width: 20.5%;
+  height: 25.6%;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #f4e0c6;
+  cursor: zoom-in;
+  touch-action: manipulation;
+}
+.esp32-hotspot:focus-visible {
+  outline: 1px solid rgba(255, 220, 178, 0.94);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px rgba(255, 192, 127, 0.14);
+}
+.esp32-hint {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 220, 178, 0.3);
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.82);
+  color: rgba(255, 231, 203, 0.9);
+  font: 600 clamp(5px, 0.55vw, 8px)/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.78;
+  transition: opacity 180ms ease;
+}
+.esp32-hotspot[data-awake='1'] .esp32-hint { opacity: 0; }
+
+/* The device detail expands like the existing pinned portrait, but is a real
+   crop from the pegboard photo rather than a glowing illustration. */
+.esp32-zoom {
+  position: absolute;
+  z-index: 8;
+  left: 67.8%;
+  top: 3.7%;
+  width: 27%;
+  aspect-ratio: 168 / 271;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 243, 225, 0.46);
+  border-radius: 6px;
+  background: #151412;
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.78),
+    0 0 0 1px rgba(0, 0, 0, 0.52);
+  opacity: 0;
+  transform: scale(0.66) rotate(1deg);
+  transform-origin: 50% 48%;
+  transition: opacity 180ms ease, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+.esp32-zoom[data-awake='1'] {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+.esp32-zoom img {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+}
+.esp32-zoom > span {
+  flex: 0 0 auto;
+  padding: 4% 3%;
+  background: linear-gradient(180deg, #28251f, #141310);
+  color: rgba(255, 231, 203, 0.86);
+  font: 600 clamp(5px, 0.55vw, 8px)/1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.09em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 850px) {
+  .esp32-hotspot {
+    left: 70.5%;
+    top: 8.2%;
+    width: 21.5%;
+    height: 25.9%;
+  }
+  .esp32-zoom {
+    left: 65.8%;
+    top: 3.5%;
+    width: 31%;
+  }
+  .esp32-hint,
+  .esp32-zoom > span { font-size: clamp(5px, 1.2vw, 7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esp32-zoom { transition: none; }
+}
