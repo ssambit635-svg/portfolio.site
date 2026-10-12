@@ -1,0 +1,450 @@
+/* Works wheel — the projects index as a ring of cards that opens into a drum.
+   The component owns the geometry: it measures the stage, then writes every
+   transform and type size straight to the DOM. This file is the skin, in the
+   site's palette — near-black stage, Newsreader display, green accent. */
+
+.ww {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  background: var(--black);
+}
+/* The clipping lives on the frame, never on the section: an overflow container
+   anywhere above a sticky element becomes its scrollport, and the frame would
+   stop sticking to the page. */
+.ww-frame {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* A finger has nothing to turn, so the section is made scroll-tall and the
+   frame sticks while the page's own scroll carries the drum round. --ww-span
+   comes from the item count. Same query as the component's JS, so the two can
+   never disagree about who is driving. */
+@media (hover: none) and (pointer: coarse) {
+  .ww {
+    height: var(--ww-span, 540svh);
+  }
+}
+
+.ww-stage {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  /* The wheel owns vertical gestures on a fine pointer. On a finger it must
+     leave them to the page, which is what turns the drum there. */
+  touch-action: none;
+  outline: none;
+}
+.ww-stage:active {
+  cursor: grabbing;
+}
+.ww-stage:focus-visible {
+  outline: 1px solid var(--green);
+  outline-offset: -8px;
+}
+@media (hover: none) and (pointer: coarse) {
+  .ww-stage {
+    touch-action: pan-y;
+    cursor: default;
+  }
+}
+
+.ww-wheel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+}
+
+.ww-card {
+  position: absolute;
+  display: block;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.ww-face {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #101010;
+  border: 1px solid rgba(244, 242, 237, 0.14);
+  box-shadow: 0 30px 70px -34px #000;
+}
+/* Every card except the one at the front sits back in its own shadow — the
+   veil is written per card as the drum turns. */
+.ww-face:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #050505;
+  opacity: var(--ww-veil, 0);
+  pointer-events: none;
+}
+.ww-shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.82);
+  transition: filter 0.5s;
+}
+.ww-card:hover .ww-shot,
+.ww-card:focus-visible .ww-shot {
+  filter: saturate(1);
+}
+.ww-cta {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--white);
+  color: #090909;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+.ww-card:hover .ww-cta,
+.ww-card:focus-visible .ww-cta {
+  opacity: 1;
+  transform: none;
+}
+
+.ww-kicker {
+  position: absolute;
+  left: max(20px, 5vw);
+  top: 6%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9b9b9b;
+}
+.ww-kicker:before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(0, 240, 131, 0.7);
+}
+
+.ww-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--ww-title, 44px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--white);
+  pointer-events: none;
+}
+
+.ww-front {
+  position: absolute;
+  left: max(20px, 6vw);
+  top: 50%;
+  width: min(30%, 360px);
+  transform: translateY(-50%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.ww-front-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--ww-title, 44px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--white);
+}
+
+/* The front item's details. The wheel fades this in a beat after the title and
+   only hands it the pointer once it is really on screen. */
+.ww-meta {
+  margin-top: 1.1em;
+  opacity: 0;
+}
+.ww-meta-no {
+  margin: 0 0 10px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--green);
+}
+.ww-meta-desc {
+  margin: 0;
+  max-width: 34ch;
+  color: #b6b2ab;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.ww-meta-stack {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ww-meta-stack li {
+  border: 1px solid #383838;
+  border-radius: 30px;
+  padding: 5px 9px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #a8a49d;
+}
+.ww-meta-links {
+  margin: 18px 0 0;
+  display: flex;
+  gap: 20px;
+}
+.ww-front-link {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  border-bottom: 1px solid #777;
+  padding-bottom: 3px;
+}
+.ww-front-link:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.ww-index {
+  position: absolute;
+  right: max(20px, 2.5vw);
+  top: 7%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: right;
+  line-height: 1.75;
+}
+.ww-index button {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-family: var(--sans);
+  font-size: 1em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c7873;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.ww-index button:hover {
+  color: var(--white);
+}
+.ww-index button.is-active {
+  color: var(--white);
+}
+.ww-index-no {
+  margin-right: 8px;
+  font-size: 0.85em;
+  color: #57534e;
+}
+.ww-index button.is-active .ww-index-no {
+  color: var(--green);
+}
+
+.ww-hint {
+  position: absolute;
+  left: max(20px, 5vw);
+  bottom: 5%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #7c7873;
+  pointer-events: none;
+}
+.ww-hint-count {
+  font-family: var(--serif);
+  font-size: 20px;
+  letter-spacing: 0;
+  color: var(--white);
+}
+.ww-hint-count i {
+  margin: 0 2px;
+  font-style: normal;
+  color: #57534e;
+}
+
+/* Portrait and phone widths: the type moves under the drum and the index goes
+   away — it is unreadable at that size, and the list below the wheel carries
+   every link anyway. */
+@media (max-width: 850px) {
+  .ww-kicker {
+    top: 4%;
+  }
+  .ww-front {
+    left: 20px;
+    right: 20px;
+    top: auto;
+    bottom: 5%;
+    width: auto;
+    transform: none;
+  }
+  .ww-front-title {
+    font-size: clamp(24px, var(--ww-title, 32px), 34px);
+  }
+  /* The text sits over whatever the drum is carrying off the bottom. */
+  .ww-front:before {
+    content: '';
+    position: absolute;
+    inset: -46px -20px -40px;
+    z-index: -1;
+    background: linear-gradient(transparent, rgba(5, 5, 5, 0.88) 62%);
+  }
+  .ww-meta-desc {
+    max-width: none;
+    font-size: 12px;
+  }
+  .ww-index {
+    display: none;
+  }
+  .ww-hint {
+    top: 4%;
+    bottom: auto;
+    right: 20px;
+    left: auto;
+  }
+  .ww-hint-word {
+    display: none;
+  }
+}
+
+/* The same eight, in text: the reference list under the wheel. Kept visible —
+   it is the crawlable copy, and the reading path for anyone who would rather
+   not turn a wheel to see the work. */
+.works-index {
+  border-top: 1px solid var(--line);
+  padding: 84px max(28px, 7vw) 130px 14vw;
+}
+.works-index-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+.works-index-head p {
+  margin: 0;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9b9b9b;
+}
+.works-index-head a {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  border-bottom: 1px solid #777;
+  padding-bottom: 3px;
+  white-space: nowrap;
+}
+.works-index-head a:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+.works-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.works-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 0.9fr) minmax(0, 1.5fr) auto;
+  gap: 26px;
+  align-items: start;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line);
+}
+.works-row-no {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: #8d8880;
+}
+.works-row h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(20px, 2.2vw, 30px);
+  line-height: 1;
+  color: var(--white);
+}
+.works-row-meta {
+  margin: 7px 0 0;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #8d8880;
+}
+.works-row-desc {
+  margin: 0;
+  color: #a8a49d;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.works-row-links {
+  display: flex;
+  gap: 16px;
+  white-space: nowrap;
+}
+.works-row-links a {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  border-bottom: 1px solid #777;
+  padding-bottom: 2px;
+}
+.works-row-links a:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+@media (max-width: 850px) {
+  .works-index {
+    padding: 64px 20px 90px;
+  }
+  .works-index-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .works-row {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 12px 16px;
+  }
+  .works-row-desc,
+  .works-row-links {
+    grid-column: 2;
+  }
+}

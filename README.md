@@ -20,7 +20,7 @@ Editorial paper layout, a systems map of the work and a separate certificates da
 ## At a glance
 
 - **Identity first:** Sambit Swain, a software developer and computer science student in Berhampur, India.
-- **Eight projects:** product previews, visible descriptions and genuine live/repository links.
+- **Eight projects, on a works wheel:** the index rests as a ring of covers around a title, the first scroll opens it into a drum and keeps turning until the last piece has passed the front. The same eight follow as a text index with their descriptions and genuine live/repository links.
 - **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
 - **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, no blocking intro sequence, no audio.
 - **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
@@ -77,6 +77,7 @@ src/
   assets/                    Project screenshots, certificate scans, AWS logo
   components/
     Seo.tsx                  Central React 19 metadata (per page)
+    WorksWheel.tsx           The works index as a wheel you turn (see src/works-wheel.css)
     sections/                Hero, Systems, Work, About, Stats (Toolbox), WorkedAt (Learning)
     fx/                      Counter, pixel dissolve, skill logos
   pages/Dashboard.tsx        Certificates + achievements page

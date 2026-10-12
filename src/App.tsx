@@ -3,6 +3,7 @@ import HardwareConsole from './components/HardwareConsole'
 import HardwareConsolePhoto from './components/HardwareConsolePhoto'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
+import WorksWheel from './components/WorksWheel'
 import { credentials, experience, profile, projects, tagline } from './lib/site'
 import { setScrollLocked, useLenis } from './hooks/useLenis'
 import { prefersReducedMotion } from './lib/utils'
@@ -95,26 +96,59 @@ function Hero() {
   )
 }
 
+/** The work as a wheel: it sits in a ring, the first scroll blows it open into
+    a drum, and the section keeps the gesture until the last piece has turned
+    past the front — then the page carries on. */
 function Works() {
+  const wheel = projects.map(({ title, image, href }) => ({ title, image, href }))
   return (
-    <section id="works" className="section works">
-      <div className="section-head"><p>Selected projects · 2025—26</p><h2>Works</h2></div>
-      <div className="work-list">
-        {projects.map((project, index) => (
-          <article className="work" id={`project-${project.id}`} key={project.id}>
-            <div className="work-meta"><span>{String(index + 1).padStart(2, '0')}</span><span>{project.kind}</span><span>{project.year}</span></div>
-            <a className="work-media" href={project.href} target="_blank" rel="noreferrer" aria-label={`Open ${project.title}`}>
-              <img src={project.image} alt={`${project.title} project preview`} loading="lazy" />
-              <div className="play">View<br/>project <Arrow /></div>
-              <span className="video-label">PROJECT PREVIEW</span>
-            </a>
-            <div className="work-copy">
-              <h3>{project.title}</h3><p>{project.description}</p>
-              <div className="chips">{project.stack.map(item => <span key={item}>{item}</span>)}</div>
-              <div className="project-links"><a href={project.href} target="_blank" rel="noreferrer">{project.action} <Arrow /></a>{project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source <Arrow /></a>}</div>
-            </div>
-          </article>
-        ))}
+    <section id="works" className="works" aria-labelledby="work-heading">
+      <h2 id="work-heading" className="sr-only">Works</h2>
+      <WorksWheel
+        items={wheel}
+        label="Works"
+        kicker="Selected projects · 2025—26"
+        action="Open project"
+        wheelUnits={640}
+        renderFront={(_item, index) => {
+          const project = projects[index]
+          return (
+            <>
+              <p className="ww-meta-no">{String(index + 1).padStart(2, '0')} · {project.kind} · {project.year}</p>
+              <p className="ww-meta-desc">{project.description}</p>
+              <ul className="ww-meta-stack">{project.stack.map(tech => <li key={tech}>{tech}</li>)}</ul>
+              <p className="ww-meta-links">
+                <a className="ww-front-link" href={project.href} target="_blank" rel="noreferrer" aria-label={`${project.action} for ${project.title}`}>{project.action} <Arrow /></a>
+                {project.repo && <a className="ww-front-link" href={project.repo} target="_blank" rel="noreferrer" aria-label={`Source code for ${project.title}`}>Source <Arrow /></a>}
+              </p>
+            </>
+          )
+        }}
+      />
+
+      {/* The same eight, in text. Crawlable copy, and the reading path for
+          anyone who would rather not turn a wheel to see the work. */}
+      <div className="works-index">
+        <div className="works-index-head">
+          <p>The same eight, in text</p>
+          <a href={profile.github} target="_blank" rel="noreferrer">All repositories <Arrow /></a>
+        </div>
+        <ol className="works-list">
+          {projects.map((project, index) => (
+            <li className="works-row" id={`project-${project.id}`} key={project.id}>
+              <span className="works-row-no">{String(index + 1).padStart(2, '0')}</span>
+              <div>
+                <h3>{project.title}</h3>
+                <p className="works-row-meta">{project.kind} · {project.year}</p>
+              </div>
+              <p className="works-row-desc">{project.description}</p>
+              <p className="works-row-links">
+                <a href={project.href} target="_blank" rel="noreferrer">{project.action}</a>
+                {project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source</a>}
+              </p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )
