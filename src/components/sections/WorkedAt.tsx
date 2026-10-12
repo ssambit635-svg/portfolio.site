@@ -79,6 +79,13 @@ export default function WorkedAt() {
           <p key={cur.id + 'd'} className="mx-auto mt-6 max-w-[520px] text-center font-body text-[15px] leading-[1.55] text-cream/55">
             {cur.detail}
           </p>
+          {cur.href && (
+            <p key={cur.id + 'l'} className="mt-5 text-center">
+              <a className="learn-link" href={cur.href} target="_blank" rel="noreferrer">
+                {cur.action ?? 'View'} <span aria-hidden>↗</span>
+              </a>
+            </p>
+          )}
         </div>
 
         <ul className="flex flex-col gap-2" data-plx="25">

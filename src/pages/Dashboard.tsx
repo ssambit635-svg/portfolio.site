@@ -7,7 +7,7 @@ const homeHref = pages.dashboard.prefix
 
 function CertCard({ credential }: { credential: Credential }) {
   return (
-    <article className="group flex aspect-square flex-col overflow-hidden border border-line bg-paper">
+    <article className="group relative flex aspect-square flex-col overflow-hidden border border-line bg-paper transition-colors duration-300 hover:border-mute/60">
       <div className="relative min-h-0 flex-1 bg-paper-2">
         {credential.image ? (
           <img
@@ -34,7 +34,8 @@ function CertCard({ credential }: { credential: Credential }) {
             href={credential.href}
             target="_blank"
             rel="noreferrer"
-            className="t-kicker mt-2.5 inline-flex items-center gap-1 text-ink hover:text-rust"
+            aria-label={`${credential.title} — ${credential.action ?? 'View'} on ${credential.issuer}`}
+            className="t-kicker mt-2.5 inline-flex items-center gap-1 text-ink after:absolute after:inset-0 hover:text-rust"
           >
             {credential.action ?? 'View'} <span aria-hidden>↗</span>
           </a>
@@ -70,8 +71,8 @@ export default function Dashboard() {
               Certificates &amp; achievements
             </h1>
             <p className="mt-6 max-w-2xl text-[16px] leading-relaxed text-ink/75">
-              Every course credential and the hackathon builds that came out of them. Where an issuer page
-              exists, the tile links straight to it.
+              Every course credential and the hackathon builds that came out of them. Each tile opens the
+              issuer&rsquo;s own page for that credential.
             </p>
           </div>
         </section>
