@@ -128,7 +128,9 @@ function Certified() {
         {credentials.map((cert, i) => <article className="cert" key={cert.id}>
           <span className="cert-no">{String(i + 1).padStart(2, '0')}</span>
           {cert.image ? <img src={cert.image} alt="" loading="lazy"/> : <div className="cert-placeholder">SS<br/>/26</div>}
-          <div><p>{cert.issuer}</p><h3>{cert.title}</h3><span>{cert.detail}</span></div>
+          <div><p>{cert.issuer}</p><h3>{cert.title}</h3><span>{cert.detail}</span>
+            {cert.href && <a className="cert-link" href={cert.href} target="_blank" rel="noreferrer">{cert.action ?? 'View'} <Arrow /></a>}
+          </div>
         </article>)}
       </div>
       <a className="white-button" href="dashboard/">All certificates & achievements <Arrow /></a>

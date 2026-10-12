@@ -28,6 +28,9 @@ assert.equal((home.match(/id="project-/g) || []).length, 8, 'All projects should
 assert.match(home, /procurement centres with live queue tokens/)
 assert.match(home, /samurai-inspired focus app/)
 assert.match(home, /href="dashboard\/"/)
+// The landing page's Certified grid shows the same credentials with live links.
+assert.equal((home.match(/class="cert-link"/g) || []).length, 7, 'each credential should link to its issuer page')
+assert.match(home, /cert-link" href="https:\/\/www\.netacad\.com\/courses\/python-essentials-1"/)
 
 const canonical = home.match(/rel="canonical" href="([^"]+)"/)?.[1]
 const data = JSON.parse(home.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null')
@@ -38,7 +41,28 @@ assert.match(home, /rel="apple-touch-icon"[^>]*logo\.png/)
 assert.match(dashboard, /Certificates &amp; achievements \| Sambit Swain/)
 assert.match(dashboard, /Docker Basics/)
 assert.match(dashboard, /Smart India Hackathon 2026/)
-assert.equal((dashboard.match(/class="group flex aspect-square/g) || []).length, 7)
+assert.equal((dashboard.match(/class="group /g) || []).length, 7)
+assert.doesNotMatch(dashboard, /Scan not added yet/, 'every certificate tile should carry its scan')
+assert.match(dashboard, /assets\/docker-basics-[\w-]+\.jpg/, 'the Docker certificate scan should ship')
+
+// Every certificate tile links out to its issuer page, and no placeholder hrefs.
+const certLinks = [...dashboard.matchAll(/<a href="(https:\/\/[^"]+)"[^>]*aria-label="([^"]+)"/g)]
+assert.equal(certLinks.length, 7, 'each certificate should have an external link')
+for (const [, href, label] of certLinks) {
+  const url = new URL(href)
+  assert.equal(url.protocol, 'https:')
+  assert.ok(label.length > 8, `certificate link needs a descriptive label: ${label}`)
+}
+for (const href of [
+  'https://www.simplilearn.com/learn-docker-basics-free-course-skillup',
+  'https://www.simplilearn.com/introduction-to-cloud-computing-basics-skillup',
+  'https://www.netacad.com/courses/linux-unhatched',
+  'https://edl.excelr.com/'
+]) {
+  assert.ok(dashboard.includes(href), `Missing certificate link: ${href}`)
+}
+// The landing grid prints each credential's detail, including the SkillUp code.
+assert.match(home, /certificate code 10821711/i)
 
 const sitemap = await readFile('dist/sitemap.xml', 'utf8')
 assert.equal((sitemap.match(/<loc>/g) || []).length, 2)

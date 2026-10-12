@@ -5,6 +5,7 @@ import certAws from '../assets/certs/aws-foundations.jpg'
 import certC from '../assets/certs/c-programming.jpg'
 import certCloud from '../assets/certs/cloud-computing.jpg'
 import certCpp from '../assets/certs/cpp-essentials.jpg'
+import certDocker from '../assets/certs/docker-basics.jpg'
 import certLinux from '../assets/certs/linux-unhatched.jpg'
 import certPython from '../assets/certs/python-essentials.jpg'
 
@@ -257,6 +258,9 @@ export type Experience = {
   role: string
   detail: string
   image?: string
+  /** Issuer's course or program page for the credential, linked from the timeline. */
+  href?: string
+  action?: string
 }
 
 export const experience: Experience[] = [
@@ -272,42 +276,54 @@ export const experience: Experience[] = [
     org: 'AWS Training',
     role: 'Cloud Essentials',
     detail: 'AWS Foundations: compute, storage, networking and billing.',
-    image: certAws
+    image: certAws,
+    href: 'https://skillbuilder.aws/learn/GTVN1YVH4J/aws-foundations-getting-started-with-the-aws-cloud-essentials/JE4XVHC56M',
+    action: 'Course'
   },
   {
     id: 'cisco-py',
     org: 'Cisco NetAcad',
     role: 'Python Essentials 1',
     detail: 'Python fundamentals — Cisco Networking Academy.',
-    image: certPython
+    image: certPython,
+    href: 'https://www.netacad.com/courses/python-essentials-1',
+    action: 'Course'
   },
   {
     id: 'cisco-cpp',
     org: 'Cisco NetAcad',
-    role: 'C++ Essentials',
+    role: 'C++ Essentials 1',
     detail: 'OOP, memory and the STL.',
-    image: certCpp
+    image: certCpp,
+    href: 'https://www.netacad.com/courses/c-plus-plus-essentials-1',
+    action: 'Course'
   },
   {
     id: 'cisco-linux',
     org: 'Cisco NetAcad',
     role: 'Linux Unhatched',
     detail: 'Shell, filesystem and permissions — the base layer for what I deploy.',
-    image: certLinux
+    image: certLinux,
+    href: 'https://www.netacad.com/courses/linux-unhatched',
+    action: 'Course'
   },
   {
     id: 'simplilearn',
     org: 'Simplilearn',
     role: 'Cloud Computing',
     detail: 'Service models, deployment models, architecture basics.',
-    image: certCloud
+    image: certCloud,
+    href: 'https://www.simplilearn.com/introduction-to-cloud-computing-basics-skillup',
+    action: 'Course'
   },
   {
     id: 'excelr',
     org: 'ExcelR',
     role: 'Programming in C',
     detail: '30-hour live training on C.',
-    image: certC
+    image: certC,
+    href: 'https://edl.excelr.com/',
+    action: 'Program'
   },
   {
     id: 'dhss',
@@ -324,6 +340,7 @@ export type Credential = {
   detail: string
   /** Certificate scan. Optional: cards without one fall back to a type-only tile. */
   image?: string
+  /** Public page for the credential — the issuer's course page or program page. */
   href?: string
   action?: string
 }
@@ -331,14 +348,20 @@ export type Credential = {
 /**
  * Every certificate, shown as square tiles on /dashboard only — the landing
  * page keeps the short learning timeline in `experience`.
+ *
+ * Each tile links to the issuer's own page for that credential (skillup /
+ * netacad course page, ExcelR's EDL program). Simplilearn's free SkillUp
+ * certificates have no per-certificate public URL, so the course page plus the
+ * printed certificate code is what a visitor can check against.
  */
 export const credentials: Credential[] = [
   {
     id: 'docker-basics',
     issuer: 'Simplilearn',
     title: 'Docker Basics',
-    detail: 'Images, containers and the Dockerfile workflow — Simplilearn SkillUp free course.',
-    // image: certDocker — drop the scan in src/assets/certs/ and import it above.
+    detail:
+      'Images, containers and the Dockerfile workflow — the SkillUp course “Getting Started with Docker”. Certificate code 10821711.',
+    image: certDocker,
     href: 'https://www.simplilearn.com/learn-docker-basics-free-course-skillup',
     action: 'Course'
   },
@@ -347,42 +370,54 @@ export const credentials: Credential[] = [
     issuer: 'AWS Training',
     title: 'Cloud Essentials',
     detail: 'AWS Foundations: compute, storage, networking and billing.',
-    image: certAws
+    image: certAws,
+    href: 'https://skillbuilder.aws/learn/GTVN1YVH4J/aws-foundations-getting-started-with-the-aws-cloud-essentials/JE4XVHC56M',
+    action: 'Course'
   },
   {
     id: 'python-essentials',
     issuer: 'Cisco NetAcad',
     title: 'Python Essentials 1',
     detail: 'Python fundamentals — Cisco Networking Academy.',
-    image: certPython
+    image: certPython,
+    href: 'https://www.netacad.com/courses/python-essentials-1',
+    action: 'Course'
   },
   {
     id: 'cpp-essentials',
     issuer: 'Cisco NetAcad',
-    title: 'C++ Essentials',
+    title: 'C++ Essentials 1',
     detail: 'OOP, memory and the STL.',
-    image: certCpp
+    image: certCpp,
+    href: 'https://www.netacad.com/courses/c-plus-plus-essentials-1',
+    action: 'Course'
   },
   {
     id: 'linux-unhatched',
     issuer: 'Cisco NetAcad',
     title: 'Linux Unhatched',
     detail: 'Shell, filesystem and permissions — the base layer for what I deploy.',
-    image: certLinux
+    image: certLinux,
+    href: 'https://www.netacad.com/courses/linux-unhatched',
+    action: 'Course'
   },
   {
     id: 'cloud-computing',
     issuer: 'Simplilearn',
     title: 'Cloud Computing',
     detail: 'Service models, deployment models, architecture basics.',
-    image: certCloud
+    image: certCloud,
+    href: 'https://www.simplilearn.com/introduction-to-cloud-computing-basics-skillup',
+    action: 'Course'
   },
   {
     id: 'c-programming',
     issuer: 'ExcelR',
     title: 'Programming in C',
     detail: '30-hour live training on C.',
-    image: certC
+    image: certC,
+    href: 'https://edl.excelr.com/',
+    action: 'Program'
   }
 ]
 
