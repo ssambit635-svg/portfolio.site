@@ -135,42 +135,34 @@ footer#contact {
 .ms-root svg { fill: currentColor; display: block; }
 .ms-svg { fill: none; }
 
-/* ——— wallpaper ————————————————————————————————————————————————————————— */
-.ms-wall { position: absolute; inset: 0; background: #04070c; }
-.ms-wall-blob { position: absolute; border-radius: 50%; filter: blur(34px); }
-.ms-wall-a {
-  inset: -34% 34% 34% -22%;
-  background: radial-gradient(circle at 50% 50%, #00f083 0, #05b06a 34%, rgba(3, 74, 60, 0) 72%);
-  opacity: 0.62;
+/* ——— a photographic macOS-inspired wallpaper ———————————————————————— */
+.ms-wall { position: absolute; inset: 0; overflow: hidden; background: #08172b; }
+.ms-wall-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 54%;
+  transform: scale(1.015);
+  filter: saturate(0.94) brightness(0.9);
 }
-.ms-wall-b {
-  inset: 22% -30% -40% 24%;
-  background: radial-gradient(circle at 50% 50%, #1f6bff 0, #123a9e 40%, rgba(6, 18, 60, 0) 74%);
-  opacity: 0.72;
-}
-.ms-wall-c {
-  inset: -18% 6% 46% 18%;
-  background: radial-gradient(circle at 50% 50%, #12e0c8 0, #0a7f8c 44%, rgba(4, 40, 60, 0) 76%);
-  opacity: 0.5;
-  filter: blur(42px);
-}
-.ms-wall-glow {
+.ms-wall-shade {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(120% 78% at 14% 6%, rgba(255, 255, 255, 0.16) 0, transparent 58%),
-    radial-gradient(100% 90% at 50% 118%, rgba(0, 0, 0, 0.62) 0, transparent 62%),
-    linear-gradient(168deg, #0a1a24 0%, #071018 42%, #04070c 100%);
-  mix-blend-mode: normal;
-  opacity: 0.72;
+    linear-gradient(180deg, rgba(4, 11, 25, 0.24) 0%, transparent 29%, transparent 56%, rgba(2, 8, 18, 0.56) 100%),
+    linear-gradient(90deg, rgba(3, 12, 28, 0.32) 0%, rgba(3, 12, 28, 0.08) 46%, transparent 76%),
+    radial-gradient(80% 90% at 50% 50%, transparent 48%, rgba(2, 7, 16, 0.3) 100%);
 }
 .ms-wall-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.16;
-  mix-blend-mode: overlay;
+  opacity: 0.1;
+  mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 42% 42%;
+  pointer-events: none;
 }
 
 .ms-desk { position: absolute; inset: 0; }
@@ -303,59 +295,93 @@ footer#contact {
   box-shadow: inset 0 0 2px rgba(120, 190, 255, 0.5);
 }
 
-/* ——— desktop widget ——————————————————————————————————————————————————— */
+/* ——— wallpaper type: unboxed time and a direct contact invitation ——— */
+.ms-greeting {
+  position: absolute;
+  z-index: 4;
+  left: calc(var(--u) * 4.4);
+  top: 27%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--u) * 1.1);
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(3, 8, 20, 0.55);
+}
+.ms-greeting h2 {
+  margin: 0;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(calc(var(--u) * 4.8), 5.9cqw, calc(var(--u) * 6.4));
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.075em;
+}
+.ms-greeting h2 span { color: #ffd3c2; }
+.ms-greeting > a {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.65);
+  padding-bottom: calc(var(--u) * 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  font-size: calc(var(--u) * 1.45);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow: inherit;
+  transition: gap 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.ms-greeting > a:hover {
+  gap: calc(var(--u) * 1.05);
+  color: #fff;
+  border-color: #fff;
+}
+.ms-greeting > a:focus-visible { outline-offset: calc(var(--u) * 0.55); }
+
 .ms-widget {
   position: absolute;
-  z-index: 5;
-  top: calc(var(--u) * 4.6);
-  right: calc(var(--u) * 2.2);
+  z-index: 4;
+  top: calc(var(--u) * 5.4);
+  right: calc(var(--u) * 3.8);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: calc(var(--u) * 0.32);
-  padding: calc(var(--u) * 1.2) calc(var(--u) * 1.7) calc(var(--u) * 1.35);
-  border-radius: calc(var(--u) * 1.8);
-  background: rgba(12, 17, 24, 0.34);
-  backdrop-filter: blur(calc(var(--u) * 2)) saturate(150%);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 2)) saturate(150%);
-  box-shadow:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.16),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.09),
-    0 calc(var(--u) * 1.2) calc(var(--u) * 3) rgba(0, 0, 0, 0.38);
+  gap: calc(var(--u) * 0.34);
   pointer-events: none;
   text-align: right;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(3, 8, 20, 0.62);
 }
 .ms-widget-time {
-  font-size: calc(var(--u) * 3.3);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  display: block;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: calc(var(--u) * 4.65);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
   font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.94);
+  color: rgba(255, 255, 255, 0.98);
 }
 .ms-widget-date {
-  font-size: calc(var(--u) * 1.18);
+  font-size: calc(var(--u) * 1.22);
   font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.78);
 }
 .ms-widget-meta {
   display: flex;
   align-items: center;
-  gap: calc(var(--u) * 0.5);
-  margin-top: calc(var(--u) * 0.35);
-  padding-top: calc(var(--u) * 0.55);
-  border-top: 0.5px solid rgba(255, 255, 255, 0.14);
-  font-size: calc(var(--u) * 1.12);
-  color: #7ce8b3;
+  gap: calc(var(--u) * 0.55);
+  margin-top: calc(var(--u) * 0.2);
+  font-size: calc(var(--u) * 1.18);
+  font-weight: 500;
+  color: #d4f7e4;
 }
 .ms-widget-meta i {
-  width: calc(var(--u) * 0.55);
-  height: calc(var(--u) * 0.55);
+  width: calc(var(--u) * 0.62);
+  height: calc(var(--u) * 0.62);
   border-radius: 50%;
-  background: #00f083;
-  box-shadow: 0 0 calc(var(--u) * 0.8) #00f083;
+  background: #6fffa7;
+  box-shadow: 0 0 calc(var(--u) * 0.8) #6fffa7;
 }
 
 /* ——— dock —————————————————————————————————————————————————————————————— */
@@ -363,27 +389,31 @@ footer#contact {
   position: absolute;
   z-index: 55;
   left: 50%;
-  bottom: calc(var(--u) * 0.7);
+  bottom: calc(var(--u) * 0.65);
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(var(--u) * 0.5);
-  max-width: 104%;
+  gap: calc(var(--u) * 0.48);
+  width: max-content;
+  max-width: 97%;
 }
 .ms-dock-inner {
   display: flex;
   align-items: flex-end;
-  gap: calc(var(--u) * 0.7);
-  padding: calc(var(--u) * 0.62) calc(var(--u) * 0.8) calc(var(--u) * 0.45);
-  border-radius: calc(var(--u) * 1.9);
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(calc(var(--u) * 2.4)) saturate(170%);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 2.4)) saturate(170%);
+  justify-content: center;
+  gap: calc(var(--u) * 0.66);
+  width: 100%;
+  max-width: 100%;
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 0.85) calc(var(--u) * 0.58);
+  border-radius: calc(var(--u) * 1.8);
+  background: rgba(226, 234, 249, 0.2);
+  backdrop-filter: blur(calc(var(--u) * 2.6)) saturate(165%);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 2.6)) saturate(165%);
   box-shadow:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.42),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.48),
     inset 0 0 0 0.5px rgba(255, 255, 255, 0.2),
-    0 calc(var(--u) * 1) calc(var(--u) * 2.4) rgba(0, 0, 0, 0.4);
+    0 calc(var(--u) * 1) calc(var(--u) * 2.4) rgba(0, 0, 0, 0.42);
 }
 .ms-dapp {
   --s: 1;
@@ -395,17 +425,17 @@ footer#contact {
   transition: transform 0.18s cubic-bezier(0.22, 0.9, 0.24, 1);
   cursor: pointer;
 }
-.ms-dapp:hover { --s: 1.4; }
-.ms-dapp:hover + .ms-dapp { --s: 1.2; }
-.ms-dapp:hover + .ms-dapp + .ms-dapp { --s: 1.08; }
-.ms-dapp:has(+ .ms-dapp:hover) { --s: 1.2; }
-.ms-dapp:has(+ .ms-dapp + .ms-dapp:hover) { --s: 1.08; }
-.ms-dapp:focus-visible { --s: 1.22; }
+.ms-dapp:hover { --s: 1.2; }
+.ms-dapp:hover + .ms-dapp { --s: 1.1; }
+.ms-dapp:hover + .ms-dapp + .ms-dapp { --s: 1.04; }
+.ms-dapp:has(+ .ms-dapp:hover) { --s: 1.1; }
+.ms-dapp:has(+ .ms-dapp + .ms-dapp:hover) { --s: 1.04; }
+.ms-dapp:focus-visible { --s: 1.16; }
 .ms-dico {
   display: grid;
   place-items: center;
-  width: calc(var(--u) * 5.3);
-  height: calc(var(--u) * 5.3);
+  width: calc(var(--u) * 6.8);
+  height: calc(var(--u) * 6.8);
   border-radius: 23.5%;
   transform: scale(var(--s));
   transform-origin: 50% 100%;
@@ -418,10 +448,21 @@ footer#contact {
     0 0 0 0.5px rgba(0, 0, 0, 0.3);
   color: #fff;
 }
-.ms-dico svg { width: 56%; height: 56%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28)); }
+.ms-dico svg { width: 59%; height: 59%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28)); }
+.ms-dlabel {
+  display: block;
+  margin-top: calc(var(--u) * 0.58);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: calc(var(--u) * 1.04);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.92), 0 0 8px rgba(0, 0, 0, 0.52);
+}
 .ms-dapp:active .ms-dico { transform: scale(calc(var(--s) * 0.94)); }
 .ms-dapp[style*='#3a3f47'] .ms-dico, .ms-dapp[style*='#5c626b'] .ms-dico { color: #fff; }
-.ms-dock-sep { width: 1px; align-self: stretch; margin: 0 calc(var(--u) * 0.3); background: rgba(255, 255, 255, 0.28); }
+.ms-dock-sep { width: 1px; align-self: stretch; margin: 0 calc(var(--u) * 0.3); background: rgba(255, 255, 255, 0.38); }
 .ms-tip {
   position: absolute;
   bottom: calc(100% + var(--u) * 1.1);
@@ -447,14 +488,19 @@ footer#contact {
 .ms-tip i { font-style: normal; font-size: calc(var(--u) * 1.14); color: rgba(255, 255, 255, 0.62); }
 .ms-dapp:hover .ms-tip, .ms-dapp:focus-visible .ms-tip { opacity: 1; transform: translate(-50%, 0) scale(1); }
 .ms-dock-hint {
-  font-size: calc(var(--u) * 1.08);
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-  opacity: 0;
-  transition: opacity 0.4s 0.2s;
+  min-height: 1em;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: calc(var(--u) * 1.02);
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
-.ms-root[data-awake='1'] .ms-dock-hint { opacity: 1; }
 
 /* a narrow panel gets a narrower menu bar — no fighting with the notch */
 @container (max-width: 860px) {
@@ -561,17 +607,34 @@ footer#contact {
     background: linear-gradient(180deg, #d7d9dd, #9ea1a7);
   }
   .ms-root { --u: clamp(6.7px, 2.05cqw, 9.4px); font-size: calc(var(--u) * 1.42); }
-  .ms-menu-status, .ms-widget { display: none; }
-  .ms-dock { max-width: 96%; }
+  .ms-menu-status, .ms-menu-clock { display: none; }
+  .ms-greeting {
+    left: calc(var(--u) * 2.5);
+    top: 29%;
+    gap: calc(var(--u) * 0.9);
+  }
+  .ms-greeting h2 { font-size: clamp(calc(var(--u) * 4.1), 8.1cqw, calc(var(--u) * 5.4)); }
+  .ms-greeting > a { font-size: calc(var(--u) * 1.3); }
+  .ms-widget {
+    top: calc(var(--u) * 4.6);
+    right: calc(var(--u) * 2.4);
+    gap: calc(var(--u) * 0.3);
+  }
+  .ms-widget-time { font-size: calc(var(--u) * 4.2); }
+  .ms-widget-date { font-size: calc(var(--u) * 1.08); }
+  .ms-widget-meta { font-size: calc(var(--u) * 1.05); }
+  .ms-dock { max-width: 96%; bottom: calc(var(--u) * 0.5); }
   .ms-dock-inner {
     flex-wrap: wrap;
     justify-content: center;
-    row-gap: calc(var(--u) * 0.35);
+    row-gap: calc(var(--u) * 0.56);
+    column-gap: calc(var(--u) * 0.58);
     max-width: 100%;
-    padding: calc(var(--u) * 0.5) calc(var(--u) * 0.7) calc(var(--u) * 0.4);
+    padding: calc(var(--u) * 0.5) calc(var(--u) * 0.65) calc(var(--u) * 0.46);
   }
   .ms-dock-sep { display: none; }
-  .ms-dico { width: calc(var(--u) * 4.7); height: calc(var(--u) * 4.7); }
+  .ms-dico { width: calc(var(--u) * 6); height: calc(var(--u) * 6); }
+  .ms-dlabel { font-size: calc(var(--u) * 0.98); }
   .ms-tip { display: none; }
 }
 

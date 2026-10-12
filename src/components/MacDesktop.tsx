@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { profile } from '../lib/site'
 import { useClock } from '../hooks/useClock'
+import wallpaper from '../assets/macos-wallpaper.png'
 import '../mac-desktop.css'
 
 /**
@@ -110,7 +111,7 @@ function Search() {
   )
 }
 
-function DockLink({ app }: { app: AppDef }) {
+function DockLink({ app, onHighlight }: { app: AppDef; onHighlight: (app: AppDef | null) => void }) {
   return (
     <a
       className="ms-dapp"
@@ -119,9 +120,14 @@ function DockLink({ app }: { app: AppDef }) {
       target={app.external ? '_blank' : undefined}
       rel={app.external ? 'noreferrer' : undefined}
       aria-label={`${app.name} — ${app.tip}`}
+      onPointerEnter={() => onHighlight(app)}
+      onPointerLeave={() => onHighlight(null)}
+      onFocus={() => onHighlight(app)}
+      onBlur={() => onHighlight(null)}
     >
       <span className="ms-tip"><b>{app.name}</b><i>{app.tip}</i></span>
       <span className="ms-dico"><Glyph name={app.glyph} /></span>
+      <span className="ms-dlabel">{app.name}</span>
     </a>
   )
 }
@@ -135,6 +141,7 @@ export default function MacDesktop() {
   const [sleep, setSleep] = useState(false)
   const [apple, setApple] = useState(false)
   const [compact, setCompact] = useState(false)
+  const [highlightedApp, setHighlightedApp] = useState<AppDef | null>(null)
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -176,10 +183,8 @@ export default function MacDesktop() {
   return (
     <div className="ms-root" ref={root} data-awake={awake ? '1' : '0'}>
       <div className="ms-wall" aria-hidden="true">
-        <i className="ms-wall-blob ms-wall-a" />
-        <i className="ms-wall-blob ms-wall-b" />
-        <i className="ms-wall-blob ms-wall-c" />
-        <i className="ms-wall-glow" />
+        <img className="ms-wall-image" src={wallpaper} alt="" loading="lazy" decoding="async" />
+        <i className="ms-wall-shade" />
         <i className="ms-wall-grain" />
       </div>
 
@@ -218,21 +223,29 @@ export default function MacDesktop() {
           )}
         </div>
 
-        {/* desktop widget — clock + availability */}
-        <div className="ms-widget" aria-hidden="true">
-          <p className="ms-widget-time">{clock}</p>
-          <p className="ms-widget-date">{stamp}</p>
-          <p className="ms-widget-meta"><i />{profile.availability} · {profile.city}</p>
+        {/* a live, direct contact headline on the wallpaper */}
+        <div className="ms-greeting">
+          <h2>Let’s talk<span aria-hidden="true">.</span></h2>
+          <a href={HIRE}>Start a conversation <span aria-hidden="true">↗</span></a>
         </div>
 
-        {/* dock — every app opens the real thing */}
-        <div className="ms-dock" role="group" aria-label="Contact apps — every one opens the real thing">
+        {/* the clock floats over the wallpaper — no widget card */}
+        <div className="ms-widget" role="group" aria-label="Local time and availability">
+          <time className="ms-widget-time">{clock}</time>
+          <p className="ms-widget-date">{stamp}</p>
+          <p className="ms-widget-meta"><i />{profile.availability}</p>
+        </div>
+
+        {/* every dock app opens a real contact channel or profile */}
+        <div className="ms-dock" role="group" aria-label="Contact apps — each icon opens a real contact channel">
           <div className="ms-dock-inner">
-            {PERSONAL.map((a) => <DockLink key={a.id} app={a} />)}
+            {PERSONAL.map((a) => <DockLink key={a.id} app={a} onHighlight={setHighlightedApp} />)}
             <i className="ms-dock-sep" aria-hidden="true" />
-            {SOCIAL.map((a) => <DockLink key={a.id} app={a} />)}
+            {SOCIAL.map((a) => <DockLink key={a.id} app={a} onHighlight={setHighlightedApp} />)}
           </div>
-          <p className="ms-dock-hint">Tap an app — it opens the real thing</p>
+          <p className="ms-dock-hint" aria-live="polite">
+            {highlightedApp ? `${highlightedApp.name} · ${highlightedApp.tip}` : 'Choose an app to connect'}
+          </p>
         </div>
       </div>
 
