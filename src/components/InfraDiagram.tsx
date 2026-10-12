@@ -43,7 +43,7 @@ export default function InfraDiagram() {
         {boxes.client.map((b) => (
           <g key={b.id}>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} fill="#f3efe7" stroke="currentColor" strokeWidth="1" />
-            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="IBM Plex Sans, system-ui" fontSize="12">
+            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="Inter, system-ui" fontSize="12">
               {b.t}
             </text>
           </g>
@@ -57,7 +57,7 @@ export default function InfraDiagram() {
         {boxes.edge.map((b) => (
           <g key={b.id}>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} fill="#f3efe7" stroke="currentColor" strokeWidth="1" />
-            <text x={b.x + b.w / 2} y={b.y + 21} textAnchor="middle" fontFamily="IBM Plex Sans, system-ui" fontSize="11">
+            <text x={b.x + b.w / 2} y={b.y + 21} textAnchor="middle" fontFamily="Inter, system-ui" fontSize="11">
               {b.t}
             </text>
           </g>
@@ -70,7 +70,7 @@ export default function InfraDiagram() {
         {boxes.app.map((b) => (
           <g key={b.id}>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} fill="#f3efe7" stroke="currentColor" strokeWidth="1" />
-            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="IBM Plex Sans, system-ui" fontSize="12">
+            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="Inter, system-ui" fontSize="12">
               {b.t}
             </text>
           </g>
@@ -84,7 +84,7 @@ export default function InfraDiagram() {
         {boxes.api.map((b) => (
           <g key={b.id}>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} fill="#161513" />
-            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fill="#f3efe7" fontFamily="IBM Plex Sans, system-ui" fontSize="12">
+            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fill="#f3efe7" fontFamily="Inter, system-ui" fontSize="12">
               {b.t}
             </text>
           </g>
@@ -98,7 +98,7 @@ export default function InfraDiagram() {
         {boxes.data.map((b) => (
           <g key={b.id}>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} fill="#f3efe7" stroke="currentColor" strokeWidth="1" />
-            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="IBM Plex Sans, system-ui" fontSize="12">
+            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="Inter, system-ui" fontSize="12">
               {b.t}
             </text>
           </g>
@@ -113,7 +113,7 @@ export default function InfraDiagram() {
         {boxes.infra.map((b) => (
           <g key={b.id}>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} fill="#f3efe7" stroke="currentColor" strokeWidth="1" />
-            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="IBM Plex Sans, system-ui" fontSize="11">
+            <text x={b.x + b.w / 2} y={b.y + 23} textAnchor="middle" fontFamily="Inter, system-ui" fontSize="11">
               {b.t}
             </text>
           </g>

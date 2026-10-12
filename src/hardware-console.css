@@ -1,6 +1,5 @@
 /* ——— MacBook Realism Footer — hero TV ki tarah, par laptop ——— */
-.machine-stage,
-.machine-photo-stage {
+.machine-stage {
   position: absolute;
   left: 0;
   right: 0;
@@ -11,7 +10,7 @@
   padding: 0 12px;
 }
 .machine-stage { height: 780px; }
-.machine-photo-stage { height: 820px; }
+@media (min-width: 701px) { .machine-stage { height: 820px; } }
 
 .machine-glow {
   position: absolute;
@@ -283,20 +282,12 @@
   .macbook-frame { width: min(96vw, 720px); }
 }
 @media (max-width: 700px) {
-  .machine-photo-stage { display: none !important; }
-  .machine-stage { display: grid !important; }
   .mac-title { display: none; }
   .macbook-frame { width: 96vw; aspect-ratio: 1536/1024; }
   .macbook-screen { left: 17.92%; top: 9.57%; width: 63.80%; height: 66.60%; }
-}
-@media (min-width: 701px) {
-  .machine-stage { display: none !important; }
-  .machine-photo-stage { display: grid !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .led { animation: none; }
   .mac-card { transition: none; }
 }
 
-/* Keep .machine and .machine-photo as wrappers for macbook on mobile/desktop */
-.machine, .machine-photo { display: none; }

@@ -1,7 +1,7 @@
 /* Works wheel — the projects index as a ring of cards that opens into a drum.
    The component owns the geometry: it measures the stage, then writes every
    transform and type size straight to the DOM. This file is the skin, in the
-   site's palette — near-black stage, Newsreader display, green accent. */
+   site's palette — near-black stage, Cormorant Garamond display, green accent. */
 
 .ww {
   position: relative;

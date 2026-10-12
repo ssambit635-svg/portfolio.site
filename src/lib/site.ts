@@ -26,6 +26,7 @@ export const profile = {
   classTag: "CSE '29",
   country: 'India',
   city: 'Berhampur, India',
+  availability: 'Available now',
   coords: ["19°18'55.0\"N", "84°47'32.0\"E"],
   timezone: 'Asia/Kolkata',
   email: 'ssambit635@gmail.com',

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import HardwareConsole from './components/HardwareConsole'
-import HardwareConsolePhoto from './components/HardwareConsolePhoto'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import WorksWheel from './components/WorksWheel'
@@ -190,8 +189,7 @@ function Footer() {
     <p className="footer-kicker">Have a project, a strange idea, or just want to say hello?</p>
     <h2>Let’s make<br/>it <em>run.</em></h2>
     <HardwareConsole />
-    <HardwareConsolePhoto />
-    <div className="footer-bottom"><span>© {new Date().getFullYear()} Sambit Swain</span><span>{profile.email}</span><span>Designed to keep moving.</span></div>
+    <div className="footer-bottom"><span>© {new Date().getFullYear()} {profile.name}</span><span>{profile.email}</span><span>Built with React · Vite · GSAP</span></div>
   </footer>
 }
 
