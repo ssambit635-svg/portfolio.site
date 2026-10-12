@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import HardwareConsole from './components/HardwareConsole'
+import MacLaptop from './components/MacLaptop'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import WorksWheel from './components/WorksWheel'
@@ -184,12 +184,40 @@ function About() {
   </section>
 }
 
+/** Every way in, printed plainly — the crawlable twin of the laptop's desktop. */
+const FOOTER_LINKS: [string, string][] = [
+  ['Email', `mailto:${profile.email}`],
+  ['Phone', `tel:${profile.phoneHref}`],
+  ['GitHub', profile.github],
+  ['LinkedIn', profile.linkedin],
+  ['X', profile.x],
+  ['Discord', profile.discord],
+  ['Hashnode', profile.hashnode],
+  ['Avely', profile.avely],
+]
+
 function Footer() {
   return <footer id="contact">
-    <p className="footer-kicker">Have a project, a strange idea, or just want to say hello?</p>
-    <h2>Let’s make<br/>it <em>run.</em></h2>
-    <HardwareConsole />
-    <div className="footer-bottom"><span>© {new Date().getFullYear()} {profile.name}</span><span>{profile.email}</span><span>Built with React · Vite · GSAP</span></div>
+    <div className="contact-top">
+      <div className="contact-meta">
+        <span>© {new Date().getFullYear()} {profile.name}</span>
+        <span>Built with React · Vite · GSAP</span>
+        <span>{profile.availability} · {profile.city}</span>
+      </div>
+      <div className="contact-center">
+        <p className="footer-kicker">Have a project, a strange idea, or just want to say hello?</p>
+        <h2>Let’s make it <em>run.</em></h2>
+        <nav className="contact-links" aria-label="Every way to reach Sambit">
+          {FOOTER_LINKS.map(([label, href], i) => (
+            <span key={label}>
+              {i > 0 && <i aria-hidden="true" />}
+              <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">{label}</a>
+            </span>
+          ))}
+        </nav>
+      </div>
+    </div>
+    <MacLaptop />
   </footer>
 }
 
