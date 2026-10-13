@@ -6,7 +6,7 @@ import WorksWheel from './components/WorksWheel'
 import { credentials, experience, profile, projects, tagline } from './lib/site'
 import { setScrollLocked, useLenis } from './hooks/useLenis'
 import { prefersReducedMotion } from './lib/utils'
-import heroTv from './assets/hero-tv.jpg'
+import heroMonitor from './assets/hero-monitor.jpg'
 
 /** Preloader greeting sequence — 0.9s per language, 5 languages = 4.5s, then a 0.5s fade. */
 const WELCOMES = [
@@ -80,15 +80,7 @@ function Hero() {
   return (
     <section id="home" className="hero">
       <div className="hero-frame">
-        <img src={heroTv} alt="" />
-        <p className="tv-hello" aria-hidden="true">
-          <span>h</span><span>e</span><span>l</span><span>l</span><span>o</span>
-        </p>
-        <div className="tv-screen-fx" aria-hidden="true">
-          <i className="flicker" />
-          <i className="scan" />
-          <i className="roll" />
-        </div>
+        <img src={heroMonitor} alt="" />
       </div>
       <h1 className="sr-only">{tagline}</h1>
     </section>
