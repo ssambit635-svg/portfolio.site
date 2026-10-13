@@ -3,7 +3,7 @@ import MacLaptop from './components/MacLaptop'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import WorksWheel from './components/WorksWheel'
-import { credentials, experience, profile, projects, tagline } from './lib/site'
+import { credentials, experience, profile, projects } from './lib/site'
 import { setScrollLocked, useLenis } from './hooks/useLenis'
 import { prefersReducedMotion } from './lib/utils'
 import heroMonitor from './assets/hero-monitor.jpg'
@@ -81,13 +81,19 @@ function Hero() {
     <section id="home" className="hero">
       <div className="hero-frame">
         <div className="hero-monitor-wrapper">
-          <img src={heroMonitor} alt="Monitor" className="hero-monitor" />
+          <img src={heroMonitor} alt="" width={1376} height={768} className="hero-monitor" fetchPriority="high" />
+          <div className="hero-screen">
+            <p className="hero-screen-label">DEVOPS ENGINEER · CLOUD · DESIGN</p>
+            <h1 className="hero-screen-title">
+              <span>From code to cloud.</span>
+              <span>From pixels to production.</span>
+            </h1>
+          </div>
         </div>
         <p className="hero-tagline">
           {profile.first} · {profile.last}
         </p>
       </div>
-      <h1 className="sr-only">{tagline}</h1>
     </section>
   )
 }
