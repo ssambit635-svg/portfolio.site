@@ -80,7 +80,12 @@ function Hero() {
   return (
     <section id="home" className="hero">
       <div className="hero-frame">
-        <img src={heroMonitor} alt="" />
+        <div className="hero-monitor-wrapper">
+          <img src={heroMonitor} alt="Monitor" className="hero-monitor" />
+        </div>
+        <p className="hero-tagline">
+          {profile.first} · {profile.last}
+        </p>
       </div>
       <h1 className="sr-only">{tagline}</h1>
     </section>
