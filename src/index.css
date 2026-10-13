@@ -8,9 +8,10 @@
 @import '@fontsource/inter/latin-600';
 @import '@fontsource/pinyon-script/latin-400';
 @import '@fontsource/ibm-plex-mono/latin-400';
+@import '@fontsource-variable/space-grotesk/wght.css';
 
-@theme{--color-paper:#f3efe7;--color-paper-2:#eae4d8;--color-ink:#161513;--color-mute:#6a655c;--color-line:#d9d2c5;--color-rust:#b4451a;--color-signal:#c9f27a;--font-display:'Cormorant Garamond',serif;--font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-script:'Pinyon Script',cursive}
-:root{--black:#050505;--white:#f4f2ed;--green:#00f083;--gray:#969696;--line:#282828;--serif:'Cormorant Garamond','EB Garamond','Times New Roman',serif;--sans:'Inter','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--script:'Pinyon Script',cursive;color-scheme:dark}
+@theme{--color-paper:#f3efe7;--color-paper-2:#eae4d8;--color-ink:#161513;--color-mute:#6a655c;--color-line:#d9d2c5;--color-rust:#b4451a;--color-signal:#c9f27a;--font-display:'Cormorant Garamond',serif;--font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-grotesk:'Space Grotesk Variable',sans-serif;--font-script:'Pinyon Script',cursive}
+:root{--black:#050505;--white:#f4f2ed;--green:#00f083;--gray:#969696;--line:#282828;--serif:'Cormorant Garamond','EB Garamond','Times New Roman',serif;--sans:'Inter','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--script:'Pinyon Script',cursive;--grotesk:'Space Grotesk Variable','Space Grotesk',var(--sans);color-scheme:dark}
 *{box-sizing:border-box}html{background:var(--black);color:var(--white);scroll-behavior:smooth}body{margin:0;background:var(--black);font-family:var(--sans);font-size:14px;line-height:1.45;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit}.skip-link{position:fixed;top:-60px;left:20px;z-index:100;padding:10px;background:white;color:black}.skip-link:focus{top:12px}:focus-visible{outline:1px solid var(--green);outline-offset:4px}::selection{background:var(--green);color:#000}
 .side-nav{position:fixed;z-index:50;left:28px;top:24px;width:90px}.nav-name{display:block;font-family:var(--serif);font-size:15px;margin-bottom:14px}.side-nav nav{display:flex;flex-direction:column;align-items:flex-start}.side-nav nav a{font-size:11px;line-height:1.55;transition:.2s}.side-nav nav a:hover{color:var(--green);padding-left:4px}.menu-toggle{display:none}
 .hero{min-height:100vh;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:flex-start;padding-top:6vh}
@@ -33,8 +34,49 @@
   font-size: clamp(24px, 6vw, 48px);
   color: var(--white);
   text-shadow: 0 2px 4px rgba(0,0,0,.5);
-  opacity: 0;
-  animation: fadeIn 1s ease-out 0.5s forwards;
+}
+
+/* ——— hero lock-screen readout —————————————————————————————————————————————
+   The panel in hero-monitor.jpg is a photograph, so the clock on it is real
+   DOM laid over it in percentages of the frame. .hero-frame carries the photo's
+   own 1376x768 ratio and is a size container, which means every dimension here
+   is a share of the monitor itself: the readout grows and shrinks with the
+   screen instead of the viewport, and stays inside the bezel at any width.
+
+   Base state = fully drawn and sharp. The intro only exists while the boot
+   sequence is on (html[data-boot]), so a reduced-motion visitor — or a crawler
+   that never runs the animation — gets the finished, crisp thing.
+   ————————————————————————————————————————————————————————————————————————— */
+.hero-frame{container-type:inline-size}
+.hero-clock{position:absolute;left:22%;bottom:47.4%;z-index:130;display:grid;justify-items:start;gap:max(11px,.8cqw);pointer-events:none}
+.hero-clock-bloom{position:absolute;left:-9%;bottom:-16%;width:132%;height:150%;border-radius:50%;background:radial-gradient(ellipse at 34% 52%,rgba(150,255,196,.13),rgba(0,240,131,.055) 42%,transparent 72%);filter:blur(14px);opacity:.55;pointer-events:none}
+.hero-clock-sweep{position:absolute;left:-4%;top:-6%;width:108%;height:112%;pointer-events:none;opacity:0;background:linear-gradient(180deg,transparent 0,rgba(196,255,214,.16) 44%,rgba(255,255,255,.06) 52%,transparent 76%);mix-blend-mode:screen}
+.hero-clock-time{position:relative;display:flex;margin:0;font-family:var(--grotesk);font-weight:430;font-size:max(34px,5.4cqw);line-height:.82;letter-spacing:-.018em;color:var(--white);font-variant-numeric:tabular-nums}
+.hc-char{display:inline-block}
+.hero-clock-rule{position:relative;display:block;transform-origin:left;width:max(30px,3.4cqw);height:max(2px,.24cqw);border-radius:2px;background:var(--green);box-shadow:0 0 10px rgba(0,240,131,.5)}
+.hero-clock-date{position:relative;margin:0;font-family:var(--mono);font-weight:400;font-size:max(9px,1.15cqw);line-height:1;letter-spacing:.34em;text-transform:uppercase;color:#c9ccc6;text-shadow:0 1px 5px rgba(0,0,0,.55)}
+html[data-boot] .hero-tagline{animation:hcTag 1.2s ease-out calc(var(--hero-in,0s) + 1.15s) both}
+html[data-boot] .hero-clock-bloom{animation:hcBloom 2.6s cubic-bezier(.2,.7,.2,1) calc(var(--hero-in,0s) - .3s) both}
+html[data-boot] .hc-char{animation:hcChar .82s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .18s + var(--hc-i,0)*.085s) both}
+html[data-boot] .hero-clock-rule{animation:hcRule .75s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .62s) both}
+html[data-boot] .hero-clock-date{animation:hcDate 1s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .74s) both}
+html[data-boot] .hero-clock-sweep{animation:hcSweep 1.25s cubic-bezier(.42,0,.3,1) calc(var(--hero-in,0s) + .1s) both}
+@keyframes hcTag{0%{opacity:0;transform:translate(-50%,12px);filter:blur(7px)}100%{opacity:1;transform:translate(-50%,0);filter:blur(0)}}
+@keyframes hcChar{0%{opacity:0;transform:translateY(.42em) scale(.965);filter:blur(9px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes hcDate{0%{opacity:0;transform:translateY(7px);letter-spacing:.72em;filter:blur(4px)}100%{opacity:1;transform:none;letter-spacing:.34em;filter:blur(0)}}
+@keyframes hcRule{0%{opacity:0;transform:scaleX(0)}100%{opacity:1;transform:scaleX(1)}}
+@keyframes hcBloom{0%{opacity:0}22%{opacity:1}100%{opacity:.55}}
+@keyframes hcSweep{0%{opacity:0;transform:translateY(-58%)}22%{opacity:1}100%{opacity:0;transform:translateY(66%)}}
+/* Small screens: the photo is centred and cropped, not fitted, so the panel's
+   low-left corner is off-frame. The readout moves to the middle of whatever is
+   actually visible and switches to viewport units, so it sizes to the screen
+   rather than to a frame the visitor can only see a slice of. */
+@media(max-width:850px){
+.hero-clock{left:50%;transform:translateX(-50%);bottom:47%;justify-items:center;gap:max(8px,1.7vw)}
+.hero-clock-time{font-size:clamp(30px,9.4vw,54px)}
+.hero-clock-rule{width:clamp(26px,7vw,44px);height:2px}
+.hero-clock-date{font-size:clamp(9px,2.7vw,13px);letter-spacing:.26em}
+.hero-clock-bloom{left:-14%;width:128%}
 }
 @keyframes fadeIn {
   to { opacity: 1; }
@@ -49,12 +91,10 @@
 @keyframes helloIn{from{opacity:0;transform:translateY(.35em);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
 @media(min-aspect-ratio:2/1){.tv-hello{top:12.5%;font-size:clamp(20px,2.4vw,40px)}}
 .preloader{position:fixed;inset:0;z-index:200;background:var(--black);display:grid;place-items:center;animation:preOut 1.5s cubic-bezier(.33,0,.2,1) 4.5s forwards}.pre-glow{position:absolute;width:70vw;height:60vh;background:radial-gradient(ellipse,rgba(0,240,131,.22) 0,rgba(0,155,85,.1) 40%,transparent 70%);filter:blur(18px);animation:preBreathe 2.4s ease-in-out infinite alternate}.pre-words{position:relative;display:grid;place-items:center}.pre-words span{grid-area:1/1;opacity:0;font-family:var(--serif);font-style:italic;color:var(--white);font-size:clamp(40px,8vw,92px);line-height:1.1;text-shadow:0 0 26px rgba(255,255,255,.3),0 0 70px rgba(0,240,131,.35);animation:preWord .9s cubic-bezier(.2,.7,.2,1) both}.pre-words span:nth-child(2){animation-delay:.9s}.pre-words span:nth-child(3){animation-delay:1.8s}.pre-words span:nth-child(4){animation-delay:2.7s}.pre-words span:nth-child(5){animation-delay:3.6s}
-@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
-
 @keyframes preWord{0%{opacity:0;transform:translateY(12px);filter:blur(10px)}25%,72%{opacity:1;transform:none;filter:blur(0)}100%{opacity:0;transform:translateY(-12px);filter:blur(10px)}}
 @keyframes preOut{to{opacity:0;visibility:hidden}}
 @keyframes preBreathe{from{opacity:.7;transform:scale(.96)}to{opacity:1;transform:scale(1.05)}}
-html[data-boot]{--hello-at:5s}
+html[data-boot]{--hello-at:5s;--hero-in:5.35s}
 html[data-boot] .hero-frame{animation:heroReveal 1.6s cubic-bezier(.16,1,.3,1) 4.6s both}
 html[data-boot] .side-nav{animation:navIn 1.2s ease 4.9s both}
 @keyframes heroReveal{from{opacity:0;transform:translate(-50%,-50%) scale(1.045);filter:blur(6px)}to{opacity:1;transform:translate(-50%,-50%);filter:blur(0)}}

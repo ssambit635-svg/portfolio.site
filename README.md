@@ -24,6 +24,7 @@ Editorial paper layout, a systems map of the work and a separate certificates da
 - **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
 - **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, no blocking intro sequence, no audio.
 - **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
+- **The hero reads as a locked screen:** the monitor photo carries a live DOM readout low-left — Space Grotesk time over a tracked-out IBM Plex Mono date — sized in container units so it stays inside the panel from a 320px phone to an ultrawide, and typed on in step with the boot reveal.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
 
 ## Selected work
@@ -77,6 +78,7 @@ src/
   assets/                    Project screenshots, certificate scans, AWS logo
   components/
     Seo.tsx                  Central React 19 metadata (per page)
+    HeroClock.tsx            The lock-screen readout laid over the hero photo (see src/index.css)
     WorksWheel.tsx           The works index as a wheel you turn (see src/works-wheel.css)
     sections/                Hero, Systems, Work, About, Stats (Toolbox), WorkedAt (Learning)
     fx/                      Counter, pixel dissolve, skill logos

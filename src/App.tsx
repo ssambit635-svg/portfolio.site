@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import MacLaptop from './components/MacLaptop'
+import HeroClock from './components/HeroClock'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import WorksWheel from './components/WorksWheel'
@@ -81,8 +82,9 @@ function Hero() {
     <section id="home" className="hero">
       <div className="hero-frame">
         <div className="hero-monitor-wrapper">
-          <img src={heroMonitor} alt="Monitor" className="hero-monitor" />
+          <img src={heroMonitor} alt="An ultrawide monitor on a wooden desk, lit from behind by a dim green light" className="hero-monitor" />
         </div>
+        <HeroClock />
         <p className="hero-tagline">
           {profile.first} · {profile.last}
         </p>
