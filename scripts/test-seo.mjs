@@ -14,7 +14,10 @@ for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard]]) {
 }
 
 assert.match(home, /Sambit Swain \| Software Developer Portfolio/)
-assert.match(home, /I ship full-stack products and the infrastructure/)
+assert.match(home, /DEVOPS ENGINEER · CLOUD · DESIGN/)
+// The discarded clock should not return in the rendered hero.
+assert.doesNotMatch(home, /desk-clock|dc-physical/)
+assert.match(home, /<h1 class="hero-screen-title"><span>From code to cloud\.<\/span><span>From pixels to production\.<\/span><\/h1>/)
 assert.match(home, /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/)
 assert.match(home, /name="twitter:card" content="summary_large_image"/)
 for (const id of ['home', 'works', 'certified', 'about', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
@@ -74,3 +77,5 @@ const cssFiles = assetFiles.filter((file) => file.endsWith('.css'))
 assert.ok(cssFiles.length)
 const bundledCss = (await Promise.all(cssFiles.map((file) => readFile(`dist/assets/${file}`, 'utf8')))).join('\n')
 assert.match(bundledCss, /prefers-reduced-motion:reduce/)
+// The photo must start at the top of the hero, without a letterboxed header.
+assert.match(bundledCss, /\.hero-frame\{[^}]*top:0(?:;|\})/, 'hero scene should be top-aligned')
