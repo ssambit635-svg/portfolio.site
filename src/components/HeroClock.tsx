@@ -1,23 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 /**
- * The desk clock.
+ * The hero's on-screen readout.
  *
- * It sits exactly where the coffee mug used to be in hero-monitor.jpg — same
- * footprint on the wood, same contact shadow falling to the right — so the desk
- * keeps a prop instead of a hole, and the prop is the thing the reference shot
- * actually showed: a clock. Built in CSS rather than painted into the JPEG
- * because the readout has to tell the time.
+ * `hero-monitor.jpg` is a photograph of a dark desk, and the reference shot had
+ * exactly one thing on the panel: a lock-screen clock sitting low-left — a huge
+ * time over a small weekday line. That is reproduced here as real DOM instead of
+ * pixels baked into the JPEG, so it stays selectable, stays crisp at any zoom,
+ * and can animate on its own schedule instead of the image's.
  *
- * The enclosure is sized once, as a share of the frame, and is itself an inline
- * size container: every part of the face (digits, date strip, LED pitch, bevels,
- * bloom) is a share of *the clock's own width*. So the small-screen rule that
- * moves it only changes where it stands and how wide it is — the device stays in
- * proportion to itself at any size, and never turns into a screen-sized clock on
- * a phone.
+ * Position is in percentages of `.hero-frame`, which is locked to the photo's own
+ * 1376×768 ratio, and the frame is a container, so the type sizes in
+ * src/index.css are in `cqw`: the readout scales with the monitor rather than
+ * the viewport. A phone gets the same lock screen, just smaller.
  *
- * By default it shows the still from the reference photo. Pass `live` and it
- * shows the visitor's own time, formatted the same way.
+ * By default the readout shows the still from the reference photo. Pass `live`
+ * and it shows the visitor's own local time instead, formatted identically —
+ * 24-hour, no seconds, so the panel reads as a clock and not a timestamp.
  */
 
 const REFERENCE = { time: '12:27', date: 'Wednesday, December 7' }
@@ -33,10 +32,11 @@ const timeText = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
 const dateText = (d: Date) => `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`
 
 /**
- * Ticked every 15s — a minute-hand clock never needs a second hand. Armed only
- * when `live`, and empty on the first pass: the prerendered HTML carries the
- * reference still, so the client paints the same thing before the effect swaps
- * in the visitor's time. No timer, no flicker, no hydration mismatch.
+ * Ticked every 15s — a minute-hand clock never needs a second hand.
+ *
+ * Only armed when `live`, and always empty on the first pass: the prerendered
+ * HTML carries the reference still, so the client paints the same thing before
+ * the effect swaps in the visitor's time. No timer, no flicker, no mismatch.
  */
 function useLocal(active: boolean) {
   const [now, setNow] = useState<Date | null>(null)
@@ -56,33 +56,27 @@ export default function HeroClock({ live = false }: { live?: boolean }) {
   const date = local ? dateText(local) : REFERENCE.date
 
   return (
-    <div className="hero-deskclock">
-      {/* The two things that pin it to the desk: the shadow it throws and the
-          light its display pools on the wood. Both stay outside .dc-case on
-          purpose — the case is the size container, and a container isolates
-          blending, so the spill would stop being light and become a decal. */}
-      <i className="dc-cast" aria-hidden="true" />
-      <i className="dc-glow" aria-hidden="true" />
+    <div className="hero-clock">
+      {/* the wake bloom — the panel lifting out of black, then settling */}
+      <i className="hero-clock-bloom" aria-hidden="true" />
+      {/* one wipe of the backlight as the glyphs land */}
+      <i className="hero-clock-sweep" aria-hidden="true" />
 
-      <div className="dc-case">
-        <i className="dc-top" aria-hidden="true" />
-        <div className="dc-glass">
-          <div className="dc-face">
-            <time className="dc-time" dateTime={time} aria-label={`${time}, ${date}`}>
-              {Array.from(time).map((char, i) => (
-                <span key={`${char}-${i}`} className={char === ':' ? 'dc-d dc-colon' : 'dc-d'} aria-hidden="true">
-                  {char}
-                </span>
-              ))}
-            </time>
-            <p className="dc-date" aria-hidden="true">{date}</p>
-          </div>
-          <i className="dc-matrix" aria-hidden="true" />
-          <i className="dc-scan" aria-hidden="true" />
-          <i className="dc-sheen" aria-hidden="true" />
-        </div>
-        <span className="dc-mark" aria-hidden="true">SS</span>
-      </div>
+      <time className="hero-clock-time" dateTime={time} aria-label={`${time}, ${date}`}>
+        {Array.from(time).map((char, i) => (
+          <span
+            key={`${char}-${i}`}
+            className={char === ':' ? 'hc-char hc-colon' : 'hc-char'}
+            style={{ '--hc-i': i } as CSSProperties}
+            aria-hidden="true"
+          >
+            {char}
+          </span>
+        ))}
+      </time>
+
+      <i className="hero-clock-rule" aria-hidden="true" />
+      <p className="hero-clock-date" aria-hidden="true">{date}</p>
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import MacLaptop from './components/MacLaptop'
 import HeroClock from './components/HeroClock'
-import HeroScreen from './components/HeroScreen'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import WorksWheel from './components/WorksWheel'
@@ -85,15 +84,12 @@ function Hero() {
         <div className="hero-monitor-wrapper">
           <img src={heroMonitor} alt="An ultrawide monitor on a wooden desk, lit from behind by a dim green light" className="hero-monitor" />
         </div>
-        <HeroScreen />
         <HeroClock />
         <p className="hero-tagline">
           {profile.first} · {profile.last}
         </p>
       </div>
-      {/* the panel owns the H1 now; the sentence it replaces stays in the
-          document for search and screen readers either way */}
-      <p className="sr-only">{tagline}</p>
+      <h1 className="sr-only">{tagline}</h1>
     </section>
   )
 }

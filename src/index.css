@@ -6,19 +6,19 @@
 @import '@fontsource/inter/latin-400';
 @import '@fontsource/inter/latin-500';
 @import '@fontsource/inter/latin-600';
-@import '@fontsource/inter/latin-700';
-@import '@fontsource/share-tech-mono/latin-400';
 @import '@fontsource/pinyon-script/latin-400';
 @import '@fontsource/ibm-plex-mono/latin-400';
+@import '@fontsource-variable/space-grotesk/wght.css';
 
-@theme{--color-paper:#f3efe7;--color-paper-2:#eae4d8;--color-ink:#161513;--color-mute:#6a655c;--color-line:#d9d2c5;--color-rust:#b4451a;--color-signal:#c9f27a;--font-display:'Cormorant Garamond',serif;--font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-script:'Pinyon Script',cursive}
-:root{--black:#050505;--white:#f4f2ed;--green:#00f083;--gray:#969696;--line:#282828;--serif:'Cormorant Garamond','EB Garamond','Times New Roman',serif;--sans:'Inter','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--script:'Pinyon Script',cursive;--led:'Share Tech Mono',var(--mono);color-scheme:dark}
+@theme{--color-paper:#f3efe7;--color-paper-2:#eae4d8;--color-ink:#161513;--color-mute:#6a655c;--color-line:#d9d2c5;--color-rust:#b4451a;--color-signal:#c9f27a;--font-display:'Cormorant Garamond',serif;--font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-grotesk:'Space Grotesk Variable',sans-serif;--font-script:'Pinyon Script',cursive}
+:root{--black:#050505;--white:#f4f2ed;--green:#00f083;--gray:#969696;--line:#282828;--serif:'Cormorant Garamond','EB Garamond','Times New Roman',serif;--sans:'Inter','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--script:'Pinyon Script',cursive;--grotesk:'Space Grotesk Variable','Space Grotesk',var(--sans);color-scheme:dark}
 *{box-sizing:border-box}html{background:var(--black);color:var(--white);scroll-behavior:smooth}body{margin:0;background:var(--black);font-family:var(--sans);font-size:14px;line-height:1.45;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit}.skip-link{position:fixed;top:-60px;left:20px;z-index:100;padding:10px;background:white;color:black}.skip-link:focus{top:12px}:focus-visible{outline:1px solid var(--green);outline-offset:4px}::selection{background:var(--green);color:#000}
 .side-nav{position:fixed;z-index:50;left:28px;top:24px;width:90px}.nav-name{display:block;font-family:var(--serif);font-size:15px;margin-bottom:14px}.side-nav nav{display:flex;flex-direction:column;align-items:flex-start}.side-nav nav a{font-size:11px;line-height:1.55;transition:.2s}.side-nav nav a:hover{color:var(--green);padding-left:4px}.menu-toggle{display:none}
 .hero{min-height:100vh;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:flex-start;padding-top:6vh}
 .hero-monitor-wrapper {
   position: sticky;
   top: 0;
+  z-index: 100;
 }
 .hero-monitor {
   display: block;
@@ -36,97 +36,47 @@
   text-shadow: 0 2px 4px rgba(0,0,0,.5);
 }
 
-/* ——— the monitor, switched on ————————————————————————————————————————————
-   Two overlays on the hero photo, both measured in percentages of .hero-frame
-   (the photo's own 1376x768 box), so they are welded into the set instead of
-   floating above it:
+/* ——— hero lock-screen readout —————————————————————————————————————————————
+   The panel in hero-monitor.jpg is a photograph, so the clock on it is real
+   DOM laid over it in percentages of the frame. .hero-frame carries the photo's
+   own 1376x768 ratio and is a size container, which means every dimension here
+   is a share of the monitor itself: the readout grows and shrinks with the
+   screen instead of the viewport, and stays inside the bezel at any width.
 
-     .hero-screen     the panel interior, and the copy lit into it
-     .hero-deskclock  a real desk clock on the wood, where the mug used to be
-
-   Each carries its own inline-size container, so everything inside is a share of
-   that box: the copy can never outgrow the glass, and the clock keeps its own
-   proportions when it has to move. The halo and the desk glow live outside those
-   boxes on purpose — a container is a stacking context, and mix-blend-mode only
-   reaches as far as one, so those two have to be siblings of the frame's image to
-   add light to it rather than wash over it.
-
-   Base state is finished and sharp. The intro lives only under html[data-boot],
-   so reduced-motion visitors and crawlers get the settled frame.
+   Base state = fully drawn and sharp. The intro only exists while the boot
+   sequence is on (html[data-boot]), so a reduced-motion visitor — or a crawler
+   that never runs the animation — gets the finished, crisp thing.
    ————————————————————————————————————————————————————————————————————————— */
 .hero-frame{container-type:inline-size}
-.hero-screen{position:absolute;left:17.9%;top:20.6%;width:63.6%;height:34.8%;border-radius:.55cqw;container-type:inline-size}
-.hs-halo{position:absolute;left:6%;top:1.5%;width:87%;height:62%;border-radius:50%;background:radial-gradient(ellipse at 50% 46%,rgba(0,240,131,.34),rgba(0,190,105,.15) 32%,rgba(0,120,70,.06) 52%,transparent 74%);mix-blend-mode:screen}
-.hs-halo:after{content:'';position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(ellipse at 50% 46%,rgba(150,255,195,.06) 0 1px,transparent 1px 7px)}
-.hs-tint,.hs-matrix,.hs-scan,.hs-edge,.hs-sheen{position:absolute;inset:0;display:block;border-radius:.55cqw;pointer-events:none}
-.hs-tint{background:radial-gradient(112% 132% at 50% 46%,rgba(18,92,58,.62),rgba(8,48,31,.5) 38%,rgba(3,20,13,.4) 64%,transparent 90%),radial-gradient(56% 84% at 50% 42%,rgba(0,240,131,.17),transparent 72%)}
-.hs-copy{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;text-align:center;gap:2.3cqw;padding:0 5cqw}
-.hs-kicker{margin:0;font-family:var(--sans);font-weight:600;font-size:max(8px,1.55cqw);letter-spacing:.36em;text-transform:uppercase;color:#93f7c2;text-shadow:0 0 1.4cqw rgba(0,240,131,.75),0 0 4.5cqw rgba(0,240,131,.3)}
-.hs-head{margin:0;display:grid;gap:.1em;font-family:var(--sans);font-weight:700;font-size:max(12px,5.9cqw);line-height:1.06;letter-spacing:-.028em;color:#f0fdf5;text-wrap:balance;text-shadow:0 0 1.1cqw rgba(160,255,200,.5),0 0 3.4cqw rgba(0,240,131,.24),0 0 7cqw rgba(0,200,120,.14)}
-.hs-head span{white-space:nowrap}
-.hs-head span+span{color:rgba(216,248,228,.76)}
-.hs-matrix{z-index:1;mix-blend-mode:multiply;opacity:.55;-webkit-mask-image:radial-gradient(116% 138% at 50% 46%,#000 54%,transparent 88%);mask-image:radial-gradient(116% 138% at 50% 46%,#000 54%,transparent 88%);background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.6) 0 .16cqw,transparent .16cqw .74cqw),repeating-linear-gradient(0deg,rgba(0,0,0,.42) 0 .12cqw,transparent .12cqw .74cqw)}
-.hs-scan{z-index:2;background:linear-gradient(180deg,transparent,rgba(175,255,205,.075) 46%,rgba(255,255,255,.03) 52%,transparent 84%);animation:hsScan 11s linear infinite}
-.hs-edge{z-index:3;box-shadow:inset 0 0 max(14px,4.4cqw) rgba(0,0,0,.72),inset 0 0 max(4px,1cqw) rgba(0,0,0,.55);background:radial-gradient(115% 145% at 50% 46%,transparent 52%,rgba(0,0,0,.34) 84%,rgba(0,0,0,.5))}
-.hs-sheen{z-index:4;background:linear-gradient(168deg,rgba(255,255,255,.055),rgba(255,255,255,.012) 22%,transparent 44%,rgba(190,255,220,.022) 78%,transparent)}
-@keyframes hsScan{0%{transform:translateY(-16%)}100%{transform:translateY(116%)}}
-
-/* the desk clock — sits on the wood at x 117..348, y 559..663 of the photo */
-.hero-deskclock{position:absolute;left:8.5%;bottom:13.6%;width:16.9%}
-.dc-glow{position:absolute;left:-13%;bottom:-8%;width:126%;height:34%;border-radius:50%;background:radial-gradient(ellipse at 48% 42%,rgba(0,240,131,.42),rgba(0,240,131,.15) 36%,transparent 72%);mix-blend-mode:screen;filter:blur(9px)}
-.dc-cast{position:absolute;left:3%;bottom:-1.6%;width:114%;height:21%;border-radius:50%;background:radial-gradient(ellipse at 40% 50%,rgba(0,0,0,.74),rgba(0,0,0,.34) 40%,transparent 74%);transform:skewX(-17deg)}
-.dc-case{position:relative;container-type:inline-size;padding:1.7cqw 2cqw 3.5cqw;border-radius:2.4cqw;background:linear-gradient(163deg,#2c2f33 0,#1a1c1f 30%,#0d0f11 62%,#22262a 100%);box-shadow:inset 0 .22cqw .3cqw rgba(255,255,255,.17),inset 0 -1cqw 1.5cqw rgba(0,0,0,.78),inset 1.4cqw 0 1.8cqw rgba(0,0,0,.28),0 1.5cqw 2.6cqw rgba(0,0,0,.6);transform:perspective(60cqw) rotateX(2.2deg) rotateY(-3.2deg)}
-.dc-top{position:absolute;left:2.4%;right:1.4%;top:-2.1cqw;height:2.5cqw;border-radius:1.4cqw 1.4cqw .3cqw .3cqw;background:linear-gradient(180deg,#484c51,#2a2d31 55%,#141618);transform:skewX(-11deg);box-shadow:inset 0 .2cqw .2cqw rgba(255,255,255,.28)}
-.dc-glass{position:relative;border-radius:1.3cqw;overflow:hidden;padding:2.3cqw 2.4cqw 2cqw;background:linear-gradient(180deg,#05190f,#020a07 52%,#062317);box-shadow:inset 0 .4cqw 1cqw rgba(0,0,0,.92),inset 0 0 2.8cqw rgba(0,240,131,.18),0 0 0 .3cqw rgba(0,0,0,.92)}
-.dc-face{display:grid;justify-items:center;gap:1cqw}
-.dc-time{display:flex;font-family:var(--led);font-size:13cqw;line-height:.9;letter-spacing:.02em;color:#a6ffcd;text-shadow:0 0 1.2cqw rgba(0,240,131,.9),0 0 3.8cqw rgba(0,240,131,.45),0 .18cqw .3cqw rgba(0,0,0,.6)}
-.dc-d{display:inline-block}
-.dc-date{margin:0;font-family:var(--led);font-size:3.5cqw;letter-spacing:.2em;text-transform:uppercase;color:rgba(158,255,206,.62);text-shadow:0 0 1cqw rgba(0,240,131,.5)}
-.dc-matrix{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.44) 0 .18cqw,transparent .18cqw .8cqw),repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 .14cqw,transparent .14cqw .8cqw)}
-.dc-scan{position:absolute;left:0;right:0;height:26%;background:linear-gradient(180deg,transparent,rgba(190,255,215,.13),transparent);animation:dcScan 7.5s linear infinite}
-.dc-sheen{position:absolute;inset:0;background:linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.03) 26%,transparent 46%,rgba(255,255,255,.045) 84%,transparent)}
-.dc-mark{position:absolute;left:50%;bottom:.7cqw;transform:translateX(-50%);font-family:var(--serif);font-style:italic;font-weight:400;font-size:2cqw;letter-spacing:.08em;color:rgba(196,214,203,.26);text-shadow:0 .1cqw 0 rgba(255,255,255,.09),0 -.1cqw .1cqw rgba(0,0,0,.8)}
-@keyframes dcScan{0%{top:-26%}100%{top:126%}}
-
-/* boot: the panel comes up off the frame reveal, the copy draws in line by line,
-   then the desk clock's display strikes up and spills light on the wood */
-html[data-boot] .hero-screen{animation:hsOn 1.5s cubic-bezier(.3,0,.2,1) calc(var(--hero-in,0s) - .3s) backwards}
-html[data-boot] .hs-halo{animation:hsHalo 2.2s ease-out calc(var(--hero-in,0s) - .3s) backwards}
-html[data-boot] .hs-kicker{animation:hsLine .8s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .9s) both}
-html[data-boot] .hs-head span{animation:hsLine .9s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + 1.06s) both}
-html[data-boot] .hs-head span+span{animation-delay:calc(var(--hero-in,0s) + 1.24s)}
-html[data-boot] .dc-face,html[data-boot] .dc-glow{animation:dcOn 1.5s cubic-bezier(.2,.7,.2,1) calc(var(--hero-in,0s) + 1.42s) backwards}
-html[data-boot] .hero-tagline{animation:hcTag 1.2s ease-out calc(var(--hero-in,0s) + 1.9s) both}
-@keyframes hsOn{0%{opacity:0}16%{opacity:1}24%{opacity:.2}34%{opacity:1}46%{opacity:.5}58%{opacity:1}100%{opacity:1}}
-@keyframes hsHalo{0%{opacity:0}16%{opacity:1}24%{opacity:.25}34%{opacity:1}100%{opacity:1}}
-@keyframes hsLine{0%{opacity:0;transform:translateY(.34em);clip-path:inset(0 0 106% 0)}100%{opacity:1;transform:none;clip-path:inset(0 0 -18% 0)}}
-@keyframes dcOn{0%{opacity:0}14%{opacity:1}22%{opacity:.15}30%{opacity:1}42%{opacity:.55}54%{opacity:1}100%{opacity:1}}
+.hero-clock{position:absolute;left:22%;bottom:47.4%;z-index:130;display:grid;justify-items:start;gap:max(11px,.8cqw);pointer-events:none}
+.hero-clock-bloom{position:absolute;left:-9%;bottom:-16%;width:132%;height:150%;border-radius:50%;background:radial-gradient(ellipse at 34% 52%,rgba(150,255,196,.13),rgba(0,240,131,.055) 42%,transparent 72%);filter:blur(14px);opacity:.55;pointer-events:none}
+.hero-clock-sweep{position:absolute;left:-4%;top:-6%;width:108%;height:112%;pointer-events:none;opacity:0;background:linear-gradient(180deg,transparent 0,rgba(196,255,214,.16) 44%,rgba(255,255,255,.06) 52%,transparent 76%);mix-blend-mode:screen}
+.hero-clock-time{position:relative;display:flex;margin:0;font-family:var(--grotesk);font-weight:430;font-size:max(34px,5.4cqw);line-height:.82;letter-spacing:-.018em;color:var(--white);font-variant-numeric:tabular-nums}
+.hc-char{display:inline-block}
+.hero-clock-rule{position:relative;display:block;transform-origin:left;width:max(30px,3.4cqw);height:max(2px,.24cqw);border-radius:2px;background:var(--green);box-shadow:0 0 10px rgba(0,240,131,.5)}
+.hero-clock-date{position:relative;margin:0;font-family:var(--mono);font-weight:400;font-size:max(9px,1.15cqw);line-height:1;letter-spacing:.34em;text-transform:uppercase;color:#c9ccc6;text-shadow:0 1px 5px rgba(0,0,0,.55)}
+html[data-boot] .hero-tagline{animation:hcTag 1.2s ease-out calc(var(--hero-in,0s) + 1.15s) both}
+html[data-boot] .hero-clock-bloom{animation:hcBloom 2.6s cubic-bezier(.2,.7,.2,1) calc(var(--hero-in,0s) - .3s) both}
+html[data-boot] .hc-char{animation:hcChar .82s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .18s + var(--hc-i,0)*.085s) both}
+html[data-boot] .hero-clock-rule{animation:hcRule .75s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .62s) both}
+html[data-boot] .hero-clock-date{animation:hcDate 1s cubic-bezier(.16,1,.3,1) calc(var(--hero-in,0s) + .74s) both}
+html[data-boot] .hero-clock-sweep{animation:hcSweep 1.25s cubic-bezier(.42,0,.3,1) calc(var(--hero-in,0s) + .1s) both}
 @keyframes hcTag{0%{opacity:0;transform:translate(-50%,12px);filter:blur(7px)}100%{opacity:1;transform:translate(-50%,0);filter:blur(0)}}
-.dc-colon{animation:dcBlink 2s steps(1,end) infinite}
-@keyframes dcBlink{0%,49%{opacity:1}50%,100%{opacity:.2}}
-
+@keyframes hcChar{0%{opacity:0;transform:translateY(.42em) scale(.965);filter:blur(9px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes hcDate{0%{opacity:0;transform:translateY(7px);letter-spacing:.72em;filter:blur(4px)}100%{opacity:1;transform:none;letter-spacing:.34em;filter:blur(0)}}
+@keyframes hcRule{0%{opacity:0;transform:scaleX(0)}100%{opacity:1;transform:scaleX(1)}}
+@keyframes hcBloom{0%{opacity:0}22%{opacity:1}100%{opacity:.55}}
+@keyframes hcSweep{0%{opacity:0;transform:translateY(-58%)}22%{opacity:1}100%{opacity:0;transform:translateY(66%)}}
 /* Small screens: the photo is centred and cropped, not fitted, so the panel's
-   low-left corner is off-frame. The copy stays centred in the glass — which the
-   visible slice is made of — and the clock lifts to the front edge of the desk,
-   scaled off the viewport. Both keep their own container, so only the box moves:
-   proportions inside the clock are untouched. */
+   low-left corner is off-frame. The readout moves to the middle of whatever is
+   actually visible and switches to viewport units, so it sizes to the screen
+   rather than to a frame the visitor can only see a slice of. */
 @media(max-width:850px){
-.hero-screen{left:39%;top:24%;width:22%;height:22%}
-.hs-copy{gap:3.6cqw;padding:0 4cqw}
-.hs-kicker{font-size:max(7px,2.1cqw);letter-spacing:.24em}
-.hs-head{font-size:max(11px,6.4cqw)}
-.hs-head span+span{color:rgba(216,248,228,.82)}
-.hero-deskclock{left:50%;bottom:3%;width:max(132px,min(46vw,18cqw));transform:translateX(-50%)}
-.dc-glow{left:-8%;bottom:-6%;width:116%;height:26%}
-.dc-case{transform:none;border-radius:3.2cqw}
-.dc-top{display:none}
-}
-/* Landscape phones are the one case where the photo is cropped top-and-bottom
-   instead of sideways, so the front edge of the desk is out of frame — lift the
-   clock to wherever the wood actually is. */
-@media(max-width:850px) and (min-aspect-ratio:16/9){
-.hero-deskclock{bottom:21%}
-.hero-screen{top:26%}
+.hero-clock{left:50%;transform:translateX(-50%);bottom:47%;justify-items:center;gap:max(8px,1.7vw)}
+.hero-clock-time{font-size:clamp(30px,9.4vw,54px)}
+.hero-clock-rule{width:clamp(26px,7vw,44px);height:2px}
+.hero-clock-date{font-size:clamp(9px,2.7vw,13px);letter-spacing:.26em}
+.hero-clock-bloom{left:-14%;width:128%}
 }
 @keyframes fadeIn {
   to { opacity: 1; }
