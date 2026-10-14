@@ -120,6 +120,21 @@
 [data-face='dizzy'] .emo-orb { animation: emo-sway 1.5s ease-in-out infinite; }
 [data-face='listening'] .emo-orb { filter: blur(0.05em) brightness(calc(1 + var(--emo-voice) * 0.5)); }
 [data-face='lowbat'] .emo-orb { opacity: 0.72; }
+/* Roughly rapid tapping. Not a bigger version of surprised — a different muscle: the
+   eyes squeeze shut *inward*, both toward the nose and down, brightest at the pinch,
+   while the halo blooms up from behind the lids. */
+[data-face='pain'] .emo-orb {
+  --emo-face-sy: -0.62;
+  --emo-face-sx: -0.1;
+  --emo-face-x: calc(var(--emo-side) * -0.09em);
+  --emo-face-y: 0.06em;
+  --emo-face-anchor: 0.36em;
+  filter: blur(0.09em) brightness(1.3) saturate(1.2);
+}
+[data-face='pain'] .emo-glow {
+  opacity: 0.78;
+  background: radial-gradient(closest-side, var(--emo-eye-mid), transparent 74%);
+}
 /* His "no network" amber, through the same three measured stops: the eyes keep their
    shape and their softness, only the light behind them changes colour. */
 [data-face='offline'] .emo-orb {
@@ -198,6 +213,18 @@
   border-radius: 50%;
   background: var(--green);
   vertical-align: 0.08em;
+}
+/* A line that carries a pin is a complaint, not a caption: the dot becomes a pushpin,
+   head up and point down at him, and the chip goes bruised-red for as long as it shows. */
+.emo[data-pin='1'] .emo-hint { color: #ffd9de; border-color: rgb(255 90 110 / 0.55); background: rgb(24 5 9 / 0.8); }
+.emo[data-pin='1'] .emo-hint::before {
+  width: 0.52em; height: 0.52em;
+  margin-right: 0.66em;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  vertical-align: -0.02em;
+  background: radial-gradient(circle at 50% 50%, #2a070c 0 26%, #ff6274 34%, #a8233a 100%);
+  box-shadow: 0 0.06em 0.14em rgb(0 0 0 / 0.5);
 }
 .emo-senses {
   position: absolute;

@@ -141,7 +141,10 @@ ever being retouched, and without anything laid over it:
   is where blinking, the wandering gaze and the late-night sleep live.
 - `src/emo.css` turns those properties into blinks, squints, dilations and a dozen
   moods — all of them brightness, size and colour, because a face that is a display does
-  not have eyelids. `prefers-reduced-motion` keeps his face and drops the twitching.
+  not have eyelids. Tap him four times inside a second and the moods stop being polite:
+  his eyes squeeze shut inward (`pain`), the flinch runs through the same lean and wobble
+  numbers, and the caption chip turns bruised-red with a pushpin on it saying
+  **that hurts** — a pin for a pin-prick, drawn in CSS, gone when the line is. `prefers-reduced-motion` keeps his face and drops the twitching.
 
 Nothing is measured by eye and nothing is trusted to stay true: `npm run build` ends by
 re-measuring the photo (`emo-geometry.mjs --check`), so re-cropping the hero either moves

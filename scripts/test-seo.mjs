@@ -100,6 +100,10 @@ assert.match(home, /--emo-eye-peak:\s*rgb\(/, 'his eyes should be his own measur
 assert.match(home, /<span class="emo-clip emo-a"[^>]*aria-hidden="true"/, 'the erase layer is decoration, not content')
 assert.match(home, /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/, 'his tap target should say who it is')
 assert.match(home, /class="emo-chip"[^>]*data-live="0"/, 'the microphone starts off and stays opt-in')
+// The pin is a reaction, so it must not be painted into the static page.
+assert.doesNotMatch(home, /data-pin/, 'a prerendered page should not already be hurting')
+// The pin is a reaction, so it must not be painted into the static page.
+assert.doesNotMatch(home, /data-pin/, 'a prerendered page should not already be hurting')
 assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')
 assert.match(bundledCss, /\.emo\{[^}]*pointer-events:none/, 'Emo must not swallow clicks meant for the hero')
 assert.match(bundledCss, /\.emo\{[^}]*font-size:1cqw/, 'Emo should scale with the photo he is painted on, not the viewport')
@@ -112,7 +116,7 @@ assert.match(bundledCss, /\.emo-orb\{[^}]*mix-blend-mode:screen/, 'his eyes shou
 // The whole reason he looked like an overlay: any ancestor that forms a stacking context
 // turns into a blend container, and the blending stops reaching the photograph.
 const emoBlock = bundledCss.slice(bundledCss.indexOf('.emo{'), bundledCss.indexOf('.emo[data-off'))
-assert.doesNotMatch(emoBlock, /z-index|opacity|filter|transform|will-change|contain|isolation|perspective|backdrop-filter|mix-blend-mode/, 'nothing between his blend layers and the photo may form a blend container, or the blending stops reaching the photograph')
+assert.doesNotMatch(emoBlock, /z-index|opacity|filter|transform|animation|will-change|contain|isolation|perspective|backdrop-filter|mix-blend-mode/, 'nothing between his blend layers and the photo may form a blend container, or the blending stops reaching the photograph')
 const emoHome = home.slice(home.indexOf('class="emo"'), home.indexOf('class="emo-hit"'))
 assert.match(emoHome, /emo-clip emo-a[\s\S]*emo-clip emo-b[\s\S]*emo-glow emo-a[\s\S]*emo-glow emo-b[\s\S]*emo-orb emo-orb-a[\s\S]*emo-orb emo-orb-b/, 'paint order is blend order: both clips, then both halos, then both eyes')
 assert.doesNotMatch(bundledCss, /emo-visor|\.emo-plate/, 'there should be no plate, and no overlay image, on his face')

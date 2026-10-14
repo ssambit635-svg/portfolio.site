@@ -21,15 +21,20 @@ import { useEffect, useRef, useState } from 'react'
 
 type Face =
   | 'idle' | 'curious' | 'focused' | 'worried' | 'happy' | 'surprised'
-  | 'peek' | 'dizzy' | 'sleep' | 'wake' | 'offline' | 'lowbat' | 'listening'
+  | 'peek' | 'dizzy' | 'sleep' | 'wake' | 'offline' | 'lowbat' | 'listening' | 'pain'
 
-type Reaction = { face: Face; ms: number; priority: number; say?: string }
+type Reaction = { face: Face; ms: number; priority: number; say?: string; pin?: boolean }
 
 /** A reaction is a face plus a line of copy. Only a louder one may interrupt. */
+const TAPS_TO_HURT = 4
+const TAP_WINDOW = 1_000
 const REACTIONS: Record<string, Reaction> = {
   poke: { face: 'surprised', ms: 950, priority: 8, say: 'hi.' },
   poke2: { face: 'surprised', ms: 950, priority: 8, say: 'that tickles' },
   poke3: { face: 'worried', ms: 1500, priority: 8, say: 'ok ok i am awake' },
+  /* Four taps in a second is not a poke any more. Highest priority next to the network
+     outage, because a wince that gets interrupted by a joke is not a wince. */
+  ouch: { face: 'pain', ms: 1900, priority: 9, say: 'that hurts', pin: true },
   name: { face: 'happy', ms: 1700, priority: 7, say: 'yes, that is me' },
   copy: { face: 'happy', ms: 1200, priority: 6, say: 'copied — send it' },
   cut: { face: 'worried', ms: 1200, priority: 6, say: 'you cut my snippet' },
@@ -76,7 +81,7 @@ export function useEmo() {
     /* --- what the loop owns ------------------------------------------------ */
     let gx = 0, gy = 0, tx = 0, ty = 0            // gaze: smoothed, target
     let pop = 0, squint = 0, converge = 0, lean = 0, tilt = 0, drift = 0
-    let blink = -1, nextBlink = performance.now() + rand(1600, 4000)
+    let blink = -1, nextBlink = performance.now() + rand(1600, 4000), lidHold = 0
     let wobble = 0, shake = 0, voice = 0
     let box = hit.getBoundingClientRect()
     let raf = 0, last = performance.now(), restFrames = 0
@@ -101,13 +106,16 @@ export function useEmo() {
       else root.dataset.face = next
     }
     let hintTimer = 0
-    const say = (text: string, ms = 2600) => {
+    const say = (text: string, ms = 2600, pin = false) => {
       hint.textContent = text
       root.dataset.hint = '1'
+      // The pin rides the same lifetime as the line it belongs to.
+      if (pin) root.dataset.pin = '1'
+      else delete root.dataset.pin
       // Timed on the clock, not on frames: the loop may well stop before the line is
       // due to leave, and a caption that outlives its own joke is worse than none.
       window.clearTimeout(hintTimer)
-      hintTimer = window.setTimeout(() => { delete root.dataset.hint }, ms)
+      hintTimer = window.setTimeout(() => { delete root.dataset.hint; delete root.dataset.pin }, ms)
       start()
     }
     const look = (x: number, y: number) => { tx = clamp(x); ty = clamp(y) }
@@ -131,7 +139,9 @@ export function useEmo() {
       }
       if (key === 'earthquake') shake = 1
       if (key === 'fling') wobble = 1
-      if (reaction.say) say(reaction.say)
+      // A flinch from the shoulders, not a jump: the tremor decays in the loop.
+      if (key === 'ouch') { wobble = 1.35; shake = 0.75; lidHold = performance.now() }
+      if (reaction.say) say(reaction.say, 2600, !!reaction.pin)
       start()
     }
     /* --- pointer: he watches what you watch -------------------------------- */
@@ -167,10 +177,25 @@ export function useEmo() {
       pointerDist = 0.4 // leaning on a link counts as standing close
       start()
     }
+    // The escalation is about *rate*, not about how many times he has ever been
+    // touched: four taps inside a second is a different gesture from four taps spread
+    // over a visit, and only the first one hurts.
+    const taps: number[] = []
     const poke = () => {
+      const now = performance.now()
+      // A tap on a phone is a pointerdown with nothing before it — no hover, no move —
+      // so this is the only place some visitors ever "arrive".
+      lastInput = now
       pokes += 1
       sessionStorage.setItem('emo-pokes', String(pokes))
-      fire(pokes >= 4 ? 'poke3' : pokes === 2 ? 'poke2' : 'poke')
+      taps.push(now)
+      while (taps.length && now - (taps[0] ?? 0) > TAP_WINDOW) taps.shift()
+      if (taps.length >= TAPS_TO_HURT) {
+        taps.length = 0
+        fire('ouch')
+      } else {
+        fire(pokes >= 4 ? 'poke3' : pokes === 2 ? 'poke2' : 'poke')
+      }
       pointerTilt = -0.9
     }
     const onPointerDown = poke
@@ -400,7 +425,9 @@ export function useEmo() {
       if (Math.abs(scrollV) > 2400) fire('fling')
 
       if (!reduce) {
-        if (blink < 0 && now > nextBlink) blink = 0
+        // A wince holds its eyes shut: a blink scheduled during it would un-squash the
+        // squeeze halfway through, which reads as a wink, not as pain.
+        if (blink < 0 && now > nextBlink && now > lidHold + 1900) blink = 0
         if (blink >= 0) {
           blink += dt / (face === 'sleep' ? 0.46 : 0.16)
           if (blink >= 1) { blink = -1; nextBlink = now + rand(2200, 6400) * (idle > 40_000 ? 0.35 : 1) }
