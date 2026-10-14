@@ -22,7 +22,7 @@ export const profile = {
   name: 'Sambit Swain',
   first: 'Sambit',
   last: 'Swain',
-  role: 'Full-stack & cloud',
+  role: 'Cloud & full-stack',
   classTag: "CSE '29",
   country: 'India',
   city: 'Berhampur, India',
@@ -70,6 +70,13 @@ export const about = {
 export const planes = ['Client', 'API', 'Data', 'Infra'] as const
 export type Plane = (typeof planes)[number]
 
+/**
+ * Shown on cards whose demo runs on a free host that sleeps after inactivity
+ * (Render's free web services spin down after ~15 minutes idle and take up to
+ * a minute to wake), so a first click isn't mistaken for a dead link.
+ */
+const coldStartNote = 'Free-tier hosting — first load can take 30–60 s.'
+
 export type Project = {
   id: string
   title: string
@@ -84,6 +91,8 @@ export type Project = {
   status: 'live' | 'lab' | 'local'
   plane: Record<Plane, string>
   featured?: boolean
+  /** Caveat rendered under the card actions — currently the cold-start note. */
+  note?: string
 }
 
 export const projects: Project[] = [
@@ -101,6 +110,7 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/kivo.git',
     status: 'live',
     featured: true,
+    note: coldStartNote,
     plane: {
       Client: 'Android capture',
       API: 'Express / Node',
@@ -122,6 +132,7 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/Shadow-quest.git',
     status: 'live',
     featured: true,
+    note: coldStartNote,
     plane: {
       Client: 'React / Capacitor',
       API: 'Node',
@@ -143,6 +154,7 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git',
     status: 'live',
     featured: true,
+    note: coldStartNote,
     plane: {
       Client: 'React / Capacitor',
       API: 'Express',
@@ -180,7 +192,7 @@ export const projects: Project[] = [
     year: '2025',
     stack: ['Python', 'Streamlit', 'Open-Meteo API'],
     image: shotWeather,
-    href: 'https://weather-sense-pbwmsehcq8etxhy7vufp6i.streamlit.app/',
+    href: 'https://weather-sense-kutb55y3djjhmcbymj6wjh.streamlit.app/',
     action: 'Live app',
     repo: 'https://github.com/ssambit635-svg/Weather-sense.git',
     status: 'live',
@@ -201,10 +213,14 @@ export const projects: Project[] = [
     year: '2025',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
     image: shotAws,
-    href: 'https://lnkd.in/dgA4fPCR',
-    action: 'Project note',
+    href: 'https://aws-dashboard-frontend.vercel.app/',
+    action: 'Live demo',
+    repo: 'https://github.com/ssambit635-svg/Aws-dashboard-frontend',
     status: 'lab',
     featured: true,
+    // The page is on Vercel, but its data comes from a free Render API that
+    // sleeps, so the dashboard sits on "Loading" until that wakes.
+    note: coldStartNote,
     plane: {
       Client: 'React / Recharts',
       API: 'FastAPI',

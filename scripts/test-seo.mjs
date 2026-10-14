@@ -14,14 +14,14 @@ for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard]]) {
   assert.ok(canonical && new URL(canonical), `${name} canonical must be absolute`)
 }
 
-assert.match(home, /Sambit Swain \| Software Developer Portfolio/)
+assert.match(home, /Sambit Swain \| Cloud &amp; Full-stack Developer/)
 /* The hero copy is laid on the panel's cylinder, so every word is its own inline-block.
    Pin the text of the two elements instead of their raw adjacency: still real, crawlable
    copy in the prerendered HTML, still nothing hiding behind an image. */
 const visible = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 const heroLabel = home.match(/<p class="hero-screen-label">([\s\S]*?)<\/p>/)?.[1] ?? ''
 const heroTitle = home.match(/<h1 class="hero-screen-title">([\s\S]*?)<\/h1>/)?.[1] ?? ''
-assert.equal(visible(heroLabel), 'DEVOPS ENGINEER · CLOUD · DESIGN')
+assert.equal(visible(heroLabel), 'CLOUD · FULL-STACK · CSE ’29')
 assert.equal(visible(heroTitle), 'From code to cloud. From pixels to production.')
 assert.equal((heroTitle.match(/class="hero-line"/g) || []).length, 2, 'the hero title should stay two lines')
 assert.equal((heroTitle.match(/class="hero-word"/g) || []).length, 8, 'every word of the headline should be on the arc')

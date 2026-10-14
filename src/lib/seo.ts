@@ -27,9 +27,9 @@ export const pages: Record<PageKey, PageMeta> = {
   home: {
     path: '',
     prefix: '',
-    title: 'Sambit Swain | Software Developer Portfolio',
+    title: 'Sambit Swain | Cloud & Full-stack Developer',
     description:
-      'Sambit Swain is a B.Tech Computer Science student and software developer in Berhampur, India. Explore web apps, cloud experiments and hackathon projects.'
+      'Sambit Swain is a B.Tech Computer Science student and cloud & full-stack developer in Berhampur, India. Explore web apps, cloud experiments and hackathon projects.'
   },
   dashboard: {
     path: 'dashboard/',

@@ -123,7 +123,7 @@ function Hero() {
           <img src={heroMonitor} alt="" width={1376} height={768} className="hero-monitor" fetchPriority="high" />
           <div className="hero-screen">
             <p className="hero-screen-label">
-              <ArcLine text="DEVOPS ENGINEER · CLOUD · DESIGN" />
+              <ArcLine text="CLOUD · FULL-STACK · CSE ’29" />
             </p>
             <h1 className="hero-screen-title">
               <ArcLine text="From code to cloud." />
@@ -167,6 +167,7 @@ function Works() {
                 <a className="ww-front-link" href={project.href} target="_blank" rel="noreferrer" aria-label={`${project.action} for ${project.title}`}>{project.action} <Arrow /></a>
                 {project.repo && <a className="ww-front-link" href={project.repo} target="_blank" rel="noreferrer" aria-label={`Source code for ${project.title}`}>Source <Arrow /></a>}
               </p>
+              {project.note && <p className="ww-meta-note">{project.note}</p>}
             </>
           )
         }}
@@ -188,10 +189,13 @@ function Works() {
                 <p className="works-row-meta">{project.kind} · {project.year}</p>
               </div>
               <p className="works-row-desc">{project.description}</p>
-              <p className="works-row-links">
-                <a href={project.href} target="_blank" rel="noreferrer">{project.action}</a>
-                {project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source</a>}
-              </p>
+              <div className="works-row-side">
+                <p className="works-row-links">
+                  <a href={project.href} target="_blank" rel="noreferrer">{project.action}</a>
+                  {project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source</a>}
+                </p>
+                {project.note && <p className="works-row-note">{project.note}</p>}
+              </div>
             </li>
           ))}
         </ol>
