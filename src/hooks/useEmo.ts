@@ -96,6 +96,7 @@ export function useEmo() {
     /* --- what the loop owns ------------------------------------------------ */
     let gx = 0, gy = 0, tx = 0, ty = 0            // gaze: smoothed, target
     let pop = 0, squint = 0, converge = 0, lean = 0, tilt = 0, drift = 0
+    let shut = 0                                  // how far the lids are closed, eased
     let blink = -1, nextBlink = performance.now() + rand(1600, 4000), lidHold = 0
     let wobble = 0, shake = 0, voice = 0
     let box = hit.getBoundingClientRect()
@@ -233,7 +234,12 @@ export function useEmo() {
       if (navigator.onLine === false) return 'offline'
       const quiet = performance.now() - lastInput
       const hour = new Date().getHours()
-      if (quiet > 240_000 || hour < 5 || hour >= 23) return 'sleep'
+      // He keeps desk hours — but not in front of somebody who is standing right there.
+      // A robot that dozes while you are poking him reads as broken eyes, not as charm,
+      // so at night he only dozes once the desk has genuinely gone quiet; in the day he
+      // owes four minutes of stillness before the same nap.
+      const night = hour < 5 || hour >= 23
+      if (quiet > 240_000 || (night && quiet > 30_000)) return 'sleep'
       if (quiet > 25_000) return 'idle'
       return 'curious'
     }
@@ -567,8 +573,16 @@ export function useEmo() {
       // drifting by a pixel or two, so that jitter is added on the way out — it is
       // not part of the target, or he would never be able to settle and stop.
       const saccade = Math.sin(now / 780) * 0.62 + Math.sin(now / 337 + 1.7) * 0.38
-      squint = ease(squint, asleep ? 0.7 : fast, 9, dt)
-      const lid = blink >= 0 ? Math.sin(Math.PI * blink) : asleep ? 0.94 : 0
+      squint = ease(squint, fast, 9, dt)
+      // Lids are a door, not a switch: dozing closes them over about a second and waking
+      // opens them the same way, so the sleep face never snaps onto him — and a poke at
+      // night gets a robot opening his eyes, not a screenshot flipping.
+      shut = reduce ? (asleep ? 0.86 : 0) : ease(shut, asleep ? 0.86 : 0, asleep ? 2.2 : 3.2, dt)
+      // Awake, a blink is a full close. Asleep it is only a flutter on top of the closed
+      // lids: a sleeper whose eyes snap wide open every few seconds looks broken, not
+      // tired, which is exactly the tell this face used to have.
+      const flutter = blink >= 0 ? Math.sin(Math.PI * blink) : 0
+      const lid = asleep ? Math.min(1, shut + flutter * 0.14) : Math.max(shut, flutter)
 
       if (active && now > active.until) active = null
       const next = active ? active.face : mood()

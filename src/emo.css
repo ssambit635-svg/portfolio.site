@@ -117,7 +117,16 @@
 [data-face='happy'] .emo-orb { --emo-face-sy: -0.3; --emo-face-y: 0.08em; --emo-face-anchor: 0.5em; filter: blur(0.08em) brightness(1.12); }
 [data-face='worried'] .emo-a .emo-orb { --emo-face-y: -0.12em; --emo-face-sy: -0.14; }
 [data-face='worried'] .emo-b .emo-orb { --emo-face-sx: -0.08; --emo-face-sy: 0.06; }
-[data-face='sleep'] .emo-orb { --emo-face-sy: -0.9; --emo-face-anchor: 0.4em; filter: blur(0.08em) brightness(0.8); }
+/* Asleep: closed lids, not erased eyes. The lid line keeps his mid tone, dimmed, sitting
+   low in the socket, and the glass glow still breathes faintly under it — a slit squashed
+   to a pixel with the light off reads as "his eyes are broken", not as "he is sleeping".
+   How far the lids close lives in the loop (--emo-lid eases to 0.86), so dozing and
+   waking are motion, and this face only chooses what a closed lid looks like. */
+[data-face='sleep'] .emo-orb {
+  --emo-face-anchor: 0.34em;
+  background: radial-gradient(80% 94% at 50% 44%, var(--emo-eye-mid) 0 36%, var(--emo-eye-glow) 74%, transparent 100%);
+  filter: blur(0.07em) brightness(0.74);
+}
 [data-face='peek'] .emo-a .emo-orb { --emo-face-sy: -0.76; }
 [data-face='peek'] .emo-b .emo-orb { --emo-face-sy: -0.56; filter: blur(0.06em) brightness(1.08); }
 [data-face='dizzy'] .emo-orb { animation: emo-sway 1.5s ease-in-out infinite; }
