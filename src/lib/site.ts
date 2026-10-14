@@ -22,7 +22,7 @@ export const profile = {
   name: 'Sambit Swain',
   first: 'Sambit',
   last: 'Swain',
-  role: 'Full-stack & cloud',
+  role: 'Cloud & full-stack',
   classTag: "CSE '29",
   country: 'India',
   city: 'Berhampur, India',

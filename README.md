@@ -1,7 +1,7 @@
 <div align="center">
 
 # Sambit Swain
-### Software Developer · Web Development · Cloud Technology
+### Cloud & Full-stack Developer
 
 A personal portfolio for the projects, experiments and hackathon builds I ship.
 Editorial paper layout, a systems map of the work and a separate certificates dashboard—backed by crawlable HTML.
@@ -19,7 +19,7 @@ Editorial paper layout, a systems map of the work and a separate certificates da
 
 ## At a glance
 
-- **Identity first:** Sambit Swain, a software developer and computer science student in Berhampur, India.
+- **Identity first:** Sambit Swain, a computer science student and cloud & full-stack developer in Berhampur, India.
 - **Eight projects, on a works wheel:** the index rests as a ring of covers around a title, the first scroll opens it into a drum and keeps turning until the last piece has passed the front. The same eight follow as a text index with their descriptions and genuine live/repository links.
 - **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
 - **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, no blocking intro sequence, no audio.

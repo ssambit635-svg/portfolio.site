@@ -31,13 +31,13 @@ export default function Seo({ page = 'home' }: { page?: PageKey }) {
       <meta property="og:image:type" content="image/jpeg" />
       <meta
         property="og:image:alt"
-        content="Sambit Swain, software developer and computer science student"
+        content="Sambit Swain, a cloud and full-stack developer and computer science student"
       />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={meta.title} />
       <meta name="twitter:description" content={meta.description} />
       <meta name="twitter:image" content={`${siteUrl}sambit-swain.jpg`} />
-      <meta name="twitter:image:alt" content="Sambit Swain - Software Developer" />
+      <meta name="twitter:image:alt" content="Sambit Swain - Cloud & Full-stack Developer" />
       {import.meta.env.VITE_GOOGLE_SITE_VERIFICATION && (
         <meta name="google-site-verification" content={import.meta.env.VITE_GOOGLE_SITE_VERIFICATION} />
       )}

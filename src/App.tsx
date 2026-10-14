@@ -123,7 +123,7 @@ function Hero() {
           <img src={heroMonitor} alt="" width={1376} height={768} className="hero-monitor" fetchPriority="high" />
           <div className="hero-screen">
             <p className="hero-screen-label">
-              <ArcLine text="DEVOPS ENGINEER · CLOUD · DESIGN" />
+              <ArcLine text="CLOUD · FULL-STACK · CSE ’29" />
             </p>
             <h1 className="hero-screen-title">
               <ArcLine text="From code to cloud." />
