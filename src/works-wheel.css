@@ -240,6 +240,17 @@
   color: var(--green);
   border-color: var(--green);
 }
+/* A caveat under the actions — the free hosts that sleep, so a first click is
+   not read as a dead link. */
+.ww-meta-note {
+  margin: 16px 0 0;
+  max-width: 36ch;
+  padding-left: 10px;
+  border-left: 2px solid var(--green);
+  color: #8d8880;
+  font-size: 11px;
+  line-height: 1.5;
+}
 
 .ww-index {
   position: absolute;
@@ -424,6 +435,11 @@
   font-size: 13px;
   line-height: 1.6;
 }
+.works-row-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 .works-row-links {
   display: flex;
   gap: 16px;
@@ -440,6 +456,13 @@
   color: var(--green);
   border-color: var(--green);
 }
+.works-row-note {
+  margin: 0;
+  max-width: 22ch;
+  color: #8d8880;
+  font-size: 10px;
+  line-height: 1.5;
+}
 
 @media (max-width: 850px) {
   .works-index {
@@ -455,7 +478,7 @@
     gap: 12px 16px;
   }
   .works-row-desc,
-  .works-row-links {
+  .works-row-side {
     grid-column: 2;
   }
 }
