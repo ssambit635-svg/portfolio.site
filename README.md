@@ -110,30 +110,42 @@ Vite has no built-in sitemap or metadata routing API. Metadata comes from React 
 
 The hero photo has a small desk robot standing left of the keyboard, and his eyes are
 painted into `src/assets/hero-monitor.jpg`. He is given a live face without the photo
-ever being retouched:
+ever being retouched, and without anything laid over it:
 
-- `scripts/emo-geometry.mjs` measures his glows out of the JPEG — cyan pixels inside a
-  band over his face, split into two blobs by the emptiest column — and writes
-  `src/lib/emoFace.ts`: the display plate, both eye boxes, how far a pupil may travel,
-  his head tilt. All of it in percentages of the photo, so the overlay rides the hero
-  crop at every viewport instead of drifting off his face. The same run cuts
-  `src/assets/emo-visor.png`: his own glass with the painted eyes inpainted out of it,
-  a row-wise line fill that keeps the gradient of the screen and the reflection running
-  across it. The live eyes are drawn *on that patch*, so there is no rectangle to
-  colour-match and no seam to argue with.
-- `src/hooks/useEmo.ts` watches the pointer, scroll, keystrokes, device orientation,
-  battery and connectivity — and the microphone, but only while the visitor holds
-  `Space`, so the OS record light is off the moment they let go. Handlers only record;
-  one rAF loop owns every expression and paints about eleven custom properties on his
-  root. It stops when he settles, when the hero scrolls away, when the tab is hidden,
-  and when a narrow crop leaves him out of frame.
-- `src/emo.css` turns those properties into blinks, squints, a lean-in, a voice ring
-  and a dozen moods. `prefers-reduced-motion` keeps his face and drops the twitching.
+- `scripts/emo-geometry.mjs` measures him — the cyan cores of both eyes (found as pixels
+  in a band over his face, split at the emptiest column), how far each glow's foot
+  reaches, how bright his glass is around each eye, and his eye colours at their hot
+  centre, their body and their halo. It writes `src/lib/emoFace.ts` with every position
+  in percentages of the photo, so the face rides the hero crop at any viewport instead
+  of drifting off his head, and the travel limit that keeps an eye inside his display
+  and never across into the other one.
+- His face is **three blend layers per eye and no wrapper around them**. `darken` clips
+  whatever is brighter than his glass back down to his glass — that erases the painted
+  eyes and leaves the dark around them, and the reflection across the screen, exactly as
+  it was. `screen` then adds a halo, and `screen` adds the eye itself, in the colours
+  sampled from his own paint: light on glass, which is why it saturates over the
+  reflection instead of smearing across it. There is no plate, no patch and no rectangle
+  to colour-match, so there is no seam and no second display inside his head.
+  The layers are siblings for a reason: a `transform`, `z-index`, `filter` or faded
+  `opacity` on any ancestor turns it into a *blend container*, and the blending would
+  happen against that element's empty contents instead of against the photograph. Head
+  motion therefore reaches each layer as its own translation. `npm run test:seo` fails if
+  the isolation creeps back in, or if the paint order stops being clips → halos → eyes.
+- `src/hooks/useEmo.ts` watches the pointer, the keyboard under his nose, scroll
+  velocity, copy and cut, window resizes, device orientation, battery, connectivity and
+  the tab — plus the microphone, but only while the visitor holds `Space`, so the OS
+  record light is off the moment they let go. Handlers only record; one rAF loop decides
+  what his face does and paints ~11 custom properties, then stops when he settles, when
+  the hero scrolls away, when the tab is hidden and when a narrow crop leaves him out of
+  frame. While nobody is at the keyboard it wakes for a breath every few seconds, which
+  is where blinking, the wandering gaze and the late-night sleep live.
+- `src/emo.css` turns those properties into blinks, squints, dilations and a dozen
+  moods — all of them brightness, size and colour, because a face that is a display does
+  not have eyelids. `prefers-reduced-motion` keeps his face and drops the twitching.
 
-Nothing here is measured by eye, and nothing is trusted to stay true: the build ends by
-re-measuring the photo (`emo-geometry.mjs --check`) and fails if the committed geometry
-or the patch has drifted. Re-cropping the hero therefore either moves his eyes or
-breaks the build — never silently misaligns them.
+Nothing is measured by eye and nothing is trusted to stay true: `npm run build` ends by
+re-measuring the photo (`emo-geometry.mjs --check`), so re-cropping the hero either moves
+his eyes or breaks the build — never misaligns them quietly.
 
 ## Customize content
 

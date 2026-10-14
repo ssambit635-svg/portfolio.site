@@ -90,24 +90,35 @@ assert.match(heroFrame, /100vh/, 'hero scene should always be at least viewport-
 assert.match(heroFrame, /top:\s*calc\(\(100vh\s*-\s*var\(--hero-h\)\)\s*\*\s*\.65\)/, 'hero scene should crop mostly above the monitor')
 
 /* Emo — the little robot painted into the hero photo, on the desk left of the
-   keyboard. He is a live layer, so the checks are about alignment and honesty:
-   he has to be in the rendered HTML at the measured spot, clickable only where he
-   is, and silent about anything the page cannot actually do. */
+   keyboard. He is a live layer, so the checks are about alignment and honesty: he has
+   to be in the rendered HTML at the measured spot, clickable only where he is, and
+   drawn with blend modes rather than a plate over his face. */
 assert.match(home, /class="emo"[^>]*data-face="curious"/, 'Emo should be in the rendered hero, not only after hydration')
 assert.ok(home.indexOf('class="emo"') > home.indexOf('class="hero-screen"'), 'Emo should be layered after the monitor screen')
-assert.match(home, /--emo-plate-x:\s*\d+(?:\.\d+)?%/, 'Emo should sit on geometry measured from the photo')
-assert.match(home, /<span class="emo-plate" aria-hidden="true"/, 'the visor patch is decoration, not content')
+assert.match(home, /--emo-box-x:\s*\d+(?:\.\d+)?%/, 'Emo should sit on geometry measured from the photo')
+assert.match(home, /--emo-eye-peak:\s*rgb\(/, 'his eyes should be his own measured colours, not a palette guess')
+assert.match(home, /<span class="emo-clip emo-a"[^>]*aria-hidden="true"/, 'the erase layer is decoration, not content')
 assert.match(home, /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/, 'his tap target should say who it is')
 assert.match(home, /class="emo-chip"[^>]*data-live="0"/, 'the microphone starts off and stays opt-in')
 assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')
 assert.match(bundledCss, /\.emo\{[^}]*pointer-events:none/, 'Emo must not swallow clicks meant for the hero')
 assert.match(bundledCss, /\.emo\{[^}]*font-size:1cqw/, 'Emo should scale with the photo he is painted on, not the viewport')
 assert.match(bundledCss, /\.emo-hit\{[^}]*pointer-events:auto/, 'his tap target should be the one clickable thing in the hero')
-// The patch of glass he is drawn on is his own photo, cut by the generator. It has to
-// be referenced relatively: an absolute /assets/… url 404s under the project subpath.
-const visor = bundledCss.match(/\.emo-plate\{[^}]*url\(\.\/([^)]*emo-visor[^)]*\.png)\)/)?.[1] ?? ''
-assert.ok(visor, "Emo's visor patch should be the background of .emo-plate")
-assert.ok(assetFiles.includes(visor), `Emo's visor patch (${visor}) should ship next to the stylesheet`)
-assert.match(bundledCss, /@media\(prefers-reduced-motion:reduce\)\{[^@]*\.emo-orb/, 'reduced motion should still leave Emo his face, minus the twitching')
+// His face is two blend layers, and nothing else. A plate, a patch or a rectangle of
+// "matching" dark glass is how he ends up looking like a second display on his head.
+assert.match(bundledCss, /\.emo-clip\{[^}]*mix-blend-mode:darken/, 'his paint should be erased by clipping light, not by covering it')
+assert.match(bundledCss, /\.emo-glow\{[^}]*mix-blend-mode:screen/, 'his glow should be added as light')
+assert.match(bundledCss, /\.emo-orb\{[^}]*mix-blend-mode:screen/, 'his eyes should be added as light')
+// The whole reason he looked like an overlay: any ancestor that forms a stacking context
+// turns into a blend container, and the blending stops reaching the photograph.
+const emoBlock = bundledCss.slice(bundledCss.indexOf('.emo{'), bundledCss.indexOf('.emo[data-off'))
+assert.doesNotMatch(emoBlock, /z-index|opacity|filter|transform|will-change|contain|isolation|perspective|backdrop-filter|mix-blend-mode/, 'nothing between his blend layers and the photo may form a blend container, or the blending stops reaching the photograph')
+const emoHome = home.slice(home.indexOf('class="emo"'), home.indexOf('class="emo-hit"'))
+assert.match(emoHome, /emo-clip emo-a[\s\S]*emo-clip emo-b[\s\S]*emo-glow emo-a[\s\S]*emo-glow emo-b[\s\S]*emo-orb emo-orb-a[\s\S]*emo-orb emo-orb-b/, 'paint order is blend order: both clips, then both halos, then both eyes')
+assert.doesNotMatch(bundledCss, /emo-visor|\.emo-plate/, 'there should be no plate, and no overlay image, on his face')
+// And nothing about him is drawn on hover: no ring, no box, no highlight.
+assert.doesNotMatch(bundledCss, /\.emo-hit:hover|\.emo-hit:after/, 'hovering him should not draw a box around his head')
+assert.match(bundledCss, /\.emo-hit:focus-visible\{outline/, 'the keyboard path to him still needs a focus ring')
+assert.match(bundledCss, /@media\(prefers-reduced-motion:reduce\)\{[^@]*\.emo-glow/, 'reduced motion should still leave Emo his face, minus the twitching')
 // And the geometry in the bundle must still be what the photo says it is.
 execFileSync(process.execPath, ['scripts/emo-geometry.mjs', '--check'], { stdio: 'inherit' })

@@ -6,67 +6,80 @@ import '../emo.css'
 /**
  * Emo, the desk robot in the hero photograph.
  *
- * He is not an illustration on top of the photo — he is the photo's own robot,
- * re-lit: a plate of his glass is drawn over the eyes baked into the picture and
- * two real eyes are rendered inside it, so he can look at the cursor, watch you
- * type, flinch when the window is resized, and go amber when the network drops.
- * Every position is a percentage of the photo measured by
- * scripts/emo-geometry.mjs, which is why he still sits in his socket when the
- * hero is cropped from 21:9 down to a tablet. Where the crop leaves him out of
- * frame (a narrow phone) he simply stops — see useEmo.
+ * Nothing is painted over him, and nothing wraps him. Every value is measured off the
+ * photo by scripts/emo-geometry.mjs — positions as percentages so he rides the hero crop
+ * at any viewport, colours sampled from his own pixels — and his face is three blend
+ * layers per eye: `darken` clips his painted eyes back to the dark of his glass, then
+ * `screen` adds a halo, then `screen` adds the eye itself. That is why his screen stays
+ * his screen instead of gaining a second display, and why every one of his layers is a
+ * sibling of the others: any transform, z-index, filter or faded opacity on an ancestor turns that
+ * ancestor into a blend container, and the blending would then happen against thin air
+ * instead of against the photograph. (See the top of src/emo.css.)
+ *
+ * Where the crop leaves him out of frame (a narrow phone) he stops; see useEmo.
  */
 const pc = (value: number) => `${value}%`
+const side = (index: number) => (index === 0 ? 'a' : 'b')
 
 export default function EmoRobot() {
   const { rootRef, hitRef, hintRef, mic, motion, armMic, armMotion } = useEmo()
-  const { plate, head, eyes, glass } = emoFace
+  const { head, eyes } = emoFace
 
   const stage = {
-    '--emo-plate-x': pc(plate.x),
-    '--emo-plate-y': pc(plate.y),
-    '--emo-plate-w': pc(plate.w),
-    '--emo-plate-h': pc(plate.h),
     '--emo-head-x': pc(head.x),
     '--emo-head-y': pc(head.y),
     '--emo-head-w': pc(head.w),
     '--emo-head-h': pc(head.h),
-    '--emo-glass': glass,
-    '--emo-face-turn': `${emoFace.turn}deg`,
-    '--emo-roam': eyes[0]?.roam ?? 1,
   } as CSSProperties
+
+  const layers = eyes.map((eye, index) => ({
+    side: side(index),
+    style: {
+      // The box his glow fills — the erase and the halo both live here.
+      '--emo-box-x': pc(eye.socket.x),
+      '--emo-box-y': pc(eye.socket.y),
+      '--emo-box-w': pc(eye.socket.w),
+      '--emo-box-h': pc(eye.socket.h),
+      // And the box his paint actually occupies, so a resting eye lands on it exactly.
+      '--emo-core-x': pc(eye.core.x),
+      '--emo-core-y': pc(eye.core.y),
+      '--emo-core-w': pc(eye.core.w),
+      '--emo-core-h': pc(eye.core.h),
+      '--emo-eye-glass': eye.glass,
+      '--emo-eye-peak': eye.peak,
+      '--emo-eye-mid': eye.mid,
+      '--emo-eye-glow': eye.glow,
+      '--emo-roam-x': eye.roam.x,
+      '--emo-roam-y': eye.roam.y,
+    } as CSSProperties,
+  }))
 
   return (
     <div className="emo" ref={rootRef} style={stage} data-face="curious">
-      <div className="emo-head">
-        <span className="emo-plate" aria-hidden="true" />
-        {eyes.map((eye, index) => (
-          <span
-            key={index}
-            className={`emo-eye emo-eye-${index === 0 ? 'a' : 'b'}`}
-            aria-hidden="true"
-            style={{
-              '--emo-eye-x': pc(eye.cx),
-              '--emo-eye-y': pc(eye.cy),
-              '--emo-eye-w': pc(eye.w),
-              '--emo-eye-h': pc(eye.h),
-            } as CSSProperties}
-          >
-            <i className="emo-orb" />
-          </span>
-        ))}
-        <span className="emo-hint" ref={hintRef} aria-hidden="true" />
-      </div>
+      {/* Paint order is blend order: all three clips first, so no eye's darkening step
+          lands on top of the light the other eye is already throwing. */}
+      {layers.map(l => (
+        <span key={`clip${l.side}`} className={`emo-clip emo-${l.side}`} style={l.style} aria-hidden="true" />
+      ))}
+      {layers.map(l => (
+        <span key={`glow${l.side}`} className={`emo-glow emo-${l.side}`} style={l.style} aria-hidden="true" />
+      ))}
+      {layers.map(l => (
+        <span key={`orb${l.side}`} className={`emo-orb emo-orb-${l.side} emo-${l.side}`} style={l.style} aria-hidden="true" />
+      ))}
+      <span className="emo-hint" ref={hintRef} aria-hidden="true" />
 
-      {/* He answers to a poke, and to Enter when the tab order reaches him. */}
+      {/* He answers to a poke, and to Enter when the tab order reaches him. No ring, no
+          hover box: he is a robot on a desk, not a control. */}
       <button className="emo-hit" ref={hitRef} type="button" aria-label="Say hello to Emo, the robot on the desk" />
 
       <span className="emo-sr" role="status" aria-live="polite">
         {mic === 'hot' ? 'Emo is listening. Release space to stop.' : mic === 'ready' ? 'Emo can hear you now: hold space to talk.' : ''}
       </span>
 
-      {/* Two switches, both opt-in, both reversible, and nothing leaves the device:
-          the mic is open only while space is held, and orientation stays in the page.
-          A device with no tilt sensor never gets offered the second one. */}
+      {/* Two switches, both opt-in, both reversible, and nothing leaves the device: the
+          mic is open only while Space is held, and orientation stays in the page. A
+          device with no tilt sensor never gets offered the second one. */}
       {mic !== 'blocked' && (
         <span className="emo-senses">
           <button className="emo-chip" type="button" onClick={armMic} data-live={mic === 'hot' ? '1' : '0'}>

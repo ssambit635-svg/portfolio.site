@@ -171,7 +171,7 @@ export function useEmo() {
       pokes += 1
       sessionStorage.setItem('emo-pokes', String(pokes))
       fire(pokes >= 4 ? 'poke3' : pokes === 2 ? 'poke2' : 'poke')
-      pointerTilt = -1.6
+      pointerTilt = -0.9
     }
     const onPointerDown = poke
     const onClick = (event: MouseEvent) => {
@@ -402,7 +402,7 @@ export function useEmo() {
       if (!reduce) {
         if (blink < 0 && now > nextBlink) blink = 0
         if (blink >= 0) {
-          blink += dt / (face === 'sleep' ? 0.42 : 0.14)
+          blink += dt / (face === 'sleep' ? 0.46 : 0.16)
           if (blink >= 1) { blink = -1; nextBlink = now + rand(2200, 6400) * (idle > 40_000 ? 0.35 : 1) }
         }
         wobble *= Math.exp(-5.4 * dt)
@@ -419,19 +419,23 @@ export function useEmo() {
       const asleep = face === 'sleep'
       const near = clamp(1 - pointerDist / 1.2, 0, 1)
       const fast = keys.length >= 11 ? 1 : keys.length >= 7 ? 0.5 : 0
-      gx = ease(gx, clamp(tx + orientX * 0.55 + drift * 0.35), 11, dt)
-      gy = ease(gy, clamp(ty + orientY * 0.45 + clamp(scrollV / 5200) * 0.3), 11, dt)
-      pop = ease(pop, asleep ? 0.04 : 0.62 * near * near + voice * 0.45, 9, dt)
-      converge = ease(converge, 0.55 * near * near, 9, dt)
+      gx = ease(gx, clamp(tx + orientX * 0.5 + drift * 0.3), 11, dt)
+      gy = ease(gy, clamp(ty + orientY * 0.4 + clamp(scrollV / 5200) * 0.25), 11, dt)
+      pop = ease(pop, asleep ? 0.04 : 0.5 * near * near + voice * 0.4, 9, dt)
+      converge = ease(converge, 0.35 * near * near, 9, dt)
       lean = ease(lean, near, 6, dt)
       tilt = ease(tilt, pointerTilt * 1.4 * near, 5, dt)
+      // Eyes that hold perfectly still are a screensaver. Real ones never stop
+      // drifting by a pixel or two, so that jitter is added on the way out — it is
+      // not part of the target, or he would never be able to settle and stop.
+      const saccade = Math.sin(now / 780) * 0.62 + Math.sin(now / 337 + 1.7) * 0.38
       squint = ease(squint, asleep ? 0.7 : fast, 9, dt)
       const lid = blink >= 0 ? Math.sin(Math.PI * blink) : asleep ? 0.94 : 0
 
       if (active && now > active.until) active = null
       show(active ? active.face : mood())
 
-      set('--emo-gx', gx); set('--emo-gy', clamp(gy))
+      set('--emo-gx', clamp(gx + saccade * 0.3)); set('--emo-gy', clamp(gy + saccade * 0.12))
       set('--emo-lid', lid); set('--emo-pop', pop)
       set('--emo-squint', squint); set('--emo-converge', converge)
       set('--emo-lean', reduce ? 0 : lean); set('--emo-tilt', reduce ? 0 : tilt)
@@ -440,7 +444,7 @@ export function useEmo() {
       set('--emo-shake', reduce ? 0 : Math.sin(now / 19) * shake)
 
       const settled =
-        Math.abs(gx - tx) + Math.abs(gy - ty) + Math.abs(pop - 0.62 * near * near) + lid + voice + wobble + shake < 0.014
+        Math.abs(gx - tx) + Math.abs(gy - ty) + Math.abs(pop - 0.5 * near * near) + lid + voice + wobble + shake < 0.014
       restFrames = settled && !active && !analyser ? restFrames + 1 : 0
       if (restFrames > 110) { restFrames = 0; stop(); breathe(); return }
       raf = onScreen && !document.hidden ? requestAnimationFrame(frame) : 0
