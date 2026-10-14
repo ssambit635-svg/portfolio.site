@@ -26,27 +26,36 @@
 }
 /* The display is measured against the 1376 × 768 photo, not the viewport.
    Keep the copy and glass texture inside the inner bezel as the scene scales. */
+/* The display is measured against the 1376 × 768 photo, not the viewport. The panel
+   bends, so the glass is not a rectangle: its top edge sits 3.8% of the box lower in
+   the middle than at either end, and its bottom edge 5.2% higher. That lens is the
+   clip-path, sampled off the photo's own bezel highlights, so neither the tint nor
+   the glass texture can reach the bezel — the old straight-edged box is what bled
+   green out to the sides. The side falloff is dark, not green: a panel turning away
+   is shading, and it is what sells the curve. */
 .hero-screen {
   position: absolute;
-  left: 18.2%;
-  top: 21.6%;
-  width: 63%;
-  height: 33.7%;
+  left: 20.5%;
+  top: 19.6%;
+  width: 59%;
+  height: 37.8%;
   overflow: hidden;
-  border-radius: 1% / 5%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1.5cqw;
-  padding: 2cqw;
+  padding: 2.6cqw 3cqw;
   text-align: center;
   font-family: var(--sans);
-  background: radial-gradient(ellipse at 50% 48%, #91d5b708, transparent 70%);
+  clip-path: polygon(0.00% 0.50%, 2.46% 0.50%, 7.63% 1.19%, 16.00% 2.22%, 24.51% 2.57%, 33.00% 3.25%, 41.51% 3.60%, 50.00% 4.29%, 58.37% 3.60%, 66.88% 3.25%, 75.37% 2.91%, 83.88% 2.22%, 92.37% 1.19%, 100.00% 1.19%, 100.00% 99.37%, 92.37% 99.37%, 83.88% 99.02%, 75.37% 94.89%, 66.88% 94.89%, 58.37% 94.55%, 50.00% 94.55%, 41.51% 94.55%, 33.00% 94.89%, 24.51% 94.89%, 16.00% 99.02%, 7.63% 99.37%, 2.46% 99.71%, 0.00% 99.71%);
+  background:
+    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.03), transparent 58%),
+    linear-gradient(90deg, rgba(3, 10, 8, 0.62) 0, rgba(3, 10, 8, 0.16) 9%, transparent 20%, transparent 80%, rgba(3, 10, 8, 0.16) 91%, rgba(3, 10, 8, 0.62) 100%);
 }
 .hero-screen-label {
   margin: 0;
-  color: #9db7ad;
+  color: #b6cbc3;
   font-size: .8cqw;
   font-weight: 500;
   line-height: 1.4;
@@ -63,25 +72,42 @@
   font-size: min(3.2cqw, 6.4vw);
   font-weight: 500;
   line-height: 1.25;
-  letter-spacing: -.045em;
-  color: #dbe8e2;
-  text-shadow: 0 0 .55cqw #aadbc221;
+  letter-spacing: -.018em;
+  color: #e3efea;
+  /* 0.55cqw of halo around 44px letters is ~8px of bloom — that reads as smudge, not
+     as a screen. What stays is a tight bright edge plus a dark drop that separates the
+     type from the glass without adding colour to it. */
+  text-shadow: 0 .05cqw .1cqw rgba(210, 255, 235, 0.22), 0 .12cqw .4cqw rgba(0, 0, 0, 0.55);
 }
-.hero-screen-title span {
+/* One line per block, one word per inline-block: an inline-block is the only thing a
+   browser will rotate onto the cylinder, and the block line must not swallow it. */
+.hero-screen-title .hero-line {
   display: block;
   white-space: nowrap;
 }
-.hero-screen-title span + span {
-  color: #bdd2c8;
+.hero-word {
+  display: inline-block;
+  transform-origin: 50% 58%;
+  backface-visibility: hidden;
 }
-/* A static, faint glass finish softens the digital type without a flicker. */
-.hero-screen::after {
+.hero-screen-title .hero-line + .hero-line {
+  color: #c6dbd2;
+}
+/* A static, faint glass finish — painted under the type. As an ::after it sat on top
+   of the letters, and a 1px-on-3px stripe crossing 44px glyphs is exactly why the
+   writing looked like overlapping smudges instead of text. */
+.hero-screen::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(0deg, #00000012 0 1px, transparent 1px 3px);
-  opacity: .35;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.13) 0 1px, transparent 1px 3px);
+  opacity: .5;
+}
+.hero-screen > * {
+  position: relative;
+  z-index: 1;
 }
 /* Anchored to the hero, not the photo: the scene is cropped from the top on
    short wide screens, and the name must stay above the fold either way. */
@@ -133,7 +159,6 @@
 @keyframes helloIn{from{opacity:0;transform:translateY(.35em);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
 @media(min-aspect-ratio:2/1){.tv-hello{top:12.5%;font-size:clamp(20px,2.4vw,40px)}}
 .preloader{position:fixed;inset:0;z-index:200;background:var(--black);display:grid;place-items:center;animation:preOut 1.5s cubic-bezier(.33,0,.2,1) 4.5s forwards}.pre-glow{position:absolute;width:70vw;height:60vh;background:radial-gradient(ellipse,rgba(0,240,131,.22) 0,rgba(0,155,85,.1) 40%,transparent 70%);filter:blur(18px);animation:preBreathe 2.4s ease-in-out infinite alternate}.pre-words{position:relative;display:grid;place-items:center}.pre-words span{grid-area:1/1;opacity:0;font-family:var(--serif);font-style:italic;color:var(--white);font-size:clamp(40px,8vw,92px);line-height:1.1;text-shadow:0 0 26px rgba(255,255,255,.3),0 0 70px rgba(0,240,131,.35);animation:preWord .9s cubic-bezier(.2,.7,.2,1) both}.pre-words span:nth-child(2){animation-delay:.9s}.pre-words span:nth-child(3){animation-delay:1.8s}.pre-words span:nth-child(4){animation-delay:2.7s}.pre-words span:nth-child(5){animation-delay:3.6s}
-@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
 
 @keyframes preWord{0%{opacity:0;transform:translateY(12px);filter:blur(10px)}25%,72%{opacity:1;transform:none;filter:blur(0)}100%{opacity:0;transform:translateY(-12px);filter:blur(10px)}}
 @keyframes preOut{to{opacity:0;visibility:hidden}}
@@ -182,9 +207,9 @@ footer{--machine-h:640px}
 .led-ico:hover .on{background:#eafff0;box-shadow:0 0 10px #66ffa0,0 0 3px #fff}
 .board{position:relative;flex:1;min-width:0}
 .board>img{display:block;width:100%;height:100%;object-fit:cover;border-radius:8px;box-shadow:0 24px 60px #000c}
-.polaroid{position:absolute;left:36%;top:44%;width:30%;margin:0;background:#f4f2ed;padding:5% 5% 0;border-radius:3px;transform:rotate(3.5deg);box-shadow:0 10px 24px #000b,0 2px 6px #0009;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s;z-index:2;cursor:pointer}
+.polaroid{position:absolute;left:36%;top:44%;width:30%;margin:0;background:#f4f2ed;padding:2.2% 2.2% 0;border-radius:2px;container-type:inline-size;transform:rotate(3.5deg);box-shadow:0 10px 24px #000b,0 2px 6px #0009;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s;z-index:2;cursor:pointer}
 .polaroid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;filter:saturate(.9)}
-.polaroid figcaption{font-family:var(--serif);font-style:italic;color:#333;text-align:center;font-size:clamp(9px,1.1vw,15px);padding:6% 0 7%;transform:rotate(-1.5deg)}
+.polaroid figcaption{font-family:var(--serif);font-style:italic;color:#333;text-align:center;font-size:clamp(8px,10.5cqw,15px);padding:3.4% 0 4.4%;transform:rotate(-1.5deg)}
 .polaroid .pin{position:absolute;left:50%;top:-4%;width:9%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828 60%,#7f1010);box-shadow:0 3px 6px #000c,inset 0 -2px 3px #0006;z-index:3}
 .polaroid:hover,.polaroid:focus-visible{transform:rotate(0deg) scale(2);z-index:40;box-shadow:0 40px 90px #000e,0 10px 30px #000c}
 @media(hover:none){.polaroid{transform:rotate(0deg) scale(1.6);z-index:40}}

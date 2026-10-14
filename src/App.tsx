@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import MacLaptop from './components/MacLaptop'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
@@ -77,6 +77,44 @@ function Nav() {
   )
 }
 
+/**
+ * The headline is laid on the panel's cylinder instead of pasted flat over it.
+ * The glass is measured off hero-monitor.jpg: the visible band is 262px tall in
+ * the middle and 288px at either end (9.9% more), i.e. the ends are closer to the
+ * lens — so each word is rotated about its own centre and scaled up toward the
+ * ends. Static transforms only, so SSR, no-JS and reduced-motion all get the
+ * same frame as a moving pointer.
+ */
+const ARC_SPREAD = 11 /** degrees of turn at the end of a line */
+const ARC_BULGE = 0.09 /** the measured height gain of the band at the ends */
+
+function ArcLine({ text }: { text: string }) {
+  const words = text.split(' ')
+  return (
+    <span className="hero-line">
+      {words.map((word, i) => {
+        const u = ((i + 0.5) / words.length) * 2 - 1
+        return (
+          <Fragment key={word + i}>
+            <span
+              className="hero-word"
+              style={{
+                transform: `perspective(1000px) rotateY(${(u * ARC_SPREAD).toFixed(2)}deg) scale(${(
+                  1 +
+                  ARC_BULGE * u * u
+                ).toFixed(3)})`,
+              }}
+            >
+              {word}
+            </span>
+            {i < words.length - 1 ? ' ' : ''}
+          </Fragment>
+        )
+      })}
+    </span>
+  )
+}
+
 function Hero() {
   return (
     <section id="home" className="hero">
@@ -84,10 +122,12 @@ function Hero() {
         <div className="hero-monitor-wrapper">
           <img src={heroMonitor} alt="" width={1376} height={768} className="hero-monitor" fetchPriority="high" />
           <div className="hero-screen">
-            <p className="hero-screen-label">DEVOPS ENGINEER · CLOUD · DESIGN</p>
+            <p className="hero-screen-label">
+              <ArcLine text="DEVOPS ENGINEER · CLOUD · DESIGN" />
+            </p>
             <h1 className="hero-screen-title">
-              <span>From code to cloud.</span>
-              <span>From pixels to production.</span>
+              <ArcLine text="From code to cloud." />
+              <ArcLine text="From pixels to production." />
             </h1>
           </div>
           <EmoRobot />

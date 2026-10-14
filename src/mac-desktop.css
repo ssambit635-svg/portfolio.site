@@ -42,16 +42,26 @@ footer#contact {
 .lap-frame {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  /* Centre it while there is slack above and below; the moment the window is
+     short enough that the full-bleed frame overflows, pin it to the top so the
+     overflow is taken out of the desk at the bottom instead of the menu bar at
+     the top. 27.2886vw is half of 100vw / (1180/644). */
+  top: max(calc(50svh - 27.2886vw), 0px);
+  transform: translateX(-50%);
   /* window x 113→1293, y 62→706 of the 1408×768 photo — same ratio as the
      photo itself, so object-fit shows exactly that window, unzoomed & sharp */
   aspect-ratio: 1180 / 644;
-  width: min(97vw, calc(100svh * 1.8323));
+  /* Full bleed: the window runs edge to edge, both sides — nothing caps the
+     width against the viewport height any more, so there is no gutter left or
+     right at any size. Below ~2.1:1 the machine is framed exactly as before,
+     just without the side gutters; wider than that the frame is taller than the
+     footer and the surplus is cropped off the desk at the bottom (see `top`),
+     so the screen is never cut. */
+  width: 100vw;
   overflow: hidden;
   pointer-events: auto;
   background: #05070a;
-  border-radius: 18px;
+  border-radius: 0;
 }
 .lap-frame::after {
   /* melts the studio backdrop at the window edges into the page */
