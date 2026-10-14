@@ -1,0 +1,229 @@
+/* Emo — the desk robot painted into the hero photo.
+
+   Geometry comes from scripts/emo-geometry.mjs as percentages of the photo, and
+   1em is pinned to 1% of the hero frame, so he scales with the crop exactly the
+   way the monitor's copy does. Two rules keep that honest: anything *on* him is
+   in em/% (it must scale with the photo), anything *written* on him is in
+   clamp()+vw (a caption the size of a photo would not be readable). */
+
+.emo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 1cqw;
+  --emo-roam: 1;
+  --emo-gx: 0; --emo-gy: 0; --emo-lid: 0; --emo-pop: 0; --emo-squint: 0;
+  --emo-converge: 0; --emo-lean: 0; --emo-tilt: 0; --emo-voice: 0;
+  --emo-wobble: 0; --emo-shake: 0;
+}
+
+/* A narrow phone crop leaves him out of frame; then there is nothing to animate. */
+.emo[data-off='1'] { visibility: hidden; }
+
+/* His whole head: it leans into the pointer and takes the shake when the window
+   is resized. The pivot is the neck, not the middle — he is standing, not floating. */
+.emo-head {
+  position: absolute;
+  inset: 0;
+  transform-origin: calc(var(--emo-head-x) + var(--emo-head-w) / 2) calc(var(--emo-head-y) + var(--emo-head-h));
+  transform:
+    rotate(calc(var(--emo-tilt) * 1deg))
+    translate(calc(var(--emo-shake) * 0.5em), calc(var(--emo-lean) * -0.3em + var(--emo-wobble) * 0.18em));
+}
+
+/* His display: the photo's own glass, with the painted eyes inpainted out of it by
+   scripts/emo-geometry.mjs and feathered at the border. Not a rectangle that has to
+   match his screen — it IS his screen, so there is no seam to argue with. It must
+   never be rotated or offset: it is pinned to the pixels it was cut from. */
+.emo-plate {
+  position: absolute;
+  left: var(--emo-plate-x);
+  top: var(--emo-plate-y);
+  width: var(--emo-plate-w);
+  height: var(--emo-plate-h);
+  /* The image is referenced here, not from JS: an inline style would put an absolute
+     /assets/… URL into the prerendered HTML, which 404s under a project subpath. */
+  background: var(--emo-glass) url(./assets/emo-visor.png) no-repeat 0 0 / 100% 100%;
+}
+
+/* The eyes, sitting in the two holes the paint left behind. They travel inside the
+   plate by --emo-roam (the margin the geometry script measured), converge when you
+   get close, and wear his head tilt so a resting eye cannot be told from the one it
+   replaced. The lid is a squash —
+   an LED slit closing on a dark screen, not an eyelid. */
+.emo-eye {
+  position: absolute;
+  left: calc(var(--emo-eye-x) - var(--emo-eye-w) / 2);
+  top: calc(var(--emo-eye-y) - var(--emo-eye-h) / 2);
+  width: var(--emo-eye-w);
+  height: var(--emo-eye-h);
+  transform: rotate(calc(var(--emo-face-turn, 0deg) + var(--emo-eye-turn, 0deg)));
+}
+.emo-eye-a { --emo-side: -1; }
+.emo-eye-b { --emo-side: 1; }
+.emo-orb {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 0.5em 0.55em 0.45em 0.5em / 0.42em 0.5em 0.36em 0.46em;
+  /* Tuned against the photo, not against taste: the painted glows peak at about
+     g=190, so a brighter orb reads as a sticker pasted on a dark screen. */
+  background:
+    radial-gradient(78% 74% at 48% 40%, #cdf5ec 0 4%, #63d9cc 34%, #1f9ea1 70%, #0b3d42 100%);
+  box-shadow:
+    0 0 0.6em rgb(120 255 240 / 0.42),
+    0 0 2.2em rgb(60 220 210 / 0.2),
+    inset 0 -0.12em 0.2em rgb(0 20 22 / 0.55);
+  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam) * 1em)
+             calc(var(--emo-gy) * var(--emo-roam) * 1em * 0.82);
+  scale: calc(1 + var(--emo-pop) * 0.22) max(0.07, calc(1 - var(--emo-lid) - var(--emo-lid-extra, 0)));
+  clip-path: inset(calc(var(--emo-squint) * 34%) 0 calc(var(--emo-squint) * 26%) round 0.5em);
+  transition: filter 0.35s ease;
+}
+/* The bloom lives outside the orb so the glass keeps glowing around him. */
+.emo-eye::after {
+  content: '';
+  position: absolute;
+  inset: -1.5em -1.1em;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(110 235 224 / 0.26), rgb(80 205 200 / 0.09) 52%, transparent 78%);
+  mix-blend-mode: screen;
+  opacity: calc(1 - var(--emo-lid) * 0.85);
+  pointer-events: none;
+}
+/* The sound ring — only while the microphone is actually open. */
+.emo-plate::after {
+  content: '';
+  position: absolute;
+  inset: -0.25em -0.45em;
+  border-radius: 0.7em;
+  border: 1px solid rgb(150 255 245 / 0.5);
+  opacity: calc(var(--emo-voice) * 0.9);
+  scale: calc(1 + var(--emo-voice) * 0.5);
+  transition: opacity 0.2s linear;
+}
+
+/* Faces. Everything here is a look, not a layout change. */
+[data-face='curious'] .emo-orb { filter: brightness(1.06) saturate(1.08); }
+[data-face='focused'] .emo-orb { filter: brightness(1.28) saturate(1.15); }
+[data-face='worried'] .emo-eye-a { top: calc(var(--emo-eye-y) - var(--emo-eye-h) / 2 - 0.22em); }
+[data-face='worried'] .emo-eye-b { --emo-eye-turn: -4deg; }
+[data-face='surprised'] .emo-orb { scale: 1.24 1.16; }
+[data-face='happy'] .emo-orb {
+  border-radius: 1.1em 1.1em 0.2em 0.2em / 1em 1em 0.16em 0.16em;
+  clip-path: inset(44% 0 0 round 0.9em);
+  filter: brightness(1.2);
+}
+[data-face='wake'] .emo-orb { scale: 1 1.24; filter: brightness(1.25); }
+[data-face='sleep'] .emo-orb { filter: brightness(0.5) saturate(0.6); }
+[data-face='sleep'] .emo-eye::after { opacity: 0.16; }
+[data-face='dizzy'] .emo-orb { animation: emo-spin 1s steps(8, end) infinite; }
+[data-face='peek'] .emo-eye-a .emo-orb { scale: 1 0.2; translate: 0.24em 0.1em; }
+[data-face='peek'] .emo-eye-b .emo-orb { clip-path: inset(46% 0 46% round 0.5em); }
+[data-face='listening'] .emo-orb { filter: brightness(calc(1 + var(--emo-voice) * 0.8)); }
+[data-face='offline'] .emo-orb {
+  background: radial-gradient(78% 74% at 48% 40%, #fff0d8 0 4%, #ffb65e 40%, #c2590c 76%, #3a1601 100%);
+  box-shadow: 0 0 0.5em rgb(255 170 80 / 0.5), inset 0 -0.12em 0.2em rgb(40 10 0 / 0.6);
+  animation: emo-led 1.6s steps(2, end) infinite;
+}
+[data-face='offline'] .emo-eye::after { background: radial-gradient(closest-side, rgb(255 170 80 / 0.3), transparent 74%); }
+[data-face='lowbat'] .emo-orb { opacity: 0.62; }
+[data-power='charging'] .emo-eye-b .emo-orb::after {
+  content: '';
+  position: absolute;
+  left: 22%; top: 12%;
+  width: 56%; height: 76%;
+  background: #eafffb;
+  clip-path: polygon(56% 0, 18% 54%, 44% 54%, 36% 100%, 82% 40%, 52% 40%);
+  opacity: 0.9;
+}
+@keyframes emo-spin { to { rotate: 1turn; } }
+@keyframes emo-led { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(0.62); } }
+
+/* One tap target over his shell, and the only thing in the hero that is clickable
+   besides the nav: he answers to a poke. The dotted ring is his "you are close". */
+.emo-hit {
+  position: absolute;
+  left: var(--emo-head-x);
+  top: var(--emo-head-y);
+  width: var(--emo-head-w);
+  height: var(--emo-head-h);
+  pointer-events: auto;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: 2em 2.2em 1.6em 1.8em;
+  cursor: pointer;
+}
+.emo-hit::after {
+  content: '';
+  position: absolute;
+  inset: -0.5em;
+  border: 1px dashed rgb(150 255 245 / 0.5);
+  border-radius: inherit;
+  opacity: max(var(--emo-lean), var(--emo-hit, 0));
+  transition: opacity 0.25s ease;
+}
+.emo-hit:hover, .emo-hit:focus-visible { --emo-hit: 0.85; }
+.emo-hit:focus-visible { outline: 1px solid var(--green); outline-offset: 0.6em; }
+
+/* His status strip: a caption above, the switches he owns, on the desk below. */
+.emo-hint,
+.emo-chip {
+  font: 500 clamp(10px, 1.05vw, 15px) var(--mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #a9efe0;
+  background: rgb(4 11 11 / 0.72);
+  border: 1px solid rgb(120 255 240 / 0.22);
+  border-radius: 3px;
+  padding: 0.45em 0.7em;
+}
+.emo-hint {
+  position: absolute;
+  left: calc(var(--emo-head-x) - 1%);
+  bottom: calc(100% - var(--emo-head-y) + 0.8%);
+  opacity: 0;
+  translate: 0 0.3em;
+  transition: opacity 0.3s ease, translate 0.3s ease;
+}
+.emo[data-hint] .emo-hint { opacity: 1; translate: 0 0; }
+.emo-hint::before {
+  content: '';
+  display: inline-block;
+  width: 0.4em; height: 0.4em;
+  margin-right: 0.6em;
+  border-radius: 50%;
+  background: var(--green);
+  vertical-align: 0.08em;
+}
+.emo-senses {
+  position: absolute;
+  left: calc(var(--emo-head-x) - 1%);
+  top: calc(var(--emo-head-y) + var(--emo-head-h) + 1.1%);
+  display: flex;
+  gap: 0.5em;
+  pointer-events: auto;
+}
+.emo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  cursor: pointer;
+  color: #8fd6c9;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.emo-chip i { width: 0.42em; height: 0.42em; border-radius: 50%; background: #2c6d63; }
+.emo-chip:hover { color: #d9fff5; border-color: rgb(120 255 240 / 0.5); background: rgb(6 20 18 / 0.85); }
+.emo-chip[data-live='1'] { color: #eafffb; border-color: rgb(150 255 245 / 0.65); }
+.emo-chip[data-live='1'] i { background: var(--green); animation: emo-led 1.1s steps(2, end) infinite; }
+
+/* Screen readers get the functional states only, never the jokes. */
+.emo-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .emo-orb, .emo-plate::after, .emo-hint, .emo-chip, .emo-hit::after { transition: none; }
+  [data-face='dizzy'] .emo-orb, [data-face='offline'] .emo-orb, .emo-chip[data-live='1'] i { animation: none; }
+}

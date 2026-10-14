@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import MacLaptop from './components/MacLaptop'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
+import EmoRobot from './components/EmoRobot'
 import WorksWheel from './components/WorksWheel'
 import { credentials, experience, profile, projects } from './lib/site'
 import { setScrollLocked, useLenis } from './hooks/useLenis'
@@ -89,6 +90,7 @@ function Hero() {
               <span>From pixels to production.</span>
             </h1>
           </div>
+          <EmoRobot />
         </div>
       </div>
       {/* Outside the frame: the photo is cropped top and bottom to bleed edge to

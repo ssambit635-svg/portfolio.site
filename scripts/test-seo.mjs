@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { readFile, readdir } from 'node:fs/promises'
 
 const home = await readFile('dist/index.html', 'utf8')
@@ -87,3 +88,26 @@ assert.match(heroFrame, /100vw/, 'hero scene should always be at least viewport-
 assert.match(heroFrame, /100vh/, 'hero scene should always be at least viewport-tall')
 // The surplus is cropped above the monitor, so the desk stays on screen.
 assert.match(heroFrame, /top:\s*calc\(\(100vh\s*-\s*var\(--hero-h\)\)\s*\*\s*\.65\)/, 'hero scene should crop mostly above the monitor')
+
+/* Emo — the little robot painted into the hero photo, on the desk left of the
+   keyboard. He is a live layer, so the checks are about alignment and honesty:
+   he has to be in the rendered HTML at the measured spot, clickable only where he
+   is, and silent about anything the page cannot actually do. */
+assert.match(home, /class="emo"[^>]*data-face="curious"/, 'Emo should be in the rendered hero, not only after hydration')
+assert.ok(home.indexOf('class="emo"') > home.indexOf('class="hero-screen"'), 'Emo should be layered after the monitor screen')
+assert.match(home, /--emo-plate-x:\s*\d+(?:\.\d+)?%/, 'Emo should sit on geometry measured from the photo')
+assert.match(home, /<span class="emo-plate" aria-hidden="true"/, 'the visor patch is decoration, not content')
+assert.match(home, /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/, 'his tap target should say who it is')
+assert.match(home, /class="emo-chip"[^>]*data-live="0"/, 'the microphone starts off and stays opt-in')
+assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')
+assert.match(bundledCss, /\.emo\{[^}]*pointer-events:none/, 'Emo must not swallow clicks meant for the hero')
+assert.match(bundledCss, /\.emo\{[^}]*font-size:1cqw/, 'Emo should scale with the photo he is painted on, not the viewport')
+assert.match(bundledCss, /\.emo-hit\{[^}]*pointer-events:auto/, 'his tap target should be the one clickable thing in the hero')
+// The patch of glass he is drawn on is his own photo, cut by the generator. It has to
+// be referenced relatively: an absolute /assets/… url 404s under the project subpath.
+const visor = bundledCss.match(/\.emo-plate\{[^}]*url\(\.\/([^)]*emo-visor[^)]*\.png)\)/)?.[1] ?? ''
+assert.ok(visor, "Emo's visor patch should be the background of .emo-plate")
+assert.ok(assetFiles.includes(visor), `Emo's visor patch (${visor}) should ship next to the stylesheet`)
+assert.match(bundledCss, /@media\(prefers-reduced-motion:reduce\)\{[^@]*\.emo-orb/, 'reduced motion should still leave Emo his face, minus the twitching')
+// And the geometry in the bundle must still be what the photo says it is.
+execFileSync(process.execPath, ['scripts/emo-geometry.mjs', '--check'], { stdio: 'inherit' })

@@ -106,6 +106,35 @@ The build renders the actual React component tree into both HTML files. The clie
 
 Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders both pages and generates crawl files. Links between pages are relative (`dashboard/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
 
+### Emo, the robot on the desk
+
+The hero photo has a small desk robot standing left of the keyboard, and his eyes are
+painted into `src/assets/hero-monitor.jpg`. He is given a live face without the photo
+ever being retouched:
+
+- `scripts/emo-geometry.mjs` measures his glows out of the JPEG — cyan pixels inside a
+  band over his face, split into two blobs by the emptiest column — and writes
+  `src/lib/emoFace.ts`: the display plate, both eye boxes, how far a pupil may travel,
+  his head tilt. All of it in percentages of the photo, so the overlay rides the hero
+  crop at every viewport instead of drifting off his face. The same run cuts
+  `src/assets/emo-visor.png`: his own glass with the painted eyes inpainted out of it,
+  a row-wise line fill that keeps the gradient of the screen and the reflection running
+  across it. The live eyes are drawn *on that patch*, so there is no rectangle to
+  colour-match and no seam to argue with.
+- `src/hooks/useEmo.ts` watches the pointer, scroll, keystrokes, device orientation,
+  battery and connectivity — and the microphone, but only while the visitor holds
+  `Space`, so the OS record light is off the moment they let go. Handlers only record;
+  one rAF loop owns every expression and paints about eleven custom properties on his
+  root. It stops when he settles, when the hero scrolls away, when the tab is hidden,
+  and when a narrow crop leaves him out of frame.
+- `src/emo.css` turns those properties into blinks, squints, a lean-in, a voice ring
+  and a dozen moods. `prefers-reduced-motion` keeps his face and drops the twitching.
+
+Nothing here is measured by eye, and nothing is trusted to stay true: the build ends by
+re-measuring the photo (`emo-geometry.mjs --check`) and fails if the committed geometry
+or the patch has drifted. Re-cropping the hero therefore either moves his eyes or
+breaks the build — never silently misaligns them.
+
 ## Customize content
 
 | Change | Edit |
