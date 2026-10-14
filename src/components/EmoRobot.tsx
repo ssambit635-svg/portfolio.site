@@ -82,7 +82,7 @@ export default function EmoRobot() {
 
       {/* One line, two jobs. Screen readers get it always, because it is the accessible
           name of whatever he is feeling; the eyes get it only when he has no voice to
-          say it with (no `speechSynthesis`, or you hushed him) — see `data-talk`. */}
+          say it with (no WebAudio at all, or you hushed him) — see `data-talk`. */}
       <span className="emo-line" ref={lineRef} role="status" aria-live="polite" />
     </div>
   )

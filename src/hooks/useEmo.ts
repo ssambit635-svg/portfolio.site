@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createEmoVoice } from '../lib/emoVoice'
 
 /**
  * Emo's senses.
@@ -9,11 +10,12 @@ import { useEffect, useRef } from 'react'
  * window being resized, the network dropping, the tab going away, the battery,
  * and (hold Space) the microphone.
  *
- * He speaks now instead of captioning. There is no audio in the repo for it: the voice is
- * whatever the device already ships (`speechSynthesis`) and the two-note throat-clear is
- * an oscillator. Every line is still written into a live region, because a browser with no
- * speech engine — or a visitor who has hushed him with Escape — is a browser that needs the
- * words on screen instead. See `data-talk`.
+ * He speaks now instead of captioning, in a voice of his own: a small formant-babble
+ * synthesiser on WebAudio (`src/lib/emoVoice.ts`) — no audio asset, and no dependence
+ * on the operating system's speech engine, which was never him and is switched off
+ * entirely in some embedded browsers. Every line is still written into a live region,
+ * because a device with no WebAudio at all — or a visitor who has hushed him with
+ * Escape — is a device that needs the words on screen instead. See `data-talk`.
  *
  * He never paints through React. One loop writes numbers as custom properties on
  * his root and flips a single `data-face` attribute, so a pointer move cannot
@@ -141,50 +143,19 @@ export function useEmo() {
       if (next === '') delete root.dataset.face
       else root.dataset.face = next
     }
-    /* --- his voice ----------------------------------------------------------
-     * Nothing ships for this: `speechSynthesis` for the words, an oscillator for the
-     * two notes he clears his throat with. Three things gate it, and all three are the
+    /* --- his voice, and the gates on it --------------------------------------
+     * Nothing ships for this: every sound is oscillators and filters on WebAudio,
+     * built in src/lib/emoVoice.ts. Three things gate it, and all three are the
      * reason robot voices get uninstalled:
      *   - no speech before the first real gesture (and no device allows it anyway);
      *   - never while the mic is under a finger, or he would interview himself;
      *   - never the same sentence twice in two minutes, or a stuck key becomes a loop.
      */
-    const synth = window.speechSynthesis
-    // `timbre`, not `voice`: the loop already uses `voice` for how loudly you are talking.
-    let timbre: SpeechSynthesisVoice | null = null
-    const pickVoice = () => {
-      const found = synth?.getVoices?.() ?? []
-      if (!found.length) return
-      const score = (v: SpeechSynthesisVoice) =>
-        (/^en\b/i.test(v.lang) ? 3 : 0) +
-        (/(female|samantha|zira|aria|jenny|google)\b/i.test(v.name) ? 2 : 0) +
-        (/(enhanced|premium|compact)/i.test(v.name) ? 1 : 0) -
-        (/(robot|whisper|albert|junior|bubbles)/i.test(v.name) ? 3 : 0)
-      timbre = found.reduce((best, v) => (score(v) > score(best) ? v : best), found[0] as SpeechSynthesisVoice)
-    }
-    pickVoice()
-    // Chromium fills the list a tick later than the object exists.
-    synth?.addEventListener?.('voiceschanged', pickVoice)
     let muted = sessionStorage.getItem('emo-muted') === '1'
     // He is mute until the page has a real interaction behind it, which is also the only
     // moment a browser would let him make a sound at all.
-    let activated = false, talking = false, lastLine = '', lastLineAt = 0
-    /** A dash is a beat in print and a "dash" out loud. */
-    const spoken = (text: string) => text.replace(/\s+\u2014\s+/g, ', ').replace(/[.\u2026]+$/, '')
-    const canTalk = () => !!synth && !muted && activated && !document.hidden && mic !== 'hot'
-    /** `tts` means the line is only for a screen reader; anything else shows it. */
-    const paintTalk = () => { root.dataset.talk = muted ? 'off' : synth ? 'tts' : 'text' }
-    root.dataset.talk = muted ? 'off' : synth ? 'tts' : 'text'
-    paintTalk()
-    const setMuted = (next: boolean) => {
-      muted = next
-      sessionStorage.setItem('emo-muted', next ? '1' : '0')
-      if (next) { synth?.cancel(); stopPurr() }
-      root.dataset.talk = next ? 'off' : synth ? 'tts' : 'text'
-      paintTalk()
-      say(next ? 'i will write it down instead' : 'good — i can talk again', 2400)
-    }
-    /* One context for both of his sounds: the throat-clear and the mic's analyser. He
+    let activated = false, talking = false, lastLine = '', lastLineAt = 0, talkTimer = 0
+    /* One context for all of his sounds: the voice, the purr and the mic's analyser. He
      * cannot be given a context before a gesture, so it is made on demand, not on mount. */
     let ac: AudioContext | null = null
     const ensureAc = (): AudioContext | null => {
@@ -197,21 +168,25 @@ export function useEmo() {
       if (ac.state === 'suspended') void ac.resume()
       return ac.state === 'running' ? ac : null
     }
-    const blip = (ac: AudioContext) => {
-      // Two rising notes, 75ms apart, at the level of a desk toy.
-      const now = ac.currentTime
-      ;[880, 1320].forEach((hz, i) => {
-        const osc = ac.createOscillator(), gain = ac.createGain()
-        osc.type = 'triangle'
-        osc.frequency.value = hz
-        const at = now + i * 0.075
-        gain.gain.setValueAtTime(0.0002, at)
-        gain.gain.exponentialRampToValueAtTime(0.05, at + 0.014)
-        gain.gain.exponentialRampToValueAtTime(0.0002, at + 0.062)
-        osc.connect(gain).connect(ac.destination)
-        osc.start(at)
-        osc.stop(at + 0.075)
-      })
+    /* --- his voice ----------------------------------------------------------
+     * A voice of his own: a small formant-babble synthesiser on WebAudio
+     * (src/lib/emoVoice.ts), not the operating system's speech engine. The OS
+     * voice was never him — a calm adult reading sentences — and in embedded
+     * previews and stripped-down browsers it is switched off entirely, which is
+     * exactly how he once lost his voice mid-visit and had to caption himself.
+     * `emoVoice` is null only on a device with no WebAudio at all; then, and only
+     * then, his lines are read instead of heard. */
+    const emoVoice = createEmoVoice(ensureAc)
+    const canTalk = () => !!emoVoice && !muted && activated && !document.hidden && mic !== 'hot'
+    /** `voice` means the line is only for a screen reader; anything else shows it. */
+    const paintTalk = () => { root.dataset.talk = muted ? 'off' : emoVoice ? 'voice' : 'text' }
+    paintTalk()
+    const setMuted = (next: boolean) => {
+      muted = next
+      sessionStorage.setItem('emo-muted', next ? '1' : '0')
+      if (next) { emoVoice?.stop(); stopPurr() }
+      paintTalk()
+      say(next ? 'i will write it down instead' : 'good — i can talk again', 2400)
     }
     /* --- his purr -----------------------------------------------------------
      * The one sound of his that is not a sentence: a sawtooth an octave under
@@ -258,24 +233,17 @@ export function useEmo() {
     }
 
     const speak = (text: string) => {
-      if (!synth || !canTalk()) return
+      if (!emoVoice || !canTalk()) return
       const now = performance.now()
       if (text === lastLine && now - lastLineAt < LINE_GAP) return
       lastLine = text
       lastLineAt = now
-      synth.cancel()                       // he says one thing at a time
-      const ctx = ensureAc()
-      if (ctx) blip(ctx)
-      const utter = new SpeechSynthesisUtterance(spoken(text))
-      if (timbre) utter.voice = timbre
-      utter.lang = timbre?.lang ?? 'en-US'
-      // The default voice on most machines is a calm adult; he is a 9cm robot.
-      utter.pitch = 1.7
-      utter.rate = 1.02
-      utter.volume = 0.9
-      utter.onend = utter.onerror = () => { talking = false }
-      talking = true
-      synth.speak(utter)
+      emoVoice.stop()                      // he says one thing at a time
+      emoVoice.clear()                     // the two-note throat-clear first
+      const ms = emoVoice.say(text, 0.19)  // ...and the sentence after it, not over it
+      talking = ms > 0
+      window.clearTimeout(talkTimer)
+      talkTimer = window.setTimeout(() => { talking = false }, ms + 120)
     }
 
     let hintTimer = 0
@@ -580,6 +548,7 @@ export function useEmo() {
       mic = 'hot'
       micHeld += 1
       stopPurr()                    // he will not purr into his own microphone
+      emoVoice?.stop()              // ...or talk over it
       fire('micOn')
     }
     /* With no switch to press, holding Space is the entire feature: it asks, opens and
@@ -805,8 +774,8 @@ export function useEmo() {
       // A queued sentence outliving the component is a voice with no body, and a
       // purr outliving it is a rumble with no robot.
       stopPurr()
-      synth?.cancel()
-      synth?.removeEventListener?.('voiceschanged', pickVoice)
+      emoVoice?.stop()
+      window.clearTimeout(talkTimer)
       void ac?.close()
     }
   }, [])

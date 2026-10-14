@@ -152,12 +152,19 @@ ever being retouched, and without anything laid over it:
   (`hehe`, `oh that is the spot`, …); petting him out of his sleep gets a grumpy
   *five more minutes…*; petting past seven seconds gets `grumpy` and a six-second
   sulk; a hand that leaves after a good session gets a small happy afterglow.
-- He speaks. Every line used to be a caption chip over the photograph; there is no chip
-  now. Words go into a screen-reader live region and out through `speechSynthesis` (a
-  small-cute pitch shift, two-note triangle-wave throat-clear from an oscillator, no
-  audio asset), and only fall back to visible text when the browser has no speech engine
-  or the visitor muted him. That way a muted or engine-less browser still gets the joke,
-  and a normal browser gets just a robot on a desk — not UI pasted on a still life.
+- He speaks, in a voice of his own. Every line used to be a caption chip over the
+  photograph; there is no chip now. Words go into a screen-reader live region and out
+  through a small formant-babble synthesiser (`src/lib/emoVoice.ts`, WebAudio, no audio
+  asset): each word becomes syllables and each syllable a sawtooth blip at a pentatonic
+  note of his base pitch, shaped by three band-pass formants from a vowel table — wa-we-oo,
+  not beep-beep — with a noise-burst consonant attack, a glide into every note and a
+  little vibrato; questions climb at the end and statements fall. The same sentence always
+  sounds the same, because its vowels and notes come from a hash of its words. The
+  operating system's speech engine is deliberately not used: a calm adult OS voice was
+  never him, and in embedded previews and stripped-down browsers it is switched off
+  entirely — which is exactly how he once went mute mid-visit and had to caption himself.
+  Visible text now returns only on a device with no WebAudio at all, or when the visitor
+  hushed him with Escape; a muted or voiceless browser still gets the joke.
 - The About pegboard is the real photograph. The composited ESP32, the Monster can
   and the drawn ribbon cable that sat over the top of it have been removed; the
   "hover to inspect" zoom card and its orange hint have been removed with them. The
