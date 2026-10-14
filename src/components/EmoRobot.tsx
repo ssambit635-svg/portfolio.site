@@ -70,13 +70,14 @@ export default function EmoRobot() {
       {layers.map(l => (
         <span key={`orb${l.side}`} className={`emo-orb emo-orb-${l.side} emo-${l.side}`} style={l.style} aria-hidden="true" />
       ))}
-      {/* He answers to a poke, and to Enter when the tab order reaches him. No ring, no
-          hover box: he is a robot on a desk, not a control. */}
+      {/* He answers to a poke, to a hand stroking the top of his head, and to Enter
+          when the tab order reaches him. No ring, no hover box: he is a robot on a
+          desk, not a control. */}
       <button
         className="emo-hit"
         ref={hitRef}
         type="button"
-        aria-label="Say hello to Emo, the robot on the desk. Hold space to talk to him, press escape to make him quiet."
+        aria-label="Say hello to Emo, the robot on the desk. Stroke the top of his head to pet him, hold space to talk to him, press escape to make him quiet."
       />
 
       {/* One line, two jobs. Screen readers get it always, because it is the accessible

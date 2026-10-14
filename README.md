@@ -141,6 +141,17 @@ ever being retouched, and without anything laid over it:
   settles, when the hero scrolls away, when the tab is hidden and when a narrow crop
   leaves him out of frame. While nobody is at the keyboard he wakes for a breath every
   few seconds, which is where blinking, the wandering gaze and the late-night sleep live.
+- **Petting, like the desk pet he descends from.** The real robot ships a touch sensor
+  on his head; here the sensor is the pointer. A hand that keeps stroking the top of
+  his head — the top of his tap box, because his face is not a petting zone — leaves
+  pet heat behind, and the loop turns it into `purr`: eyes melted into two contented
+  arcs, the head leaned toward the hand and lifted into it, a slow brightness pulse on
+  the lids at his rumble's rate, and, once the page has a real gesture behind it like
+  everything else he voices, an oscillator purr (a 44 Hz sawtooth, low-passed and
+  chopped by a 21 Hz LFO). The first stroke of a session gets a line that cycles
+  (`hehe`, `oh that is the spot`, …); petting him out of his sleep gets a grumpy
+  *five more minutes…*; petting past seven seconds gets `grumpy` and a six-second
+  sulk; a hand that leaves after a good session gets a small happy afterglow.
 - He speaks. Every line used to be a caption chip over the photograph; there is no chip
   now. Words go into a screen-reader live region and out through `speechSynthesis` (a
   small-cute pitch shift, two-note triangle-wave throat-clear from an oscillator, no

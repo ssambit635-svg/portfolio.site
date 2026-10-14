@@ -29,11 +29,13 @@
   --emo-gx: 0; --emo-gy: 0; --emo-lid: 0; --emo-pop: 0; --emo-squint: 0;
   --emo-converge: 0; --emo-lean: 0; --emo-tilt: 0; --emo-voice: 0;
   --emo-wobble: 0; --emo-shake: 0;
+  --emo-nuzzle: 0; --emo-purr: 0;
   --emo-roam-x: 0; --emo-roam-y: 0; --emo-tilt-y: 0em;
   /* The lean, the shake and the wobble are translations, so they need no pivot: the
-     tilt is a differential on the two eyes, which reads as a head turning. */
+     tilt is a differential on the two eyes, which reads as a head turning. The nuzzle
+     is the lift of a head being scratched, and it rides the same translation. */
   --emo-move-x: calc(var(--emo-shake) * 0.4em);
-  --emo-move-y: calc(var(--emo-lean) * -0.16em + var(--emo-wobble) * 0.12em + var(--emo-tilt-y));
+  --emo-move-y: calc(var(--emo-lean) * -0.16em + var(--emo-wobble) * 0.12em + var(--emo-tilt-y) - var(--emo-nuzzle) * 0.12em);
 }
 
 /* A narrow phone crop leaves him out of frame; then there is nothing to animate. */
@@ -146,6 +148,23 @@
 [data-face='pain'] .emo-glow {
   opacity: 0.78;
   background: radial-gradient(closest-side, var(--emo-eye-mid), transparent 74%);
+}
+/* Petted on the head. The eyes melt into two contented arcs — deeper than `happy`,
+   softer than `sleep` — and --emo-purr pulses their brightness at his rumble's rate,
+   while the loop leans and lifts the whole head into the hand. A face that is a
+   display has no eyelids to close in bliss; it has brightness, size and colour. */
+[data-face='purr'] .emo-orb {
+  --emo-face-sy: -0.62;
+  --emo-face-y: 0.07em;
+  --emo-face-anchor: 0.44em;
+  filter: blur(0.08em) brightness(calc(1.1 + var(--emo-purr) * 0.12));
+}
+/* Petted past what anybody owes anybody, or woken up by a hand instead of a morning:
+   half lids, a flat line, the universal "that is enough, human". */
+[data-face='grumpy'] .emo-orb {
+  --emo-face-sy: -0.44;
+  --emo-face-anchor: 0.06em;
+  filter: blur(0.06em) brightness(0.9);
 }
 /* His "no network" amber, through the same three measured stops: the eyes keep their
    shape and their softness, only the light behind them changes colour. */
