@@ -15,10 +15,18 @@ for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard]]) {
 }
 
 assert.match(home, /Sambit Swain \| Software Developer Portfolio/)
-assert.match(home, /DEVOPS ENGINEER · CLOUD · DESIGN/)
+/* The hero copy is laid on the panel's cylinder, so every word is its own inline-block.
+   Pin the text of the two elements instead of their raw adjacency: still real, crawlable
+   copy in the prerendered HTML, still nothing hiding behind an image. */
+const visible = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+const heroLabel = home.match(/<p class="hero-screen-label">([\s\S]*?)<\/p>/)?.[1] ?? ''
+const heroTitle = home.match(/<h1 class="hero-screen-title">([\s\S]*?)<\/h1>/)?.[1] ?? ''
+assert.equal(visible(heroLabel), 'DEVOPS ENGINEER · CLOUD · DESIGN')
+assert.equal(visible(heroTitle), 'From code to cloud. From pixels to production.')
+assert.equal((heroTitle.match(/class="hero-line"/g) || []).length, 2, 'the hero title should stay two lines')
+assert.equal((heroTitle.match(/class="hero-word"/g) || []).length, 8, 'every word of the headline should be on the arc')
 // The discarded clock should not return in the rendered hero.
 assert.doesNotMatch(home, /desk-clock|dc-physical/)
-assert.match(home, /<h1 class="hero-screen-title"><span>From code to cloud\.<\/span><span>From pixels to production\.<\/span><\/h1>/)
 assert.match(home, /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/)
 assert.match(home, /name="twitter:card" content="summary_large_image"/)
 for (const id of ['home', 'works', 'certified', 'about', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
