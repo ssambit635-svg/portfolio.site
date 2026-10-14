@@ -186,7 +186,7 @@ footer{--machine-h:640px}
 .polaroid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;filter:saturate(.9)}
 .polaroid figcaption{font-family:var(--serif);font-style:italic;color:#333;text-align:center;font-size:clamp(9px,1.1vw,15px);padding:6% 0 7%;transform:rotate(-1.5deg)}
 .polaroid .pin{position:absolute;left:50%;top:-4%;width:9%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828 60%,#7f1010);box-shadow:0 3px 6px #000c,inset 0 -2px 3px #0006;z-index:3}
-.polaroid:hover,.polaroid:focus-visible{transform:rotate(0deg) scale(2.4);z-index:40;box-shadow:0 40px 90px #000e,0 10px 30px #000c}
+.polaroid:hover,.polaroid:focus-visible{transform:rotate(0deg) scale(2);z-index:40;box-shadow:0 40px 90px #000e,0 10px 30px #000c}
 @media(hover:none){.polaroid{transform:rotate(0deg) scale(1.6);z-index:40}}
 @media(min-width:851px){.about-grid{grid-template-columns:minmax(300px,1fr) 1fr;gap:4vw}}
 

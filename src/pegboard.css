@@ -1,20 +1,22 @@
 /* ==========================================================================
    Pegboard — the "About me" board.
 
-   Everything here is positioned as a percentage of the board artwork, which is
-   928 × 1152 and is rendered at its own aspect ratio, so image pixels and these
-   percentages are 1:1 (x% = px / 928, y% = px / 1152).
+   The artwork is 928 × 1152. Everything that sits on top of it (the contact
+   module, the polaroid, the underlight wash) is positioned as a percentage of
+   that frame, so when the board resizes, the overlays stay glued to the same
+   holes in the pegboard.
 
-   Measured landmarks in the photo:
-     · ESP32 DevKit ........ x 705–795, y 143–358   (hotspot 698–812, 128–374)
-     · onboard status LED .. x 783, y 268
-     · contact module ...... x 65–283,  y 69–1014
+   The photograph already contains the real headphone hook, the real ribbon-plug
+   stub coming in from the right, and the warm key light from the top-left.
+   Nothing else is composited onto it: no can, no drawn cable, no zoom card.
    ========================================================================== */
 
-/* Warm light from the board's top and bottom now shares one amber tone. */
 .about .board-wrap {
   isolation: isolate;
 }
+
+/* A warm pool of light pools under the board like an LED strip, instead of a
+   hard vignette. It breathes so the room is never still. */
 .about .board-wrap::before {
   content: '';
   position: absolute;
@@ -28,16 +30,29 @@
   filter: blur(24px);
   opacity: 0.85;
 }
+
+/* The photo is nudged *down* by a few percent of its own height (object-position 50% → ~58%)
+   so the top row of holes falls off the top edge and the headphone hook lands closer to
+   the vertical centre of the board, instead of crowding the upper third. Width/height
+   grow a touch so the corners stay covered under that shift. */
 .about .board > img {
+  width: 104%;
+  height: 105%;
+  object-position: 50% 58%;
+  margin: 0 -2%;
+  border-radius: 8px;
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.8),
-    0 20px 38px rgba(255, 184, 119, 0.1);
+    0 20px 38px rgba(255, 184, 119, 0.08);
 }
 
-/* Layered contact / mid / ambient shadows: a print pinned to a board sits a
-   few millimetres off it, not one flat blur away from it. Scoped past the
-   base rule so it does not depend on stylesheet order. */
+/* Layered contact / mid / ambient shadows: a polaroid pinned to a board sits a
+   few millimetres off it, not one flat blur away from it. Shifted down from
+   its old position so it lives under the headphone hook instead of crowding it. */
 .about .board .polaroid {
+  left: 34%;
+  top: 54%;
+  width: 30%;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     0 1px 2px rgba(0, 0, 0, 0.55),
@@ -55,8 +70,6 @@
 
 /* --- ambient light ------------------------------------------------------- */
 
-/* The wash under the board drifts like a real LED strip rather than sitting
-   at one fixed brightness. */
 .board-underlight {
   position: absolute;
   z-index: 1;
@@ -72,19 +85,20 @@
   50% { opacity: 1; }
 }
 
-/* The dot-matrix module bleeds a little of its green onto the pegboard it is
-   bolted to — and onto the ribbon lying next to it (see the SVG). */
+/* The dot-matrix module bleeds a little green onto the pegboard it is bolted to.
+   The spill is blurred and small — it reads as a real indicator leak, not a
+   radial-gradient halo glued to a rectangle. */
 .board-ledspill {
   position: absolute;
   z-index: 2;
-  left: -8%;
+  left: -6%;
   top: 20%;
-  width: 46%;
+  width: 42%;
   height: 56%;
   pointer-events: none;
-  background: radial-gradient(ellipse 46% 50% at 50% 50%, rgba(96, 255, 164, 0.15), rgba(80, 240, 150, 0.05) 48%, transparent 74%);
+  background: radial-gradient(ellipse 46% 50% at 50% 50%, rgba(96, 255, 164, 0.14), rgba(80, 240, 150, 0.04) 48%, transparent 74%);
   mix-blend-mode: screen;
-  filter: blur(5px);
+  filter: blur(6px);
   animation: spillFlicker 7.3s steps(1, end) infinite;
 }
 @keyframes spillFlicker {
@@ -94,365 +108,15 @@
   79% { opacity: 0.96; }
 }
 
-/* --- ribbon cable -------------------------------------------------------- */
-
-/* The cable lies *on* the board: its shadow is a tight contact shadow, so it
-   never reads as a tube hovering in front of the pegboard. Geometry comes from
-   src/lib/ribbon.ts. */
-.esp32-cable {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-.led-module { z-index: 3; }
-
-/* The board is a physical thing hanging on a wall, so it answers the pointer
-   by a degree or two (see the tilt handler in PegBoard.tsx). */
+/* The board hangs on a wall, so it answers the pointer by a degree or two. A
+   softer tilt than before — the board is bolted on, not a card in a carousel. */
 .board {
   transform: perspective(1400px) rotateX(calc(var(--tilt-x, 0) * 1deg)) rotateY(calc(var(--tilt-y, 0) * 1deg));
   transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-
-.cable-ao {
-  fill: #000;
-  opacity: 0.28;
-  transform: translate(3px, 5px);
-}
-
-/* Data moving between the module and the board: a soft warm pulse that runs
-   the length of the ribbon. Hidden by default so it disappears cleanly when
-   animations are switched off. */
-.cable-pulse {
-  stroke-dasharray: 44 620;
-  stroke-dashoffset: 44;
-  opacity: 0;
-  animation: cablePulse 6.4s linear infinite;
-}
-.cable-pulse-late { animation-delay: 3.2s; }
-@keyframes cablePulse {
-  0% { stroke-dashoffset: 44; opacity: 0; }
-  7% { opacity: 0.85; }
-  58% { opacity: 0.7; }
-  66% { stroke-dashoffset: calc(0 - var(--cable-run)); opacity: 0; }
-  100% { stroke-dashoffset: calc(0 - var(--cable-run)); opacity: 0; }
-}
-
-/* --- the ESP32 itself ---------------------------------------------------- */
-
-/* Onboard status LED (measured at 783, 268): a small amber core with the soft
-   bloom a real indicator throws onto the board around it. */
-.esp32-led,
-.esp32-led-halo {
-  position: absolute;
-  z-index: 5;
-  left: 84.4%;
-  top: 23.3%;
-  border-radius: 50%;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-}
-.esp32-led {
-  width: 1.5%;
-  aspect-ratio: 1;
-  background: radial-gradient(circle, #fff8ea 0 22%, #ffd08d 44%, rgba(255, 150, 60, 0.5) 66%, rgba(255, 120, 30, 0) 82%);
-  animation: espLed 6.2s linear infinite;
-}
-.esp32-led-halo {
-  width: 7.5%;
-  aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(255, 166, 80, 0.45) 0 16%, rgba(255, 140, 50, 0.16) 38%, rgba(255, 120, 40, 0) 72%);
-  mix-blend-mode: screen;
-  animation: espLedHalo 6.2s linear infinite;
-}
-/* Mostly lit, with the occasional stutter you get from firmware-side blinking. */
-@keyframes espLed {
-  0%, 34%, 100% { opacity: 0.95; }
-  36% { opacity: 0.2; }
-  37% { opacity: 0.9; }
-  38% { opacity: 0.18; }
-  39.5% { opacity: 1; }
-  62% { opacity: 1; }
-  64% { opacity: 0.5; }
-  66% { opacity: 0.98; }
-}
-@keyframes espLedHalo {
-  0%, 34%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
-  36% { opacity: 0.15; transform: translate(-50%, -50%) scale(0.82); }
-  37% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.96); }
-  38% { opacity: 0.12; transform: translate(-50%, -50%) scale(0.8); }
-  39.5% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
-  62% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
-  64% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.88); }
-  66% { opacity: 0.95; transform: translate(-50%, -50%) scale(1); }
-}
-
-/* A stray reflection crossing the module every few seconds — the board is in a
-   room with light in it, not a product shot. The band slides inside a box the
-   size of the board so it never spills onto the pegboard around it. */
-.esp32-sheen {
-  position: absolute;
-  z-index: 5;
-  left: 76%;
-  top: 12.4%;
-  width: 9.7%;
-  height: 18.7%;
-  overflow: hidden;
-  border-radius: 2px;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-.esp32-sheen i {
-  position: absolute;
-  inset: -12% -62%;
-  background: linear-gradient(112deg, transparent 30%, rgba(255, 238, 210, 0.12) 44%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 238, 210, 0.12) 56%, transparent 70%);
-  opacity: 0;
-  animation: espSheen 13s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-@keyframes espSheen {
-  0%, 100% { transform: translate3d(-64%, 0, 0); opacity: 0; }
-  14% { opacity: 0.55; }
-  56% { transform: translate3d(64%, 0, 0); opacity: 0; }
-}
-
-/* --- inspect interaction -------------------------------------------------- */
-
-.esp32-hotspot {
-  position: absolute;
-  z-index: 6;
-  left: 74.4%;
-  top: 11.1%;
-  width: 13.1%;
-  height: 21.4%;
-  display: block;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #f4e0c6;
-  cursor: zoom-in;
-  touch-action: manipulation;
-}
-.esp32-hotspot:focus-visible {
-  outline: 1px solid rgba(255, 220, 178, 0.94);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 3px rgba(255, 192, 127, 0.14);
-}
-
-/* A pool of warm light that switches on around the board while it is being
-   inspected, as if a lamp were aimed at it. */
-.esp32-glow {
-  position: absolute;
-  inset: -16% -12%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 50%, rgba(255, 176, 96, 0.3), rgba(255, 150, 60, 0.11) 46%, transparent 72%);
-  filter: blur(6px);
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(0.86);
-  transition: opacity 0.45s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.esp32-hotspot[data-awake='1'] .esp32-glow {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.esp32-hint {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 7px;
-  border: 1px solid rgba(255, 220, 178, 0.3);
-  border-radius: 999px;
-  background: rgba(10, 10, 10, 0.78);
-  color: rgba(255, 231, 203, 0.9);
-  font: 600 clamp(5px, 0.55vw, 8px)/1 'IBM Plex Mono', monospace;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0.72;
-  transform: translateX(-50%);
-  transition: opacity 180ms ease, transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.esp32-hint::before {
-  content: '';
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #ffc27a;
-  box-shadow: 0 0 4px #ffb060;
-  animation: espHintDot 1.9s ease-in-out infinite;
-}
-@keyframes espHintDot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-.esp32-hotspot:hover .esp32-hint {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-1px);
-}
-.esp32-hotspot[data-awake='1'] .esp32-hint {
-  opacity: 0;
-  transform: translateX(-50%) translateY(4px);
-}
-
-/* --- detail card --------------------------------------------------------- */
-
-/* The device detail expands like the existing pinned portrait, but is a real
-   crop from the pegboard photo rather than a glowing illustration. It pulls
-   into focus as it opens, the way a magnifier settling on a subject does. */
-.esp32-zoom {
-  position: absolute;
-  z-index: 8;
-  left: 67%;
-  top: 3.3%;
-  width: 28.5%;
-  aspect-ratio: 168 / 271;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid rgba(255, 243, 225, 0.46);
-  border-radius: 6px;
-  background: #151412;
-  box-shadow:
-    0 18px 38px rgba(0, 0, 0, 0.78),
-    0 0 0 1px rgba(0, 0, 0, 0.52);
-  opacity: 0;
-  transform: scale(0.66) rotate(1deg);
-  transform-origin: 50% 48%;
-  transition: opacity 180ms ease, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  pointer-events: none;
-}
-.esp32-zoom[data-awake='1'] {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
-}
-.esp32-zoom-frame {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  background: #151412;
-}
-.esp32-zoom img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(6px) saturate(0.85) brightness(1.12);
-  transform: scale(1.07);
-  transition: filter 520ms ease, transform 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.esp32-zoom[data-awake='1'] img {
-  filter: none;
-  transform: none;
-}
-/* Glass: a faint diagonal reflection plus the scanline grain of a real
-   magnified view. */
-.esp32-zoom-glass {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(150deg, rgba(255, 255, 255, 0.15) 0 16%, rgba(255, 255, 255, 0.04) 27%, transparent 44%),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px);
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.55);
-}
-.esp32-zoom-scan {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -14%;
-  height: 14%;
-  pointer-events: none;
-  background: linear-gradient(180deg, transparent, rgba(255, 226, 183, 0.16), transparent);
-  mix-blend-mode: screen;
-  opacity: 0;
-}
-.esp32-zoom[data-awake='1'] .esp32-zoom-scan {
-  opacity: 1;
-  animation: zoomScan 3.4s linear 1.1s infinite;
-}
-@keyframes zoomScan {
-  from { top: -14%; }
-  to { top: 100%; }
-}
-/* Inspection reticle. */
-.esp32-zoom-target {
-  position: absolute;
-  inset: 9%;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease 0.15s;
-}
-.esp32-zoom[data-awake='1'] .esp32-zoom-target { opacity: 1; }
-.esp32-zoom-target::before,
-.esp32-zoom-target::after {
-  content: '';
-  position: absolute;
-  width: 24%;
-  height: 17%;
-  border-color: rgba(255, 220, 178, 0.55);
-  border-style: solid;
-  border-width: 0;
-}
-.esp32-zoom-target::before {
-  left: 0;
-  top: 0;
-  border-left-width: 1px;
-  border-top-width: 1px;
-}
-.esp32-zoom-target::after {
-  right: 0;
-  bottom: 0;
-  border-right-width: 1px;
-  border-bottom-width: 1px;
-}
-.esp32-zoom-label {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 4% 3%;
-  background: linear-gradient(180deg, #28251f, #141310);
-  color: rgba(255, 231, 203, 0.86);
-  font: 600 clamp(5px, 0.55vw, 8px)/1.2 'IBM Plex Mono', monospace;
-  letter-spacing: 0.09em;
-  text-align: center;
-  white-space: nowrap;
-}
-.esp32-zoom-label i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #ffc27a;
-  box-shadow: 0 0 5px #ff9f4d;
-  animation: espHintDot 1.9s ease-in-out infinite;
-}
-
-@media (max-width: 850px) {
-  .esp32-hotspot {
-    left: 73.8%;
-    top: 10.8%;
-    width: 14%;
-    height: 22%;
-  }
-  .esp32-zoom {
-    left: 65.5%;
-    top: 3%;
-    width: 31%;
-  }
-  .esp32-hint,
-  .esp32-zoom-label { font-size: clamp(5px, 1.2vw, 7px); }
-}
+.led-module { z-index: 3; }
 
 @media (prefers-reduced-motion: reduce) {
-  .esp32-zoom img { filter: none; transform: none; }
+  .board-underlight,
+  .board-ledspill { animation: none; }
 }

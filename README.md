@@ -147,6 +147,13 @@ ever being retouched, and without anything laid over it:
   audio asset), and only fall back to visible text when the browser has no speech engine
   or the visitor muted him. That way a muted or engine-less browser still gets the joke,
   and a normal browser gets just a robot on a desk — not UI pasted on a still life.
+- The About pegboard is the real photograph. The composited ESP32, the Monster can
+  and the drawn ribbon cable that sat over the top of it have been removed; the
+  "hover to inspect" zoom card and its orange hint have been removed with them. The
+  photo is just the board, the existing headphone hook, the existing IDC plug stub
+  and the contact module bolted to the left. The headphone hook is shifted down a
+  hair by re-framing the artwork, and the polaroid sits below it instead of
+  crowding it.
 - `src/emo.css` turns those properties into blinks, squints, dilations and a dozen
   moods — all of them brightness, size and colour, because a face that is a display does
   not have eyelids. Tap him four times inside a second and the moods stop being polite:
