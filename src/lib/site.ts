@@ -180,7 +180,7 @@ export const projects: Project[] = [
     year: '2025',
     stack: ['Python', 'Streamlit', 'Open-Meteo API'],
     image: shotWeather,
-    href: 'https://weather-sense-pbwmsehcq8etxhy7vufp6i.streamlit.app/',
+    href: 'https://weather-sense-kutb55y3djjhmcbymj6wjh.streamlit.app/',
     action: 'Live app',
     repo: 'https://github.com/ssambit635-svg/Weather-sense.git',
     status: 'live',
