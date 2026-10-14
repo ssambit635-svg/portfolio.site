@@ -1,0 +1,391 @@
+/* ---------------------------------------------------------------------------
+   Triple-monitor deployment rig.
+   All lengths are in cqw of .hero-monitor-wrapper (the 1376×768 hero frame),
+   so the whole mechanism scales with the photograph it stands in.
+   Joint rotations come from one custom property per pivot (--a); the inline
+   values in the markup are the settled pose, so no-JS and reduced-motion
+   visitors get the finished workstation.
+--------------------------------------------------------------------------- */
+
+.rig-wrap { overflow: visible; }
+
+/* --- room reaction: backlight bloom + wall occlusion travelling with fold -- */
+.rig-amb {
+  position: absolute;
+  left: 6%;
+  top: 2%;
+  width: 88%;
+  height: 64%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(ellipse 62% 48% at 50% 56%, rgba(64, 255, 164, .15), rgba(64, 255, 164, .05) 46%, transparent 72%);
+}
+.rig-amb::after {
+  content: '';
+  position: absolute;
+  inset: -6% -4%;
+  mix-blend-mode: multiply;
+  background: radial-gradient(ellipse 58% 46% at 50% 50%, rgba(0, 0, 0, .4), rgba(0, 0, 0, .16) 55%, transparent 76%);
+}
+
+/* soft pool of shade the cluster drops onto the desk as it lands */
+.rig-cshadow {
+  position: absolute;
+  left: 14%;
+  top: 78.6%;
+  width: 72%;
+  height: 8%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0, 0, 0, .5), rgba(0, 0, 0, .22) 55%, transparent 74%);
+  filter: blur(0.8cqw);
+}
+
+/* --- the 3D stage --------------------------------------------------------- */
+.rig-stage {
+  position: absolute;
+  inset: 0;
+  perspective: 150cqw;
+  perspective-origin: 50% 40%;
+  transform-style: preserve-3d;
+}
+.is-arming .rig-j,
+.is-arming .rig-mon,
+.is-arming .rig-yaw { will-change: transform; }
+
+.rig-asm {
+  position: absolute;
+  top: 44.9cqw;
+  left: var(--x);
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(var(--z0));
+}
+.rig-asm--left   { --x: 23.5%; --z0: -15cqw; --yaw: 24deg;  --mw: 27.5cqw; --mh: 15.5cqw; --mt: 1.1cqw; }
+.rig-asm--center { --x: 50%;   --z0: -13cqw; --yaw: 0deg;   --mw: 33cqw;   --mh: 18.6cqw; --mt: 1.2cqw; }
+.rig-asm--right  { --x: 76.5%; --z0: -15cqw; --yaw: -24deg; --mw: 27.5cqw; --mh: 15.5cqw; --mt: 1.1cqw; }
+
+/* contact shadow each pedestal presses into the desk */
+.rig-asm::after {
+  content: '';
+  position: absolute;
+  left: -3.6cqw;
+  top: -1.4cqw;
+  width: 7.2cqw;
+  height: 3.6cqw;
+  transform: rotateX(90deg);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, .62), transparent 68%);
+  filter: blur(0.45cqw);
+}
+
+/* --- pedestal: foot disc, column, cap ------------------------------------- */
+.rig-foot {
+  position: absolute;
+  left: -2.6cqw;
+  top: -2.6cqw;
+  width: 5.2cqw;
+  height: 5.2cqw;
+  transform: rotateX(90deg);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #14171a, #07080a 58%, #000 76%);
+  box-shadow: 0 0 1.1cqw 0.25cqw rgba(0, 0, 0, .5);
+}
+.rig-ped {
+  position: absolute;
+  left: -1.7cqw;
+  top: -3.2cqw;
+  width: 3.4cqw;
+  height: 3.3cqw;
+  border-radius: 0.35cqw;
+  background: linear-gradient(90deg, #08090a 0%, #23272a 18%, #3c4247 38%, #191c1e 62%, #050606 80%, #000 100%);
+  box-shadow: inset 0 -0.5cqw 0.8cqw rgba(0, 0, 0, .6), inset 0 0.3cqw 0.4cqw rgba(255, 255, 255, .09);
+}
+.rig-pedcap {
+  position: absolute;
+  left: -1.7cqw;
+  top: -4.9cqw;
+  width: 3.4cqw;
+  height: 3.4cqw;
+  transform: rotateX(90deg);
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, #3d4348, #14171a 55%, #07080a 82%);
+}
+
+/* --- joint chain ---------------------------------------------------------- */
+.rig-j {
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--a) * 1deg));
+}
+.rig-yaw {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(var(--yaw));
+}
+
+/* arm segments: machined columns with turned rings */
+.rig-seg { position: absolute; bottom: 0; }
+.rig-seg1 {
+  left: -1.15cqw;
+  width: 2.3cqw;
+  height: 12cqw;
+  border-radius: 0.5cqw;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 3.1cqw, rgba(255, 255, 255, .06) 3.1cqw 3.28cqw, rgba(0, 0, 0, .5) 3.28cqw 3.5cqw, transparent 3.5cqw 6.2cqw),
+    linear-gradient(90deg, #060708 0%, #1c2023 14%, #454b51 34%, #22262a 55%, #0a0c0d 82%, #000 100%);
+  box-shadow: inset 0 0.6cqw 0.5cqw rgba(255, 255, 255, .08), inset 0 -0.8cqw 0.9cqw rgba(0, 0, 0, .65), 0 0 0.7cqw rgba(0, 0, 0, .45);
+}
+.rig-seg2 {
+  left: -1cqw;
+  width: 2cqw;
+  height: 17cqw;
+  border-radius: 0.45cqw;
+  background: linear-gradient(90deg, #050607 0%, #22262a 16%, #4a5056 36%, #24282c 58%, #0a0b0c 84%, #000 100%);
+  box-shadow: inset 0 0.4cqw 0.4cqw rgba(255, 255, 255, .1), inset 0 -0.5cqw 0.6cqw rgba(0, 0, 0, .6), 0 0 0.6cqw rgba(0, 0, 0, .45);
+}
+
+/* hinge hardware: pivot discs on both cheeks of every joint, with a bolt */
+.rig-disc {
+  position: absolute;
+  left: calc(var(--d) / -2);
+  top: calc(var(--d) / -2);
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  transform: translateX(var(--dx)) rotateY(90deg);
+  background: radial-gradient(circle at 38% 32%, #6a7178 0%, #33383c 30%, #101214 62%, #000 78%, #23272b 90%, #050606 100%);
+  box-shadow: 0 0 0.5cqw rgba(0, 0, 0, .6);
+}
+.rig-disc::after {
+  content: '';
+  position: absolute;
+  inset: 31%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #8b9299, #2a2e32 60%, #0a0b0c 100%);
+}
+
+/* service loop drooping off the elbow, in the arm's plane of travel */
+.rig-cable {
+  position: absolute;
+  left: 0;
+  top: -16.4cqw;
+  width: 3.4cqw;
+  height: 9.2cqw;
+  border: 0.3cqw solid #0a0b0c;
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-radius: 50%;
+  transform: rotateY(90deg) rotate(38deg);
+  opacity: .95;
+}
+
+/* wrist bracket reaching forward into the monitor's rear housing */
+.rig-brk {
+  position: absolute;
+  left: -1.6cqw;
+  top: -1.6cqw;
+  width: 3.2cqw;
+  height: 3.2cqw;
+  transform: translateZ(0.15cqw);
+  border-radius: 0.4cqw;
+  background: linear-gradient(160deg, #2b3033, #0c0e0f 70%);
+  box-shadow: 0 0 0.6cqw rgba(0, 0, 0, .7);
+}
+.rig-brk::after {
+  content: '';
+  position: absolute;
+  left: 38%;
+  top: 38%;
+  width: 24%;
+  height: 24%;
+  background: #0b0d0e;
+  transform: translateZ(0.2cqw);
+}
+
+/* --- monitor box: six faces ----------------------------------------------- */
+.rig-mon {
+  position: absolute;
+  left: calc(var(--mw) / -2);
+  top: calc(var(--mh) / -2 + 0.4cqw);
+  width: var(--mw);
+  height: var(--mh);
+  transform-style: preserve-3d;
+  transform: translateZ(0.9cqw);
+}
+.rig-face {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  backface-visibility: hidden;
+}
+.rig-f-front {
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) translateZ(calc(var(--mt) / 2));
+  background: #0a0c0b;
+  border-radius: 0.55cqw;
+  box-shadow: inset 0 0 0 0.16cqw rgba(255, 255, 255, .05), inset 0 0 1.2cqw rgba(0, 0, 0, .9);
+}
+/* dark glass before the panel strikes */
+.rig-f-front::before {
+  content: '';
+  position: absolute;
+  inset: 2.6% 1.8% 3.6%;
+  border-radius: 0.35cqw;
+  background: linear-gradient(180deg, #0b0e0d 0%, #070908 55%, #050606 100%);
+  box-shadow: inset 0 0 1.4cqw rgba(0, 0, 0, .85);
+}
+/* lit panel */
+.rig-scr-on {
+  position: absolute;
+  inset: 2.6% 1.8% 3.6%;
+  border-radius: 0.35cqw;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 40% 34% at 24% 30%, rgba(126, 222, 164, .5), transparent 60%),
+    radial-gradient(ellipse 46% 40% at 74% 62%, rgba(64, 168, 120, .42), transparent 62%),
+    radial-gradient(ellipse 30% 26% at 58% 22%, rgba(190, 255, 214, .28), transparent 60%),
+    linear-gradient(160deg, #0d2b21 0%, #0a1f1a 45%, #071512 100%);
+  box-shadow: inset 0 0 2.2cqw rgba(0, 0, 0, .5), inset 0 0 0.4cqw rgba(120, 255, 190, .12);
+}
+.rig-scr-on::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 3px);
+  opacity: .35;
+}
+/* glass finish: one raking sheen plus room bounce top and bottom */
+.rig-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.55cqw;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(112deg, transparent 42%, rgba(190, 255, 220, .06) 47%, rgba(190, 255, 220, .02) 52%, transparent 58%),
+    radial-gradient(ellipse 70% 42% at 50% 118%, rgba(196, 141, 84, .06), transparent 60%),
+    radial-gradient(ellipse 60% 30% at 50% -12%, rgba(160, 255, 200, .05), transparent 62%);
+}
+.rig-pwr {
+  position: absolute;
+  right: 2.6%;
+  bottom: 1.1%;
+  width: 0.5cqw;
+  height: 0.5cqw;
+  border-radius: 50%;
+  background: #191b1a;
+}
+.rig-pwr i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #57ff9f;
+  box-shadow: 0 0 0.7cqw 0.12cqw rgba(87, 255, 159, .55);
+}
+
+.rig-f-back {
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) rotateY(180deg) translateZ(calc(var(--mt) / 2));
+  background: linear-gradient(160deg, #191c1e 0%, #0e1011 40%, #08090a 100%);
+  border-radius: 0.6cqw;
+  box-shadow: inset 0 0 0 0.2cqw rgba(255, 255, 255, .03);
+}
+.rig-vents {
+  position: absolute;
+  left: 18%;
+  top: 12%;
+  width: 64%;
+  height: 32%;
+  border-radius: 0.4cqw;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .045) 0 0.22cqw, transparent 0.22cqw 0.75cqw);
+  opacity: .8;
+}
+.rig-vesa {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22%;
+  height: 36%;
+  transform: translate(-50%, -50%);
+  border-radius: 0.5cqw;
+  background: linear-gradient(160deg, #23272a, #0b0d0e 75%);
+  box-shadow: 0 0 0.8cqw rgba(0, 0, 0, .6), inset 0 0.1cqw 0 rgba(255, 255, 255, .07);
+}
+.rig-f-top {
+  width: 100%;
+  height: var(--mt);
+  transform: translate(-50%, -50%) rotateX(90deg) translateZ(calc(var(--mh) / 2));
+  background: linear-gradient(90deg, #0a0b0c, #2e3336 30%, #3a4045 50%, #181b1d 78%, #060707);
+  border-radius: 0.2cqw;
+}
+.rig-f-bottom {
+  width: 100%;
+  height: var(--mt);
+  transform: translate(-50%, -50%) rotateX(-90deg) translateZ(calc(var(--mh) / 2));
+  background: linear-gradient(90deg, #050606, #101314 40%, #0a0c0c 70%, #000);
+  border-radius: 0.2cqw;
+}
+.rig-f-left,
+.rig-f-right {
+  width: var(--mt);
+  height: 100%;
+  border-radius: 0.2cqw;
+}
+.rig-f-left {
+  transform: translate(-50%, -50%) rotateY(-90deg) translateZ(calc(var(--mw) / 2));
+  background: linear-gradient(180deg, #22262a, #0b0d0e 60%, #050606);
+}
+.rig-f-right {
+  transform: translate(-50%, -50%) rotateY(90deg) translateZ(calc(var(--mw) / 2));
+  background: linear-gradient(180deg, #181b1d, #0a0c0c 55%, #040505);
+}
+
+/* --- hero copy lives on the centre panel ---------------------------------- */
+.rig-copy {
+  position: absolute;
+  inset: 2.6% 1.8% 3.6%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rig-copy .hero-screen {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: auto;
+  height: auto;
+  max-width: 94%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1cqw;
+  padding: 1cqw;
+  text-align: center;
+  background: none;
+}
+.rig-copy .hero-screen::after { content: none; }
+.rig-copy .hero-screen-label {
+  font-size: 0.62cqw;
+  letter-spacing: .22em;
+}
+.rig-copy .hero-screen-title {
+  font-size: 1.92cqw;
+  letter-spacing: -.04em;
+  line-height: 1.22;
+}
+
+/* --- small screens: keep the mechanism, calm the extras ------------------- */
+@media (max-width: 700px) {
+  .rig-cable { display: none; }
+  .rig-copy .hero-screen-label { font-size: 1.05cqw; }
+  .rig-copy .hero-screen-title { font-size: 2.6cqw; }
+}

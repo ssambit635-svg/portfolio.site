@@ -6,7 +6,7 @@ import WorksWheel from './components/WorksWheel'
 import { credentials, experience, profile, projects } from './lib/site'
 import { setScrollLocked, useLenis } from './hooks/useLenis'
 import { prefersReducedMotion } from './lib/utils'
-import heroMonitor from './assets/hero-monitor.jpg'
+import TripleRig from './components/TripleRig'
 
 /** Preloader greeting sequence — 0.9s per language, 5 languages = 4.5s, then a 0.5s fade. */
 const WELCOMES = [
@@ -30,6 +30,8 @@ function Preloader() {
     const t = setTimeout(() => {
       setDone(true)
       setScrollLocked(false)
+      /* The hero rig holds its stowed pose behind this veil, then deploys. */
+      window.dispatchEvent(new CustomEvent('boot:done'))
     }, 6100)
     return () => {
       clearTimeout(t)
@@ -80,16 +82,7 @@ function Hero() {
   return (
     <section id="home" className="hero">
       <div className="hero-frame">
-        <div className="hero-monitor-wrapper">
-          <img src={heroMonitor} alt="" width={1376} height={768} className="hero-monitor" fetchPriority="high" />
-          <div className="hero-screen">
-            <p className="hero-screen-label">DEVOPS ENGINEER · CLOUD · DESIGN</p>
-            <h1 className="hero-screen-title">
-              <span>From code to cloud.</span>
-              <span>From pixels to production.</span>
-            </h1>
-          </div>
-        </div>
+        <TripleRig />
         <p className="hero-tagline">
           {profile.first} · {profile.last}
         </p>
