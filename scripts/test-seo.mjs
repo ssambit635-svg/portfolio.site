@@ -77,5 +77,13 @@ const cssFiles = assetFiles.filter((file) => file.endsWith('.css'))
 assert.ok(cssFiles.length)
 const bundledCss = (await Promise.all(cssFiles.map((file) => readFile(`dist/assets/${file}`, 'utf8')))).join('\n')
 assert.match(bundledCss, /prefers-reduced-motion:reduce/)
-// The photo must start at the top of the hero, without a letterboxed header.
-assert.match(bundledCss, /\.hero-frame\{[^}]*top:0(?:;|\})/, 'hero scene should be top-aligned')
+// The hero scene must bleed edge to edge: the frame is sized off the larger of
+// "viewport width × the photo ratio" and "viewport height", so a letterbox (the
+// black bezels that made the desk look like a photo inside a box) cannot appear.
+const heroFrame = bundledCss.match(/\.hero-frame\{[^}]*\}/)?.[0] ?? ''
+assert.ok(heroFrame, 'hero scene should ship a .hero-frame rule')
+assert.match(heroFrame, /--hero-h:\s*max\(/, 'hero scene should cover the viewport on both axes')
+assert.match(heroFrame, /100vw/, 'hero scene should always be at least viewport-wide')
+assert.match(heroFrame, /100vh/, 'hero scene should always be at least viewport-tall')
+// The surplus is cropped above the monitor, so the desk stays on screen.
+assert.match(heroFrame, /top:\s*calc\(\(100vh\s*-\s*var\(--hero-h\)\)\s*\*\s*\.65\)/, 'hero scene should crop mostly above the monitor')

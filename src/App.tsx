@@ -90,10 +90,12 @@ function Hero() {
             </h1>
           </div>
         </div>
-        <p className="hero-tagline">
-          {profile.first} · {profile.last}
-        </p>
       </div>
+      {/* Outside the frame: the photo is cropped top and bottom to bleed edge to
+          edge, and the name has to sit on the fold instead of inside the scene. */}
+      <p className="hero-tagline">
+        {profile.first} · {profile.last}
+      </p>
     </section>
   )
 }
