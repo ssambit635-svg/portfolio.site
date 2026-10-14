@@ -246,6 +246,25 @@ Alternatively, use a custom domain serving this portfolio at its root. A missing
 
 The workflow deploys on pushes to `main` and supports manual dispatch. The development preview host is not the canonical production domain. Do not change production metadata to a temporary sandbox URL.
 
+### If the live site shows "Site not found"
+
+`There isn't a GitHub Pages site here.` is GitHub's own 404 page, returned **before** any built file is considered: it means the Pages site for this repository is not currently enabled (or was switched off in the settings). The build itself is not the problem — check the Actions tab first: if the latest **Deploy Portfolio** run is green, the artifact was produced normally.
+
+To bring the site back:
+
+1. Open **Repository Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions** (not "Deploy from a branch" — branch mode serves the raw source files, which do not render).
+3. Save. GitHub may ask for sudo mode (a fresh 2FA/email code) before accepting sensitive settings.
+4. Publish again: run **Actions → Deploy Portfolio → Re-run all jobs**, trigger **Run workflow**, or push any commit to `main`. A fresh run is required, because the deploy job only publishes an artifact it has just built.
+5. Confirm `https://ssambit635-svg.github.io/portfolio.site/` returns the portfolio, then spot-check `/dashboard/` and one asset.
+
+Two quick checks for this failure mode:
+
+- `curl -s -o /dev/null -w "%{http_code}\n" https://api.github.com/repos/ssambit635-svg/portfolio.site/pages` → `404` when the Pages site is missing, `200` when it is configured.
+- The next workflow run fails at the **Setup Pages** step with `Get Pages site failed. Please verify that the repository has Pages enabled ...` — same root cause, seen from CI.
+
+The workflow's `GITHUB_TOKEN` cannot create the Pages site itself, so `actions/configure-pages` cannot self-heal this one; the setting must be enabled once from the repository settings page.
+
 ## Google Search Console: after deployment
 
 1. Add a **URL-prefix property** for `https://ssambit635-svg.github.io/portfolio.site/`. A shared `github.io` hostname is not a domain you can DNS-verify yourself.
