@@ -49,8 +49,8 @@ interface Pose {
 const POSES: Record<Side, Pose> = {
   // The centre monitor leads the sequence.
   center: { a1: 6, a2: -96, a3: 86, yaw: 0, s1: 16, s2: -30, s3: -56, syaw: 0, delay: 0 },
-  left: { a1: 7, a2: -93, a3: 84, yaw: 24, s1: 18, s2: -34, s3: -53, syaw: 34, delay: 0.22 },
-  right: { a1: 7, a2: -93, a3: 84, yaw: -24, s1: 17, s2: -32, s3: -54, syaw: -34, delay: 0.38 },
+  left: { a1: 7, a2: -93, a3: 84, yaw: 24, s1: 18, s2: -34, s3: -53, syaw: 34, delay: 0.28 },
+  right: { a1: 7, a2: -93, a3: 84, yaw: -24, s1: 17, s2: -32, s3: -54, syaw: -34, delay: 0.46 },
 }
 
 /** Geometry shared by every arm, in container-width units (see triple-rig.css). */
@@ -67,6 +67,22 @@ function JointDiscs({ d, dx }: { d: number; dx: number }) {
   )
 }
 
+/** The three panels share ONE continuous wall (3× panel width); each monitor
+    clips its own third, so the deployed arc reads as a single curved display
+    and the headline flows across all three instead of being clipped. Only the
+    centre slice carries the real H1; the flanks echo it for the seam. */
+function WallContent({ echo }: { echo?: boolean }) {
+  const Title = echo ? 'p' : 'h1'
+  return (
+    <span className="rig-copy" aria-hidden={echo || undefined}>
+      <span className="hero-screen">
+        <p className="hero-screen-label">DEVOPS ENGINEER · CLOUD · DESIGN</p>
+        <Title className="hero-screen-title"><span>From code to cloud.</span><span>From pixels to production.</span></Title>
+      </span>
+    </span>
+  )
+}
+
 function Monitor({ side }: { side: Side }) {
   return (
     <div className={`rig-mon rig-mon--${side}`}>
@@ -79,15 +95,11 @@ function Monitor({ side }: { side: Side }) {
       <i className="rig-face rig-f-left" aria-hidden="true" />
       <i className="rig-face rig-f-right" aria-hidden="true" />
       <i className="rig-face rig-f-front" aria-hidden={side !== 'center'}>
-        <span className="rig-scr-on" />
-        {side === 'center' && (
-          <span className="rig-copy">
-            <span className="hero-screen">
-              <p className="hero-screen-label">DEVOPS ENGINEER · CLOUD · DESIGN</p>
-              <h1 className="hero-screen-title"><span>From code to cloud.</span><span>From pixels to production.</span></h1>
-            </span>
+        <span className="rig-scr-on">
+          <span className="rig-wall-in">
+            <WallContent echo={side !== 'center'} />
           </span>
-        )}
+        </span>
         <span className="rig-glass" />
         <span className="rig-pwr"><i /></span>
       </i>
@@ -149,7 +161,7 @@ export default function TripleRig() {
       on: el.querySelectorAll<HTMLElement>('.rig-scr-on'),
       pwr: el.querySelectorAll<HTMLElement>('.rig-pwr i'),
     }))
-    const copy = root.querySelector<HTMLElement>('.rig-copy')
+    const copy = root.querySelectorAll<HTMLElement>('.rig-copy')
     const amb = root.querySelector<HTMLElement>('.rig-amb')
     const csh = root.querySelector<HTMLElement>('.rig-cshadow')
     if (!copy || !amb || !csh) return
@@ -179,24 +191,27 @@ export default function TripleRig() {
       for (const a of asms) {
         const p = POSES[a.side]
         const d = p.delay
+        /* Brake release: the hinge gives a degree against the stop before the
+           arm starts to fall — weight, not a casual fade-in. */
+        tl.to(a.j3, { '--a': p.s3 + 1.6, duration: 0.14, ease: 'power1.out' }, d)
         /* Heavy, deliberate descent — column tips, then elbow unfolds, then the
            hinge levels: a whip of three actuators, not one glued transform. */
-        tl.to(a.j1, { '--a': p.a1, duration: 1.6, ease: 'power3.inOut' }, d)
-        tl.to(a.j2, { '--a': p.a2, duration: 1.6, ease: 'power3.inOut' }, d + 0.12)
-        tl.to(a.j3, { '--a': p.a3, duration: 1.5, ease: 'power3.inOut' }, d + 0.26)
+        tl.to(a.j1, { '--a': p.a1, duration: 1.6, ease: 'power4.inOut' }, d + 0.12)
+        tl.to(a.j2, { '--a': p.a2, duration: 1.55, ease: 'power4.inOut' }, d + 0.26)
+        tl.to(a.j3, { '--a': p.a3, duration: 1.45, ease: 'power3.inOut' }, d + 0.42)
         /* The swivel screws in from a splayed stow while the arm falls. */
-        tl.to(a.yaw, { '--yaw': p.yaw, duration: 1.7, ease: 'power2.inOut' }, d + 0.1)
+        tl.to(a.yaw, { '--yaw': p.yaw, duration: 1.8, ease: 'power3.inOut' }, d + 0.2)
         /* Mechanical settle: one small overshoot past the stop, then rest. */
-        tl.to(a.j3, { '--a': p.a3 - 1.15, duration: 0.16, ease: 'power1.out' }, d + 1.88)
-        tl.to(a.j3, { '--a': p.a3, duration: 0.42, ease: 'power2.out' }, d + 2.04)
-        tl.to(a.j2, { '--a': p.a2 + 0.5, duration: 0.16, ease: 'power1.out' }, d + 1.88)
-        tl.to(a.j2, { '--a': p.a2, duration: 0.42, ease: 'power2.out' }, d + 2.04)
+        tl.to(a.j3, { '--a': p.a3 - 1.15, duration: 0.15, ease: 'power1.out' }, d + 1.89)
+        tl.to(a.j3, { '--a': p.a3, duration: 0.4, ease: 'power2.out' }, d + 2.04)
+        tl.to(a.j2, { '--a': p.a2 + 0.5, duration: 0.15, ease: 'power1.out' }, d + 1.89)
+        tl.to(a.j2, { '--a': p.a2, duration: 0.4, ease: 'power2.out' }, d + 2.04)
         /* Panels strike mid-descent, centre first, exactly as in the reel. */
-        tl.to(a.on, { autoAlpha: 1, duration: 0.5, ease: 'power1.inOut' }, d + 1.0)
-        tl.to(a.pwr, { autoAlpha: 1, duration: 0.3 }, d + 1.0)
+        tl.to(a.on, { autoAlpha: 1, duration: 0.5, ease: 'power1.inOut' }, d + 1.05)
+        tl.to(a.pwr, { autoAlpha: 1, duration: 0.3 }, d + 1.05)
       }
       /* The headline lands once the centre monitor has stopped moving. */
-      tl.to(copy, { autoAlpha: 1, y: '0cqw', filter: 'blur(0cqw)', duration: 0.85, ease: 'power2.out' }, 2.1)
+      tl.to(copy, { autoAlpha: 1, y: '0cqw', filter: 'blur(0cqw)', duration: 0.85, ease: 'power2.out' }, 2.2)
     }
 
     if (document.documentElement.dataset.boot === '1') {
