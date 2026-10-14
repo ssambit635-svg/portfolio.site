@@ -102,8 +102,6 @@ assert.match(home, /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/, 'his tap ta
 assert.match(home, /class="emo-chip"[^>]*data-live="0"/, 'the microphone starts off and stays opt-in')
 // The pin is a reaction, so it must not be painted into the static page.
 assert.doesNotMatch(home, /data-pin/, 'a prerendered page should not already be hurting')
-// The pin is a reaction, so it must not be painted into the static page.
-assert.doesNotMatch(home, /data-pin/, 'a prerendered page should not already be hurting')
 assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')
 assert.match(bundledCss, /\.emo\{[^}]*pointer-events:none/, 'Emo must not swallow clicks meant for the hero')
 assert.match(bundledCss, /\.emo\{[^}]*font-size:1cqw/, 'Emo should scale with the photo he is painted on, not the viewport')
@@ -113,6 +111,11 @@ assert.match(bundledCss, /\.emo-hit\{[^}]*pointer-events:auto/, 'his tap target 
 assert.match(bundledCss, /\.emo-clip\{[^}]*mix-blend-mode:darken/, 'his paint should be erased by clipping light, not by covering it')
 assert.match(bundledCss, /\.emo-glow\{[^}]*mix-blend-mode:screen/, 'his glow should be added as light')
 assert.match(bundledCss, /\.emo-orb\{[^}]*mix-blend-mode:screen/, 'his eyes should be added as light')
+// Being poked roughly has to hurt more than being poked: the wince is its own face, and
+// the pin is what makes the line land with no sound and no modal.
+assert.match(bundledCss, /\[data-face=pain\] \.emo-orb\{[^}]*--emo-face-sy: -\.6\d/, 'rapid tapping should squeeze his eyes shut, not just widen them')
+assert.match(bundledCss, /\.emo-orb\{[^}]*var\(--emo-face-x[,)]/, 'the squeeze has to pull both eyes inward, toward the nose')
+assert.match(bundledCss, /\[data-pin="1"\] \.emo-hint:before\{[^}]*border-radius:50% 50% 50% 0/, 'the pain caption should carry the pushpin')
 // The whole reason he looked like an overlay: any ancestor that forms a stacking context
 // turns into a blend container, and the blending stops reaching the photograph.
 const emoBlock = bundledCss.slice(bundledCss.indexOf('.emo{'), bundledCss.indexOf('.emo[data-off'))

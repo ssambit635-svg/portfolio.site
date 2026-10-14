@@ -91,7 +91,10 @@
   );
   filter: blur(0.05em);
   mix-blend-mode: screen;
-  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em + var(--emo-move-x))
+  /* --emo-face-x is a face's own muscle: a wince pulls both eyes toward the nose, which
+     the shared gaze term could never express, because it is not per-eye. The halo stays
+     where the glass is, because light does not flinch. */
+  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em + var(--emo-move-x) + var(--emo-face-x, 0em))
              calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y) + var(--emo-face-y, 0em));
   /* A blink is a squash, and typing squints him the same way: an LED slit closing on
      glass, never an eyelid. */
