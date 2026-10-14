@@ -117,8 +117,12 @@ assert.doesNotMatch(bundledCss, /\.emo-senses|\.emo-chip|\.emo-hint|emo-chip\[/,
 assert.match(bundledCss, /\.emo-line\{[^}]*clip-path:inset\(50%\)/, 'his line should be said, not stuck on the photo')
 assert.match(bundledCss, /\.emo-line:empty\{display:none\}/, 'an empty caption chip is an empty box on the desk')
 assert.match(bundledCss, /\[data-talk=text\] \.emo-line|\[data-talk=.text.\] \.emo-line/, 'with no speech engine the words have to be readable')
-assert.match(bundledJs, /speechSynthesis/, 'his voice should come from the device, not an audio file')
-assert.match(bundledJs, /SpeechSynthesisUtterance/, 'he should actually speak the line he used to spell out')
+// His voice is a formant-babble synthesiser on WebAudio (src/lib/emoVoice.ts): the OS
+// speech engine is deliberately gone — it was never him, and embedded browsers ship
+// without it — but the rule the old checks guarded still stands: every sound he makes
+// is oscillators and filters built at runtime, never a fetched or decoded asset.
+assert.match(bundledJs, /AudioContext/, 'his voice should be synthesised live, not an audio file')
+assert.match(bundledJs, /bandpass/, 'his voice should be his own formant babble, not a sample')
 assert.match(bundledJs, /emo-muted/, 'escape has to hush him for the rest of the visit')
 assert.doesNotMatch(bundledJs, /new Audio\(|\.mp3|data:audio/, 'nothing should be fetched or decoded to hear him')
 assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')

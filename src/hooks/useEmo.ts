@@ -1,18 +1,22 @@
 import { useEffect, useRef } from 'react'
+import { createEmoVoice } from '../lib/emoVoice'
 
 /**
  * Emo's senses.
  *
  * He lives inside the hero photograph, so everything he reacts to is a real
- * signal from the page or the device: the pointer, the keyboard under his nose,
- * the scroll fling, the clipboard, the window being resized, the network
- * dropping, the tab going away, the battery, and (hold Space) the microphone.
+ * signal from the page or the device: the pointer, the hand stroking the top of
+ * his head, the keyboard under his nose, the scroll fling, the clipboard, the
+ * window being resized, the network dropping, the tab going away, the battery,
+ * and (hold Space) the microphone.
  *
- * He speaks now instead of captioning. There is no audio in the repo for it: the voice is
- * whatever the device already ships (`speechSynthesis`) and the two-note throat-clear is
- * an oscillator. Every line is still written into a live region, because a browser with no
- * speech engine — or a visitor who has hushed him with Escape — is a browser that needs the
- * words on screen instead. See `data-talk`.
+ * He speaks now instead of captioning, in a voice of his own: a small formant-babble
+ * synthesiser on WebAudio (`src/lib/emoVoice.ts`) — no audio asset, and no dependence
+ * on the operating system's speech engine, which was never him and is switched off
+ * entirely in some embedded browsers. Every line is still written into a live region,
+ * because a device with no WebAudio at all — or a visitor who has hushed him with
+ * Escape, or a browser that has not unlocked sound behind a real gesture yet — is
+ * a device that needs the words on screen instead. See `data-talk`.
  *
  * He never paints through React. One loop writes numbers as custom properties on
  * his root and flips a single `data-face` attribute, so a pointer move cannot
@@ -27,6 +31,7 @@ import { useEffect, useRef } from 'react'
 type Face =
   | 'idle' | 'curious' | 'focused' | 'worried' | 'happy' | 'surprised'
   | 'peek' | 'dizzy' | 'sleep' | 'wake' | 'offline' | 'lowbat' | 'listening' | 'pain'
+  | 'purr' | 'grumpy'
 
 type Reaction = { face: Face; ms: number; priority: number; say?: string }
 
@@ -52,6 +57,12 @@ const REACTIONS: Record<string, Reaction> = {
   fling: { face: 'dizzy', ms: 650, priority: 3 },
   micOn: { face: 'listening', ms: 0, priority: 2, say: 'i am listening' },
   micDenied: { face: 'worried', ms: 2000, priority: 7, say: 'no mic, no problem' },
+  /* The head sensor, the way the desk pet he descends from ships it: strokes, not
+     taps. Woken by a hand he is grumpy first and pettable again once the grump
+     expires; petted past anybody's patience he is grumpy too, with a cooldown. */
+  woken: { face: 'grumpy', ms: 2600, priority: 8, say: 'five more minutes…' },
+  overpet: { face: 'grumpy', ms: 2400, priority: 7, say: 'ok ok that is enough' },
+  afterglow: { face: 'happy', ms: 1500, priority: 5 },
   /* The two states the desk tells him about and he used only to show. */
   lowbat: { face: 'lowbat', ms: 2600, priority: 5, say: 'battery is low' },
   charging: { face: 'happy', ms: 1500, priority: 3, say: 'on the charger' },
@@ -64,6 +75,10 @@ const MOOD_LINES: Partial<Record<Face, string>> = {
   sleep: 'i am going to sleep',
   idle: 'still there?',
 }
+/** Being petted is a conversation, not an event: the first stroke gets a noise, the
+ *  third an opinion. The list cycles; `speak` already refuses the same sentence twice
+ *  in two minutes, so a long scratching session never becomes a loop. */
+const PET_LINES = ['hehe', 'oh that is the spot', 'yes yes right there', 'prrr. yes. prrr']
 const LINE_GAP = 120_000
 
 type MicState = 'off' | 'ready' | 'hot' | 'blocked'
@@ -96,8 +111,13 @@ export function useEmo() {
     /* --- what the loop owns ------------------------------------------------ */
     let gx = 0, gy = 0, tx = 0, ty = 0            // gaze: smoothed, target
     let pop = 0, squint = 0, converge = 0, lean = 0, tilt = 0, drift = 0
+    let shut = 0                                  // how far the lids are closed, eased
     let blink = -1, nextBlink = performance.now() + rand(1600, 4000), lidHold = 0
     let wobble = 0, shake = 0, voice = 0
+    /* Petting, loop side: `petFor` is how long the current session has been going,
+       `petCool` the sulk after being over-petted, `nuzzle` the lift into the hand. */
+    let petFor = 0, petOn = 0, petEnd = 0, petCool = 0, petSessions = 0
+    let nuzzle = 0, petWas = false, petSpoke = false
     let box = hit.getBoundingClientRect()
     let raf = 0, last = performance.now(), restFrames = 0
     let onScreen = true, hiddenAt = 0, lastInput = performance.now(), scrollY = window.scrollY
@@ -110,6 +130,9 @@ export function useEmo() {
 
     /* --- what the handlers record ----------------------------------------- */
     let pointerDist = 3, pointerTilt = 0, orientX = 0, orientY = 0
+    /* A hand over the top of his head: strokes accumulate as heat (the loop lets it
+       cool), and `petX` is where on his head the hand is, -1 left to 1 right. */
+    let handOnHead = false, handWas = false, petHeat = 0, petX = 0, petLastX = NaN
     const keys: number[] = []
     const backs: number[] = []
     let typed = ''
@@ -121,50 +144,19 @@ export function useEmo() {
       if (next === '') delete root.dataset.face
       else root.dataset.face = next
     }
-    /* --- his voice ----------------------------------------------------------
-     * Nothing ships for this: `speechSynthesis` for the words, an oscillator for the
-     * two notes he clears his throat with. Three things gate it, and all three are the
+    /* --- his voice, and the gates on it --------------------------------------
+     * Nothing ships for this: every sound is oscillators and filters on WebAudio,
+     * built in src/lib/emoVoice.ts. Three things gate it, and all three are the
      * reason robot voices get uninstalled:
      *   - no speech before the first real gesture (and no device allows it anyway);
      *   - never while the mic is under a finger, or he would interview himself;
      *   - never the same sentence twice in two minutes, or a stuck key becomes a loop.
      */
-    const synth = window.speechSynthesis
-    // `timbre`, not `voice`: the loop already uses `voice` for how loudly you are talking.
-    let timbre: SpeechSynthesisVoice | null = null
-    const pickVoice = () => {
-      const found = synth?.getVoices?.() ?? []
-      if (!found.length) return
-      const score = (v: SpeechSynthesisVoice) =>
-        (/^en\b/i.test(v.lang) ? 3 : 0) +
-        (/(female|samantha|zira|aria|jenny|google)\b/i.test(v.name) ? 2 : 0) +
-        (/(enhanced|premium|compact)/i.test(v.name) ? 1 : 0) -
-        (/(robot|whisper|albert|junior|bubbles)/i.test(v.name) ? 3 : 0)
-      timbre = found.reduce((best, v) => (score(v) > score(best) ? v : best), found[0] as SpeechSynthesisVoice)
-    }
-    pickVoice()
-    // Chromium fills the list a tick later than the object exists.
-    synth?.addEventListener?.('voiceschanged', pickVoice)
     let muted = sessionStorage.getItem('emo-muted') === '1'
     // He is mute until the page has a real interaction behind it, which is also the only
     // moment a browser would let him make a sound at all.
-    let activated = false, talking = false, lastLine = '', lastLineAt = 0
-    /** A dash is a beat in print and a "dash" out loud. */
-    const spoken = (text: string) => text.replace(/\s+\u2014\s+/g, ', ').replace(/[.\u2026]+$/, '')
-    const canTalk = () => !!synth && !muted && activated && !document.hidden && mic !== 'hot'
-    /** `tts` means the line is only for a screen reader; anything else shows it. */
-    const paintTalk = () => { root.dataset.talk = muted ? 'off' : synth ? 'tts' : 'text' }
-    root.dataset.talk = muted ? 'off' : synth ? 'tts' : 'text'
-    paintTalk()
-    const setMuted = (next: boolean) => {
-      muted = next
-      sessionStorage.setItem('emo-muted', next ? '1' : '0')
-      if (next) synth?.cancel()
-      root.dataset.talk = next ? 'off' : synth ? 'tts' : 'text'
-      paintTalk()
-      say(next ? 'i will write it down instead' : 'good — i can talk again', 2400)
-    }
-    /* One context for both of his sounds: the throat-clear and the mic's analyser. He
+    let activated = false, talking = false, lastLine = '', lastLineAt = 0, talkTimer = 0
+    /* One context for all of his sounds: the voice, the purr and the mic's analyser. He
      * cannot be given a context before a gesture, so it is made on demand, not on mount. */
     let ac: AudioContext | null = null
     const ensureAc = (): AudioContext | null => {
@@ -177,41 +169,94 @@ export function useEmo() {
       if (ac.state === 'suspended') void ac.resume()
       return ac.state === 'running' ? ac : null
     }
-    const blip = (ac: AudioContext) => {
-      // Two rising notes, 75ms apart, at the level of a desk toy.
-      const now = ac.currentTime
-      ;[880, 1320].forEach((hz, i) => {
-        const osc = ac.createOscillator(), gain = ac.createGain()
-        osc.type = 'triangle'
-        osc.frequency.value = hz
-        const at = now + i * 0.075
-        gain.gain.setValueAtTime(0.0002, at)
-        gain.gain.exponentialRampToValueAtTime(0.05, at + 0.014)
-        gain.gain.exponentialRampToValueAtTime(0.0002, at + 0.062)
-        osc.connect(gain).connect(ac.destination)
-        osc.start(at)
-        osc.stop(at + 0.075)
-      })
+    /* --- his voice ----------------------------------------------------------
+     * A voice of his own: a small formant-babble synthesiser on WebAudio
+     * (src/lib/emoVoice.ts), not the operating system's speech engine. The OS
+     * voice was never him — a calm adult reading sentences — and in embedded
+     * previews and stripped-down browsers it is switched off entirely, which is
+     * exactly how he once lost his voice mid-visit and had to caption himself.
+     * `emoVoice` is null only on a device with no WebAudio at all; then, and only
+     * then, his lines are read instead of heard. */
+    const emoVoice = createEmoVoice(ensureAc)
+    const canTalk = () => !!emoVoice && !muted && activated && !document.hidden && mic !== 'hot'
+    /* Sound is a promise the browser keeps only after a real gesture — and in some
+       embedded frames, not even then. So `soundOk` is not "has WebAudio", it is "a
+       line has actually come out of the speaker": until then the words stay on
+       screen, because a robot that is silent *and* wordless is a robot that looks
+       broken, which is exactly the bug this fixes. The first spoken line flips the
+       chip off for the rest of the visit. */
+    let soundOk = false
+    let soundHinted = false
+    /** `voice` means the line is only for a screen reader; anything else shows it. */
+    const paintTalk = () => { root.dataset.talk = muted ? 'off' : soundOk ? 'voice' : 'text' }
+    paintTalk()
+    const setMuted = (next: boolean) => {
+      muted = next
+      sessionStorage.setItem('emo-muted', next ? '1' : '0')
+      if (next) { emoVoice?.stop(); stopPurr() }
+      paintTalk()
+      say(next ? 'i will write it down instead' : 'good — i can talk again', 2400)
     }
+    /* --- his purr -----------------------------------------------------------
+     * The one sound of his that is not a sentence: a sawtooth an octave under
+     * conversation, low-passed into a rumble and chopped by a 21 Hz LFO — roughly
+     * where a cat's purr sits, and close enough for a 9 cm robot. Same gates as
+     * his voice: nothing before the first real gesture (a hover is not one, so a
+     * visitor who has only petted him gets the face and the lean, and the rumble
+     * joins the moment anything is clicked), nothing while muted, and nothing
+     * while the mic is open or he would purr into his own ear. */
+    let purr: { osc: OscillatorNode; lfo: OscillatorNode; gain: GainNode } | null = null
+    const startPurr = () => {
+      if (purr || !activated || muted || mic === 'hot') return
+      const ctx = ensureAc()
+      if (!ctx) return
+      const osc = ctx.createOscillator()
+      osc.type = 'sawtooth'
+      osc.frequency.value = 44
+      const lp = ctx.createBiquadFilter()
+      lp.type = 'lowpass'
+      lp.frequency.value = 150
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime)
+      gain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 0.3)
+      const lfo = ctx.createOscillator()
+      lfo.type = 'sine'
+      lfo.frequency.value = 21
+      const depth = ctx.createGain()
+      depth.gain.value = 0.02
+      osc.connect(lp).connect(gain).connect(ctx.destination)
+      lfo.connect(depth).connect(gain.gain)
+      osc.start()
+      lfo.start()
+      purr = { osc, lfo, gain }
+    }
+    const stopPurr = () => {
+      if (!purr) return
+      const { osc, lfo, gain } = purr
+      purr = null
+      const t = ac?.currentTime ?? 0
+      gain.gain.cancelScheduledValues(t)
+      gain.gain.setTargetAtTime(0.0001, t, 0.12)
+      osc.stop(t + 0.6)
+      lfo.stop(t + 0.6)
+    }
+
     const speak = (text: string) => {
-      if (!synth || !canTalk()) return
+      if (!emoVoice || !canTalk()) return
       const now = performance.now()
       if (text === lastLine && now - lastLineAt < LINE_GAP) return
       lastLine = text
       lastLineAt = now
-      synth.cancel()                       // he says one thing at a time
-      const ctx = ensureAc()
-      if (ctx) blip(ctx)
-      const utter = new SpeechSynthesisUtterance(spoken(text))
-      if (timbre) utter.voice = timbre
-      utter.lang = timbre?.lang ?? 'en-US'
-      // The default voice on most machines is a calm adult; he is a 9cm robot.
-      utter.pitch = 1.7
-      utter.rate = 1.02
-      utter.volume = 0.9
-      utter.onend = utter.onerror = () => { talking = false }
-      talking = true
-      synth.speak(utter)
+      emoVoice.stop()                      // he says one thing at a time
+      emoVoice.clear()                     // the two-note throat-clear first
+      const ms = emoVoice.say(text, 0.19)  // ...and the sentence after it, not over it
+      talking = ms > 0
+      // The first line that actually reaches a speaker is the moment the caption
+      // chip has earned its retirement; a context that stays suspended (an embed
+      // that blocks audio entirely) keeps the words on screen instead.
+      if ((ms > 0) !== soundOk) { soundOk = ms > 0; paintTalk() }
+      window.clearTimeout(talkTimer)
+      talkTimer = window.setTimeout(() => { talking = false }, ms + 120)
     }
 
     let hintTimer = 0
@@ -233,7 +278,12 @@ export function useEmo() {
       if (navigator.onLine === false) return 'offline'
       const quiet = performance.now() - lastInput
       const hour = new Date().getHours()
-      if (quiet > 240_000 || hour < 5 || hour >= 23) return 'sleep'
+      // He keeps desk hours — but not in front of somebody who is standing right there.
+      // A robot that dozes while you are poking him reads as broken eyes, not as charm,
+      // so at night he only dozes once the desk has genuinely gone quiet; in the day he
+      // owes four minutes of stillness before the same nap.
+      const night = hour < 5 || hour >= 23
+      if (quiet > 240_000 || (night && quiet > 30_000)) return 'sleep'
       if (quiet > 25_000) return 'idle'
       return 'curious'
     }
@@ -272,6 +322,21 @@ export function useEmo() {
       look((dx / span) * 2.4, (dy / (span * 0.72)) * 2.4)
       pointerDist = Math.hypot(dx, dy) / (box.width || 1) - 0.5
       pointerTilt = clamp(dx / (window.innerWidth * 0.5))
+      /* A hand that keeps moving over the top of his head is petting him — the web's
+         version of the touch sensor the real desk robot ships. Only the top of the
+         head counts, because his face is not a petting zone; a single pass through
+         on the way to a link is one stroke's worth of heat, which cools again in the
+         loop, so crossing him is not petting him. */
+      const overHead =
+        event.clientX > box.left && event.clientX < box.right &&
+        event.clientY > box.top && event.clientY < box.top + box.height * 0.72
+      handOnHead = overHead
+      if (overHead && handWas && Number.isFinite(petLastX) && performance.now() > petCool) {
+        petHeat = Math.min(1.6, petHeat + (Math.abs(event.clientX - petLastX) / (box.width || 1)) * 1.35)
+        petX = clamp(((event.clientX - box.left) / (box.width || 1) - 0.5) * 2)
+      }
+      handWas = overHead
+      petLastX = event.clientX
       start()
     }
     const onPointerOver = (event: Event) => {
@@ -495,6 +560,8 @@ export function useEmo() {
       samples = new Uint8Array(analyser.fftSize)
       mic = 'hot'
       micHeld += 1
+      stopPurr()                    // he will not purr into his own microphone
+      emoVoice?.stop()              // ...or talk over it
       fire('micOn')
     }
     /* With no switch to press, holding Space is the entire feature: it asks, opens and
@@ -562,15 +629,63 @@ export function useEmo() {
       pop = ease(pop, asleep ? 0.04 : 0.5 * near * near + voice * 0.4, 9, dt)
       converge = ease(converge, 0.35 * near * near, 9, dt)
       lean = ease(lean, near, 6, dt)
-      tilt = ease(tilt, pointerTilt * 1.4 * near, 5, dt)
+      // A hand on the head pulls the head with it: the lean toward the hand and the
+      // little lift into it are the whole difference between being petted and being
+      // watched. One frame of lag on `petWas` is one frame of ease on a 5 Hz target.
+      tilt = ease(tilt, pointerTilt * 1.4 * near + (petWas ? petX * 0.8 : 0), 5, dt)
+      nuzzle = ease(nuzzle, petWas ? 1 : 0, 6, dt)
       // Eyes that hold perfectly still are a screensaver. Real ones never stop
       // drifting by a pixel or two, so that jitter is added on the way out — it is
       // not part of the target, or he would never be able to settle and stop.
       const saccade = Math.sin(now / 780) * 0.62 + Math.sin(now / 337 + 1.7) * 0.38
-      squint = ease(squint, asleep ? 0.7 : fast, 9, dt)
-      const lid = blink >= 0 ? Math.sin(Math.PI * blink) : asleep ? 0.94 : 0
+      squint = ease(squint, fast, 9, dt)
+      // Lids are a door, not a switch: dozing closes them over about a second and waking
+      // opens them the same way, so the sleep face never snaps onto him — and a poke at
+      // night gets a robot opening his eyes, not a screenshot flipping.
+      shut = reduce ? (asleep ? 0.86 : 0) : ease(shut, asleep ? 0.86 : 0, asleep ? 2.2 : 3.2, dt)
+      // Awake, a blink is a full close. Asleep it is only a flutter on top of the closed
+      // lids: a sleeper whose eyes snap wide open every few seconds looks broken, not
+      // tired, which is exactly the tell this face used to have.
+      const flutter = blink >= 0 ? Math.sin(Math.PI * blink) : 0
+      const lid = asleep ? Math.min(1, shut + flutter * 0.14) : Math.max(shut, flutter)
 
       if (active && now > active.until) active = null
+      /* --- a hand on his head: petted, like the desk pet he descends from ---
+       * Handlers only recorded strokes; here they become a face. Petting is a
+       * rolling reaction — it lasts as long as the strokes keep landing — so it
+       * assigns `active` itself every frame, but never over a poke, a wince or a
+       * grump, which all outrank it. */
+      petHeat = Math.max(0, petHeat - dt * 1.1)
+      const petting = handOnHead && petHeat > 0.4 && now > petCool
+      if (petting && !petWas) { petOn = now; petFor = 0 }
+      if (petting) {
+        petFor += dt
+        if (asleep) { fire('woken'); petHeat = 0; petFor = 0 }
+        else if (petFor > 7) { fire('overpet'); petCool = now + 6000; petHeat = 0; petFor = 0 }
+        else {
+          if (!active || active.priority < 7) active = { face: 'purr', until: now + 420, priority: 6 }
+          if (!petSpoke) {
+            petSpoke = true
+            if (!activated && !soundHinted) {
+              // A hover can never unlock a browser's audio — only a press or a key
+              // can — so the first hand that pets him without one gets told, in the
+              // one medium he still has before sound: the chip.
+              soundHinted = true
+              say('poke me once — my sound needs a click', 2600)
+            } else say(PET_LINES[petSessions++ % PET_LINES.length], 2200)
+          }
+          startPurr()
+        }
+      } else {
+        stopPurr()
+        if (petWas) petEnd = now
+        if (petWas && now - petOn > 1200 && now > petCool) fire('afterglow')
+        // The next session earns a fresh line only once the hand has actually been
+        // off him for a moment, or one long scratch with pauses reads as many pets.
+        if (petSpoke && now - petEnd > 2600) petSpoke = false
+      }
+      petWas = petting
+
       const next = active ? active.face : mood()
       show(next)
       // A mood is not an event, so it gets one line only on the way in, only while
@@ -585,12 +700,18 @@ export function useEmo() {
       set('--emo-lid', lid); set('--emo-pop', pop)
       set('--emo-squint', squint); set('--emo-converge', converge)
       set('--emo-lean', reduce ? 0 : lean); set('--emo-tilt', reduce ? 0 : tilt)
+      set('--emo-nuzzle', reduce ? 0 : nuzzle)
+      // The rumble made visible: a slow brightness pulse on the lids while the hand
+      // is on him, at nothing like the 21 Hz of the sound — light that fast would be
+      // a strobe, and a strobe on somebody's desk is a seizure risk, not a purr.
+      set('--emo-purr', reduce || !petting ? 0 : 0.5 + 0.5 * Math.sin(now / 150))
       set('--emo-voice', voice)
       set('--emo-wobble', reduce ? 0 : Math.sin(now / 44) * wobble)
       set('--emo-shake', reduce ? 0 : Math.sin(now / 19) * shake)
 
       const settled =
-        Math.abs(gx - tx) + Math.abs(gy - ty) + Math.abs(pop - 0.5 * near * near) + lid + voice + wobble + shake < 0.014
+        Math.abs(gx - tx) + Math.abs(gy - ty) + Math.abs(pop - 0.5 * near * near) + lid + nuzzle +
+        voice + wobble + shake < 0.014
       restFrames = settled && !active && !analyser ? restFrames + 1 : 0
       if (restFrames > 110) { restFrames = 0; stop(); breathe(); return }
       raf = onScreen && !document.hidden ? requestAnimationFrame(frame) : 0
@@ -672,9 +793,11 @@ export function useEmo() {
       battery?.removeEventListener('chargingchange', onPower)
       stopTilt()
       stream?.getTracks().forEach(track => track.stop())
-      // A queued sentence outliving the component is a voice with no body.
-      synth?.cancel()
-      synth?.removeEventListener?.('voiceschanged', pickVoice)
+      // A queued sentence outliving the component is a voice with no body, and a
+      // purr outliving it is a rumble with no robot.
+      stopPurr()
+      emoVoice?.stop()
+      window.clearTimeout(talkTimer)
       void ac?.close()
     }
   }, [])

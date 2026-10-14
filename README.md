@@ -141,12 +141,32 @@ ever being retouched, and without anything laid over it:
   settles, when the hero scrolls away, when the tab is hidden and when a narrow crop
   leaves him out of frame. While nobody is at the keyboard he wakes for a breath every
   few seconds, which is where blinking, the wandering gaze and the late-night sleep live.
-- He speaks. Every line used to be a caption chip over the photograph; there is no chip
-  now. Words go into a screen-reader live region and out through `speechSynthesis` (a
-  small-cute pitch shift, two-note triangle-wave throat-clear from an oscillator, no
-  audio asset), and only fall back to visible text when the browser has no speech engine
-  or the visitor muted him. That way a muted or engine-less browser still gets the joke,
-  and a normal browser gets just a robot on a desk — not UI pasted on a still life.
+- **Petting, like the desk pet he descends from.** The real robot ships a touch sensor
+  on his head; here the sensor is the pointer. A hand that keeps stroking the top of
+  his head — the top of his tap box, because his face is not a petting zone — leaves
+  pet heat behind, and the loop turns it into `purr`: eyes melted into two contented
+  arcs, the head leaned toward the hand and lifted into it, a slow brightness pulse on
+  the lids at his rumble's rate, and, once the page has a real gesture behind it like
+  everything else he voices, an oscillator purr (a 44 Hz sawtooth, low-passed and
+  chopped by a 21 Hz LFO). The first stroke of a session gets a line that cycles
+  (`hehe`, `oh that is the spot`, …); petting him out of his sleep gets a grumpy
+  *five more minutes…*; petting past seven seconds gets `grumpy` and a six-second
+  sulk; a hand that leaves after a good session gets a small happy afterglow.
+- He speaks, in a voice of his own. Every line used to be a caption chip over the
+  photograph; there is no chip now. Words go into a screen-reader live region and out
+  through a small formant-babble synthesiser (`src/lib/emoVoice.ts`, WebAudio, no audio
+  asset): each word becomes syllables and each syllable a sawtooth blip at a pentatonic
+  note of his base pitch, shaped by three band-pass formants from a vowel table — wa-we-oo,
+  not beep-beep — with a noise-burst consonant attack, a glide into every note and a
+  little vibrato; questions climb at the end and statements fall. The same sentence always
+  sounds the same, because its vowels and notes come from a hash of its words. The
+  operating system's speech engine is deliberately not used: a calm adult OS voice was
+  never him, and in embedded previews and stripped-down browsers it is switched off
+  entirely — which is exactly how he once went mute mid-visit and had to caption himself.
+  Visible text returns whenever sound cannot: on a device with no WebAudio at all, when
+  the visitor hushed him with Escape, and until the first line has actually reached a
+  speaker — browsers keep audio locked behind a real gesture, and some embedded frames
+  block it outright, so a silent-and-wordless robot is a state he is never allowed into.
 - The About pegboard is the real photograph. The composited ESP32, the Monster can
   and the drawn ribbon cable that sat over the top of it have been removed; the
   "hover to inspect" zoom card and its orange hint have been removed with them. The
