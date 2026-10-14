@@ -76,7 +76,10 @@ assert.ok((await readFile('dist/robots.txt', 'utf8')).includes(`Sitemap: ${canon
 const assetFiles = await readdir('dist/assets')
 const cssFiles = assetFiles.filter((file) => file.endsWith('.css'))
 assert.ok(cssFiles.length)
-const bundledCss = (await Promise.all(cssFiles.map((file) => readFile(`dist/assets/${file}`, 'utf8')))).join('\n')
+const bundle = (glob) =>
+  Promise.all(assetFiles.filter(glob).map((file) => readFile(`dist/assets/${file}`, 'utf8'))).then(parts => parts.join('\n'))
+const bundledCss = await bundle((file) => file.endsWith('.css'))
+const bundledJs = await bundle((file) => file.endsWith('.js') && !file.startsWith('entry-server'))
 assert.match(bundledCss, /prefers-reduced-motion:reduce/)
 // The hero scene must bleed edge to edge: the frame is sized off the larger of
 // "viewport width × the photo ratio" and "viewport height", so a letterbox (the
@@ -99,9 +102,17 @@ assert.match(home, /--emo-box-x:\s*\d+(?:\.\d+)?%/, 'Emo should sit on geometry 
 assert.match(home, /--emo-eye-peak:\s*rgb\(/, 'his eyes should be his own measured colours, not a palette guess')
 assert.match(home, /<span class="emo-clip emo-a"[^>]*aria-hidden="true"/, 'the erase layer is decoration, not content')
 assert.match(home, /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/, 'his tap target should say who it is')
-assert.match(home, /class="emo-chip"[^>]*data-live="0"/, 'the microphone starts off and stays opt-in')
-// The pin is a reaction, so it must not be painted into the static page.
-assert.doesNotMatch(home, /data-pin/, 'a prerendered page should not already be hurting')
+// He is spoken, not captioned: the two pill switches and the caption chip are gone, and
+// the one line he keeps is a live region that only becomes visible text when the browser
+// cannot talk. Nothing here may put a box of UI over the photograph by default.
+assert.doesNotMatch(bundledCss, /\.emo-senses|\.emo-chip|\.emo-hint|emo-chip\[/, 'the mic and tilt switches were removed — no chip should come back')
+assert.match(bundledCss, /\.emo-line\{[^}]*clip-path:inset\(50%\)/, 'his line should be said, not stuck on the photo')
+assert.match(bundledCss, /\.emo-line:empty\{display:none\}/, 'an empty caption chip is an empty box on the desk')
+assert.match(bundledCss, /\[data-talk=text\] \.emo-line|\[data-talk=.text.\] \.emo-line/, 'with no speech engine the words have to be readable')
+assert.match(bundledJs, /speechSynthesis/, 'his voice should come from the device, not an audio file')
+assert.match(bundledJs, /SpeechSynthesisUtterance/, 'he should actually speak the line he used to spell out')
+assert.match(bundledJs, /emo-muted/, 'escape has to hush him for the rest of the visit')
+assert.doesNotMatch(bundledJs, /new Audio\(|\.mp3|data:audio/, 'nothing should be fetched or decoded to hear him')
 assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')
 assert.match(bundledCss, /\.emo\{[^}]*pointer-events:none/, 'Emo must not swallow clicks meant for the hero')
 assert.match(bundledCss, /\.emo\{[^}]*font-size:1cqw/, 'Emo should scale with the photo he is painted on, not the viewport')
@@ -111,11 +122,12 @@ assert.match(bundledCss, /\.emo-hit\{[^}]*pointer-events:auto/, 'his tap target 
 assert.match(bundledCss, /\.emo-clip\{[^}]*mix-blend-mode:darken/, 'his paint should be erased by clipping light, not by covering it')
 assert.match(bundledCss, /\.emo-glow\{[^}]*mix-blend-mode:screen/, 'his glow should be added as light')
 assert.match(bundledCss, /\.emo-orb\{[^}]*mix-blend-mode:screen/, 'his eyes should be added as light')
-// Being poked roughly has to hurt more than being poked: the wince is its own face, and
-// the pin is what makes the line land with no sound and no modal.
+// Being poked roughly is a wince — not a wider surprise: the eyes squeeze flat and pinch
+// toward the nose, using the same three measured layers (no chip, no pin).
 assert.match(bundledCss, /\[data-face=pain\] \.emo-orb\{[^}]*--emo-face-sy: -\.6\d/, 'rapid tapping should squeeze his eyes shut, not just widen them')
 assert.match(bundledCss, /\.emo-orb\{[^}]*var\(--emo-face-x[,)]/, 'the squeeze has to pull both eyes inward, toward the nose')
-assert.match(bundledCss, /\[data-pin="1"\] \.emo-hint:before\{[^}]*border-radius:50% 50% 50% 0/, 'the pain caption should carry the pushpin')
+// And the wince says it out loud like everything else does: the line is written, then read.
+assert.match(bundledJs, /that hurts/, 'the wince needs its line')
 // The whole reason he looked like an overlay: any ancestor that forms a stacking context
 // turns into a blend container, and the blending stops reaching the photograph.
 const emoBlock = bundledCss.slice(bundledCss.indexOf('.emo{'), bundledCss.indexOf('.emo[data-off'))

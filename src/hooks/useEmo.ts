@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 /**
  * Emo's senses.
@@ -6,8 +6,13 @@ import { useEffect, useRef, useState } from 'react'
  * He lives inside the hero photograph, so everything he reacts to is a real
  * signal from the page or the device: the pointer, the keyboard under his nose,
  * the scroll fling, the clipboard, the window being resized, the network
- * dropping, the tab going away, the battery, and (opt-in, hold Space) the
- * microphone.
+ * dropping, the tab going away, the battery, and (hold Space) the microphone.
+ *
+ * He speaks now instead of captioning. There is no audio in the repo for it: the voice is
+ * whatever the device already ships (`speechSynthesis`) and the two-note throat-clear is
+ * an oscillator. Every line is still written into a live region, because a browser with no
+ * speech engine — or a visitor who has hushed him with Escape — is a browser that needs the
+ * words on screen instead. See `data-talk`.
  *
  * He never paints through React. One loop writes numbers as custom properties on
  * his root and flips a single `data-face` attribute, so a pointer move cannot
@@ -23,7 +28,7 @@ type Face =
   | 'idle' | 'curious' | 'focused' | 'worried' | 'happy' | 'surprised'
   | 'peek' | 'dizzy' | 'sleep' | 'wake' | 'offline' | 'lowbat' | 'listening' | 'pain'
 
-type Reaction = { face: Face; ms: number; priority: number; say?: string; pin?: boolean }
+type Reaction = { face: Face; ms: number; priority: number; say?: string }
 
 /** A reaction is a face plus a line of copy. Only a louder one may interrupt. */
 const TAPS_TO_HURT = 4
@@ -34,7 +39,7 @@ const REACTIONS: Record<string, Reaction> = {
   poke3: { face: 'worried', ms: 1500, priority: 8, say: 'ok ok i am awake' },
   /* Four taps in a second is not a poke any more. Highest priority next to the network
      outage, because a wince that gets interrupted by a joke is not a wince. */
-  ouch: { face: 'pain', ms: 1900, priority: 9, say: 'that hurts', pin: true },
+  ouch: { face: 'pain', ms: 1900, priority: 9, say: 'that hurts' },
   name: { face: 'happy', ms: 1700, priority: 7, say: 'yes, that is me' },
   copy: { face: 'happy', ms: 1200, priority: 6, say: 'copied — send it' },
   cut: { face: 'worried', ms: 1200, priority: 6, say: 'you cut my snippet' },
@@ -45,9 +50,21 @@ const REACTIONS: Record<string, Reaction> = {
   online: { face: 'happy', ms: 1600, priority: 5, say: 'back — nothing dropped' },
   wake: { face: 'wake', ms: 1900, priority: 4, say: 'you came back' },
   fling: { face: 'dizzy', ms: 650, priority: 3 },
-  micOn: { face: 'listening', ms: 0, priority: 2 },
+  micOn: { face: 'listening', ms: 0, priority: 2, say: 'i am listening' },
   micDenied: { face: 'worried', ms: 2000, priority: 7, say: 'no mic, no problem' },
+  /* The two states the desk tells him about and he used only to show. */
+  lowbat: { face: 'lowbat', ms: 2600, priority: 5, say: 'battery is low' },
+  charging: { face: 'happy', ms: 1500, priority: 3, say: 'on the charger' },
 }
+
+/** Moods are not reactions: nobody did anything to him. So they get a line only when he
+ *  settles into one, only while someone is still standing there, and never over the tail
+ *  of a sentence he is already saying. */
+const MOOD_LINES: Partial<Record<Face, string>> = {
+  sleep: 'i am going to sleep',
+  idle: 'still there?',
+}
+const LINE_GAP = 120_000
 
 type MicState = 'off' | 'ready' | 'hot' | 'blocked'
 /** 'na' means this device has nothing to feel with, so his switch stops offering it. */
@@ -66,15 +83,13 @@ const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo)
 export function useEmo() {
   const rootRef = useRef<HTMLDivElement>(null)
   const hitRef = useRef<HTMLButtonElement>(null)
-  const hintRef = useRef<HTMLSpanElement>(null)
-  const [ui, setUi] = useState<{ mic: MicState; motion: MotionState }>({ mic: 'off', motion: 'off' })
-  const api = useRef<{ armMic: () => void; armMotion: () => void } | null>(null)
+  const lineRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const root = rootRef.current
     const hit = hitRef.current
-    const hint = hintRef.current
-    if (!root || !hit || !hint) return
+    const line = lineRef.current
+    if (!root || !hit || !line) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const set = (name: string, value: number) => root.style.setProperty(name, value.toFixed(4))
 
@@ -87,10 +102,11 @@ export function useEmo() {
     let raf = 0, last = performance.now(), restFrames = 0
     let onScreen = true, hiddenAt = 0, lastInput = performance.now(), scrollY = window.scrollY
     let breath = 0
-    let face: Face | '' = ''
+    let face: Face | '' = '', spoke: Face | '' = ''
     let active: { face: Face; until: number; priority: number } | null = null
     let mic: MicState = 'off'
-    let watching = false
+    let motion: MotionState = 'off'
+    let watching = false, tiltAsked = false, micHeld = 0
 
     /* --- what the handlers record ----------------------------------------- */
     let pointerDist = 3, pointerTilt = 0, orientX = 0, orientY = 0
@@ -105,17 +121,110 @@ export function useEmo() {
       if (next === '') delete root.dataset.face
       else root.dataset.face = next
     }
+    /* --- his voice ----------------------------------------------------------
+     * Nothing ships for this: `speechSynthesis` for the words, an oscillator for the
+     * two notes he clears his throat with. Three things gate it, and all three are the
+     * reason robot voices get uninstalled:
+     *   - no speech before the first real gesture (and no device allows it anyway);
+     *   - never while the mic is under a finger, or he would interview himself;
+     *   - never the same sentence twice in two minutes, or a stuck key becomes a loop.
+     */
+    const synth = window.speechSynthesis
+    // `timbre`, not `voice`: the loop already uses `voice` for how loudly you are talking.
+    let timbre: SpeechSynthesisVoice | null = null
+    const pickVoice = () => {
+      const found = synth?.getVoices?.() ?? []
+      if (!found.length) return
+      const score = (v: SpeechSynthesisVoice) =>
+        (/^en\b/i.test(v.lang) ? 3 : 0) +
+        (/(female|samantha|zira|aria|jenny|google)\b/i.test(v.name) ? 2 : 0) +
+        (/(enhanced|premium|compact)/i.test(v.name) ? 1 : 0) -
+        (/(robot|whisper|albert|junior|bubbles)/i.test(v.name) ? 3 : 0)
+      timbre = found.reduce((best, v) => (score(v) > score(best) ? v : best), found[0] as SpeechSynthesisVoice)
+    }
+    pickVoice()
+    // Chromium fills the list a tick later than the object exists.
+    synth?.addEventListener?.('voiceschanged', pickVoice)
+    let muted = sessionStorage.getItem('emo-muted') === '1'
+    // He is mute until the page has a real interaction behind it, which is also the only
+    // moment a browser would let him make a sound at all.
+    let activated = false, talking = false, lastLine = '', lastLineAt = 0
+    /** A dash is a beat in print and a "dash" out loud. */
+    const spoken = (text: string) => text.replace(/\s+\u2014\s+/g, ', ').replace(/[.\u2026]+$/, '')
+    const canTalk = () => !!synth && !muted && activated && !document.hidden && mic !== 'hot'
+    /** `tts` means the line is only for a screen reader; anything else shows it. */
+    const paintTalk = () => { root.dataset.talk = muted ? 'off' : synth ? 'tts' : 'text' }
+    root.dataset.talk = muted ? 'off' : synth ? 'tts' : 'text'
+    paintTalk()
+    const setMuted = (next: boolean) => {
+      muted = next
+      sessionStorage.setItem('emo-muted', next ? '1' : '0')
+      if (next) synth?.cancel()
+      root.dataset.talk = next ? 'off' : synth ? 'tts' : 'text'
+      paintTalk()
+      say(next ? 'i will write it down instead' : 'good — i can talk again', 2400)
+    }
+    /* One context for both of his sounds: the throat-clear and the mic's analyser. He
+     * cannot be given a context before a gesture, so it is made on demand, not on mount. */
+    let ac: AudioContext | null = null
+    const ensureAc = (): AudioContext | null => {
+      if (!ac) {
+        const Ctor = window.AudioContext
+          ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        if (!Ctor) return null
+        try { ac = new Ctor() } catch { return null }
+      }
+      if (ac.state === 'suspended') void ac.resume()
+      return ac.state === 'running' ? ac : null
+    }
+    const blip = (ac: AudioContext) => {
+      // Two rising notes, 75ms apart, at the level of a desk toy.
+      const now = ac.currentTime
+      ;[880, 1320].forEach((hz, i) => {
+        const osc = ac.createOscillator(), gain = ac.createGain()
+        osc.type = 'triangle'
+        osc.frequency.value = hz
+        const at = now + i * 0.075
+        gain.gain.setValueAtTime(0.0002, at)
+        gain.gain.exponentialRampToValueAtTime(0.05, at + 0.014)
+        gain.gain.exponentialRampToValueAtTime(0.0002, at + 0.062)
+        osc.connect(gain).connect(ac.destination)
+        osc.start(at)
+        osc.stop(at + 0.075)
+      })
+    }
+    const speak = (text: string) => {
+      if (!synth || !canTalk()) return
+      const now = performance.now()
+      if (text === lastLine && now - lastLineAt < LINE_GAP) return
+      lastLine = text
+      lastLineAt = now
+      synth.cancel()                       // he says one thing at a time
+      const ctx = ensureAc()
+      if (ctx) blip(ctx)
+      const utter = new SpeechSynthesisUtterance(spoken(text))
+      if (timbre) utter.voice = timbre
+      utter.lang = timbre?.lang ?? 'en-US'
+      // The default voice on most machines is a calm adult; he is a 9cm robot.
+      utter.pitch = 1.7
+      utter.rate = 1.02
+      utter.volume = 0.9
+      utter.onend = utter.onerror = () => { talking = false }
+      talking = true
+      synth.speak(utter)
+    }
+
     let hintTimer = 0
-    const say = (text: string, ms = 2600, pin = false) => {
-      hint.textContent = text
-      root.dataset.hint = '1'
-      // The pin rides the same lifetime as the line it belongs to.
-      if (pin) root.dataset.pin = '1'
-      else delete root.dataset.pin
+    const say = (text: string, ms = 2600) => {
+      // The words always go in the live region: they are the accessible name of the
+      // moment, whether or not anybody hears them.
+      line.textContent = text
+      root.dataset.said = '1'
+      speak(text)
       // Timed on the clock, not on frames: the loop may well stop before the line is
       // due to leave, and a caption that outlives its own joke is worse than none.
       window.clearTimeout(hintTimer)
-      hintTimer = window.setTimeout(() => { delete root.dataset.hint; delete root.dataset.pin }, ms)
+      hintTimer = window.setTimeout(() => { delete root.dataset.said; line.textContent = '' }, ms)
       start()
     }
     const look = (x: number, y: number) => { tx = clamp(x); ty = clamp(y) }
@@ -141,7 +250,7 @@ export function useEmo() {
       if (key === 'fling') wobble = 1
       // A flinch from the shoulders, not a jump: the tremor decays in the loop.
       if (key === 'ouch') { wobble = 1.35; shake = 0.75; lidHold = performance.now() }
-      if (reaction.say) say(reaction.say, 2600, !!reaction.pin)
+      if (reaction.say) say(reaction.say)
       start()
     }
     /* --- pointer: he watches what you watch -------------------------------- */
@@ -218,7 +327,12 @@ export function useEmo() {
         return
       }
       if (event.key === ' ') {
-        if (mic === 'ready' && !field) { event.preventDefault(); void openMic() }
+        // Space is his only switch: nothing is visible, so nothing has to be clicked.
+        if (!field && mic !== 'blocked') { event.preventDefault(); tapMic(true) }
+        return
+      }
+      if (event.key === 'Escape') {
+        if (!field && mic !== 'hot') { event.preventDefault(); setMuted(!muted) }
         return
       }
       if (event.key.length !== 1 || field) return
@@ -230,7 +344,7 @@ export function useEmo() {
       start()
     }
     const onKeyUp = (event: KeyboardEvent) => {
-      if (event.key === ' ' && mic === 'hot') { event.preventDefault(); closeMic() }
+      if (event.key === ' ' && mic === 'hot') { event.preventDefault(); tapMic(false) }
     }
 
     /* --- the rest of the room -------------------------------------------- */
@@ -267,9 +381,17 @@ export function useEmo() {
 
     /* --- device: battery, tilt, microphone -------------------------------- */
     let battery: BatteryLike | null = null
+    let power = ''
     const paintPower = () => {
       if (!battery) return
-      root.dataset.power = battery.charging ? 'charging' : battery.level <= 0.2 ? 'low' : 'on'
+      const next: 'charging' | 'low' | 'on' = battery.charging ? 'charging' : battery.level <= 0.2 ? 'low' : 'on'
+      if (next === power) return
+      // Only the transitions he can react to, and never the first one: arriving at a
+      // dead battery should not buy you a comment about your battery.
+      if (power && next === 'low') fire('lowbat')
+      if (power && next === 'charging') fire('charging')
+      power = next
+      root.dataset.power = next
     }
     const onPower = () => { paintPower() }
     const getBattery = (navigator as Navigator & { getBattery?: () => Promise<BatteryLike> }).getBattery
@@ -287,11 +409,11 @@ export function useEmo() {
       orientY = 0
       window.removeEventListener('deviceorientation', onTilt)
     }
-    /** He only ever offers the switch again if there is a sensor behind it. */
+    /** Most machines have no accelerometer, so this is the quiet path: saying "no tilt
+     *  sensor" on somebody's first click is a stranger telling them they own a laptop. */
     const noSensor = () => {
       stopTilt()
-      setUi(state => ({ ...state, motion: 'na' }))
-      say('nothing to feel with here — cursor only', 2600)
+      motion = 'na'
     }
     // A phone answers many times a second, so only a change on the desk is worth
     // waking him for; otherwise he would never settle into a blink.
@@ -309,19 +431,12 @@ export function useEmo() {
       orientY = y
       start()
     }
-    const armMotion = () => {
-      if (watching) {
-        stopTilt()
-        setUi(state => ({ ...state, motion: 'off' }))
-        say('ok — cursor only', 1800)
-        return
-      }
+    const armTilt = () => {
       const sensor = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent
       const bind = () => {
         watching = true
+        motion = 'on'
         window.addEventListener('deviceorientation', onTilt, { passive: true })
-        setUi(state => ({ ...state, motion: 'on' }))
-        say('now i can feel the desk tilt', 2600)
       }
       if (!sensor) {
         noSensor()
@@ -339,21 +454,26 @@ export function useEmo() {
     }
 
     let stream: MediaStream | null = null
-    let audio: AudioContext | null = null
     let analyser: AnalyserNode | null = null
     let samples = new Uint8Array(1024)
     const closeMic = () => {
       stream?.getTracks().forEach(track => track.stop())
       stream = null
       analyser = null
-      if (mic === 'hot') { mic = 'ready'; setUi(state => ({ ...state, mic })); breathe() }
+      if (mic === 'hot') {
+        mic = 'ready'
+        breathe()
+        // The reassurance only needs saying once, and it is the line the whole
+        // feature needs to exist for.
+        if (micHeld === 1) say('done — none of that left this device', 3000)
+      }
       if (active?.priority === REACTIONS.micOn.priority) active = null
     }
     /** Tracks are open only while Space is held — the OS record light goes off the
      *  moment you let go, and nothing is ever buffered, stored or sent. */
     const openMic = async () => {
       if (stream || mic === 'blocked' || !navigator.mediaDevices?.getUserMedia) {
-        if (!navigator.mediaDevices?.getUserMedia) { mic = 'blocked'; setUi(state => ({ ...state, mic })) }
+        if (!navigator.mediaDevices?.getUserMedia) mic = 'blocked'
         return
       }
       try {
@@ -362,38 +482,29 @@ export function useEmo() {
         })
       } catch {
         mic = 'blocked'
-        setUi(state => ({ ...state, mic }))
         fire('micDenied')
         return
       }
-      audio ??= new AudioContext()
-      if (audio.state === 'suspended') void audio.resume()
-      analyser = audio.createAnalyser()
+      const ctx = ensureAc()
+      if (!ctx) { mic = 'blocked'; return }
+      analyser = ctx.createAnalyser()
       analyser.fftSize = 1024
       analyser.smoothingTimeConstant = 0.55
-      const source = audio.createMediaStreamSource(stream)
+      const source = ctx.createMediaStreamSource(stream)
       source.connect(analyser)
       samples = new Uint8Array(analyser.fftSize)
       mic = 'hot'
-      setUi(state => ({ ...state, mic }))
+      micHeld += 1
       fire('micOn')
     }
-    const armMic = async () => {
-      if (mic !== 'off') { mic = 'off'; closeMic(); setUi(state => ({ ...state, mic: 'off' })); say('mic off', 1500); return }
-      if (!navigator.mediaDevices?.getUserMedia) { mic = 'blocked'; setUi(state => ({ ...state, mic })); return }
-      try {
-        const probe = await navigator.mediaDevices.getUserMedia({ audio: true })
-        probe.getTracks().forEach(track => track.stop())
-        mic = 'ready'
-        setUi(state => ({ ...state, mic }))
-        say('hold space — i am listening', 3200)
-      } catch {
-        mic = 'blocked'
-        setUi(state => ({ ...state, mic }))
-        say('no mic? fine, i read the keyboard', 2600)
-      }
+    /* With no switch to press, holding Space is the entire feature: it asks, opens and
+     * releases. A denied or absent mic is remembered for the visit, so he never nags. */
+    const tapMic = (down: boolean) => {
+      if (down) { void openMic(); return }
+      if (mic === 'hot') { closeMic(); return }
+      // A tap of Space with nothing held still means "i wanted the mic": say what is up.
+      if (mic === 'ready') say('hold it down, do not tap', 2200)
     }
-    api.current = { armMic: () => void armMic(), armMotion }
 
     /* --- the loop, mostly asleep ------------------------------------------ */
     const frame = (now: number) => {
@@ -460,7 +571,15 @@ export function useEmo() {
       const lid = blink >= 0 ? Math.sin(Math.PI * blink) : asleep ? 0.94 : 0
 
       if (active && now > active.until) active = null
-      show(active ? active.face : mood())
+      const next = active ? active.face : mood()
+      show(next)
+      // A mood is not an event, so it gets one line only on the way in, only while
+      // somebody is still standing at the keyboard, and never over his own sentence.
+      if (next !== spoke) {
+        spoke = next
+        const moodLine = active ? undefined : MOOD_LINES[next]
+        if (moodLine && !talking && idle < 60_000) say(moodLine, 2400)
+      }
 
       set('--emo-gx', clamp(gx + saccade * 0.3)); set('--emo-gy', clamp(gy + saccade * 0.12))
       set('--emo-lid', lid); set('--emo-pop', pop)
@@ -498,6 +617,19 @@ export function useEmo() {
     }, { threshold: 0 })
     seen.observe(root.closest('.hero') ?? root)
 
+    /* Nothing he says or asks for happens before a real interaction, and the tilt sensor
+     * on iOS can only be asked for inside one. `once` is not enough: a key that repeats
+     * would re-ask, so it is disarmed here. */
+    const onGesture = () => {
+      if (activated) return
+      activated = true
+      window.removeEventListener('pointerdown', onGesture, true)
+      window.removeEventListener('keydown', onGesture, true)
+      if (!tiltAsked && motion !== 'on') { tiltAsked = true; armTilt() }
+    }
+    window.addEventListener('pointerdown', onGesture, { capture: true, passive: true })
+    window.addEventListener('keydown', onGesture, { capture: true })
+
     hit.addEventListener('pointerdown', onPointerDown)
     hit.addEventListener('click', onClick)
     window.addEventListener('pointermove', onPointerMove, { passive: true })
@@ -534,22 +666,20 @@ export function useEmo() {
       window.removeEventListener('offline', onNetwork)
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('deviceorientation', onTilt)
+      window.removeEventListener('pointerdown', onGesture, true)
+      window.removeEventListener('keydown', onGesture, true)
       battery?.removeEventListener('levelchange', onPower)
       battery?.removeEventListener('chargingchange', onPower)
       stopTilt()
       stream?.getTracks().forEach(track => track.stop())
-      void audio?.close()
-      api.current = null
+      // A queued sentence outliving the component is a voice with no body.
+      synth?.cancel()
+      synth?.removeEventListener?.('voiceschanged', pickVoice)
+      void ac?.close()
     }
   }, [])
 
-  return {
-    rootRef,
-    hitRef,
-    hintRef,
-    mic: ui.mic,
-    motion: ui.motion,
-    armMic: () => api.current?.armMic(),
-    armMotion: () => api.current?.armMotion(),
-  }
+  /* No state, no re-render: he is a photo with numbers on it, and every one of those
+   * numbers is written straight to the DOM by the loop. */
+  return { rootRef, hitRef, lineRef }
 }

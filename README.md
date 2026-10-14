@@ -132,19 +132,26 @@ ever being retouched, and without anything laid over it:
   motion therefore reaches each layer as its own translation. `npm run test:seo` fails if
   the isolation creeps back in, or if the paint order stops being clips → halos → eyes.
 - `src/hooks/useEmo.ts` watches the pointer, the keyboard under his nose, scroll
-  velocity, copy and cut, window resizes, device orientation, battery, connectivity and
-  the tab — plus the microphone, but only while the visitor holds `Space`, so the OS
-  record light is off the moment they let go. Handlers only record; one rAF loop decides
-  what his face does and paints ~11 custom properties, then stops when he settles, when
-  the hero scrolls away, when the tab is hidden and when a narrow crop leaves him out of
-  frame. While nobody is at the keyboard it wakes for a breath every few seconds, which
-  is where blinking, the wandering gaze and the late-night sleep live.
+  velocity, copy and cut, window resizes, battery, connectivity, the first gesture's tilt
+  ask (iOS only), and — while the visitor holds `Space` — the microphone. There are no
+  visible controls: the mic opens on Space and closes when Space comes up (the OS record
+  light goes out the moment they let go, and nothing is ever buffered, stored or sent),
+  and `Escape` mutes him for the rest of the visit. Handlers only record what happened;
+  one rAF loop paints ~11 custom properties straight onto the DOM, then stops when he
+  settles, when the hero scrolls away, when the tab is hidden and when a narrow crop
+  leaves him out of frame. While nobody is at the keyboard he wakes for a breath every
+  few seconds, which is where blinking, the wandering gaze and the late-night sleep live.
+- He speaks. Every line used to be a caption chip over the photograph; there is no chip
+  now. Words go into a screen-reader live region and out through `speechSynthesis` (a
+  small-cute pitch shift, two-note triangle-wave throat-clear from an oscillator, no
+  audio asset), and only fall back to visible text when the browser has no speech engine
+  or the visitor muted him. That way a muted or engine-less browser still gets the joke,
+  and a normal browser gets just a robot on a desk — not UI pasted on a still life.
 - `src/emo.css` turns those properties into blinks, squints, dilations and a dozen
   moods — all of them brightness, size and colour, because a face that is a display does
   not have eyelids. Tap him four times inside a second and the moods stop being polite:
-  his eyes squeeze shut inward (`pain`), the flinch runs through the same lean and wobble
-  numbers, and the caption chip turns bruised-red with a pushpin on it saying
-  **that hurts** — a pin for a pin-prick, drawn in CSS, gone when the line is. `prefers-reduced-motion` keeps his face and drops the twitching.
+  his eyes squeeze shut inward (`pain`) and the flinch runs through the same lean and
+  wobble numbers while he says **that hurts** out loud. `prefers-reduced-motion` keeps his face and drops the twitching.
 
 Nothing is measured by eye and nothing is trusted to stay true: `npm run build` ends by
 re-measuring the photo (`emo-geometry.mjs --check`), so re-cropping the hero either moves

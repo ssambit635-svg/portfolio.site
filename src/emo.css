@@ -186,74 +186,47 @@
 }
 .emo-hit:focus-visible { outline: 1px solid rgb(120 255 240 / 0.5); outline-offset: 0.3em; }
 
-/* His status strip: a caption above, the switches he owns, on the desk below. */
-.emo-hint,
-.emo-chip {
+/* What he says, out loud. The sentence is in the DOM whatever the device can do, because
+   a live region is the accessible name of the moment — but it is 1px and clipped, since a
+   pill of uppercase text over a photograph is UI pasted on a still life. `data-talk` is the
+   one switch, set once by the hook: `tts` when the browser can speak, `text` when it cannot,
+   `off` when Escape hushed him. A caption is exactly what a muted robot owes you, so for the
+   last two the chip comes back. */
+.emo-line {
+  position: absolute;
+  left: calc(var(--emo-head-x) - 1%);
+  bottom: calc(100% - var(--emo-head-y) + 0.8%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   font: 500 clamp(10px, 1.05vw, 15px) var(--mono);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.emo[data-talk='text'] .emo-line,
+.emo[data-talk='off'] .emo-line {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  padding: 0.45em 0.7em;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  white-space: nowrap;
   color: #a9efe0;
   background: rgb(4 11 11 / 0.72);
   border: 1px solid rgb(120 255 240 / 0.2);
   border-radius: 3px;
-  padding: 0.45em 0.7em;
-}
-.emo-hint {
-  position: absolute;
-  left: calc(var(--emo-head-x) - 1%);
-  bottom: calc(100% - var(--emo-head-y) + 0.8%);
   opacity: 0;
   translate: 0 0.3em;
   transition: opacity 0.3s ease, translate 0.3s ease;
 }
-.emo[data-hint] .emo-hint { opacity: 1; translate: 0 0; }
-.emo-hint::before {
-  content: '';
-  display: inline-block;
-  width: 0.4em; height: 0.4em;
-  margin-right: 0.6em;
-  border-radius: 50%;
-  background: var(--green);
-  vertical-align: 0.08em;
-}
-/* A line that carries a pin is a complaint, not a caption: the dot becomes a pushpin,
-   head up and point down at him, and the chip goes bruised-red for as long as it shows. */
-.emo[data-pin='1'] .emo-hint { color: #ffd9de; border-color: rgb(255 90 110 / 0.55); background: rgb(24 5 9 / 0.8); }
-.emo[data-pin='1'] .emo-hint::before {
-  width: 0.52em; height: 0.52em;
-  margin-right: 0.66em;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  vertical-align: -0.02em;
-  background: radial-gradient(circle at 50% 50%, #2a070c 0 26%, #ff6274 34%, #a8233a 100%);
-  box-shadow: 0 0.06em 0.14em rgb(0 0 0 / 0.5);
-}
-.emo-senses {
-  position: absolute;
-  left: calc(var(--emo-head-x) - 1%);
-  top: calc(var(--emo-head-y) + var(--emo-head-h) + 1.1%);
-  display: flex;
-  gap: 0.5em;
-  pointer-events: auto;
-}
-.emo-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  cursor: pointer;
-  color: #8fd6c9;
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-.emo-chip i { width: 0.42em; height: 0.42em; border-radius: 50%; background: #2c6d63; }
-.emo-chip:hover { color: #d9fff5; border-color: rgb(120 255 240 / 0.4); background: rgb(6 20 18 / 0.85); }
-.emo-chip[data-live='1'] { color: #eafffb; border-color: rgb(150 255 245 / 0.55); }
-.emo-chip[data-live='1'] i { background: var(--green); animation: emo-led 1.1s steps(2, end) infinite; }
-
-/* Screen readers get the functional states only, never the jokes. */
-.emo-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* An empty chip is an empty box, and an empty box on somebody's desk is a bug. */
+.emo-line:empty { display: none; }
+.emo[data-said] .emo-line { opacity: 1; translate: 0 0; }
+.emo[data-talk='off'] .emo-line { color: #cfe9e4; border-color: rgb(120 255 240 / 0.12); }
 
 @media (prefers-reduced-motion: reduce) {
-  .emo-orb, .emo-glow, .emo-hint, .emo-chip { transition: none; }
-  [data-face='dizzy'] .emo-orb, [data-face='offline'] .emo-orb, .emo-chip[data-live='1'] i { animation: none; }
+  .emo-orb, .emo-glow, .emo-line { transition: none; }
+  [data-face='dizzy'] .emo-orb, [data-face='offline'] .emo-orb { animation: none; }
 }

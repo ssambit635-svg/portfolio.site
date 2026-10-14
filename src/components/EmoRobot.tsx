@@ -16,13 +16,16 @@ import '../emo.css'
  * ancestor into a blend container, and the blending would then happen against thin air
  * instead of against the photograph. (See the top of src/emo.css.)
  *
+ * What he says is never drawn as a caption unless he cannot speak; where his face is the
+ * whole message, a pill of uppercase text over the photograph is just UI. See useEmo.
+ *
  * Where the crop leaves him out of frame (a narrow phone) he stops; see useEmo.
  */
 const pc = (value: number) => `${value}%`
 const side = (index: number) => (index === 0 ? 'a' : 'b')
 
 export default function EmoRobot() {
-  const { rootRef, hitRef, hintRef, mic, motion, armMic, armMotion } = useEmo()
+  const { rootRef, hitRef, lineRef } = useEmo()
   const { head, eyes } = emoFace
 
   const stage = {
@@ -67,33 +70,19 @@ export default function EmoRobot() {
       {layers.map(l => (
         <span key={`orb${l.side}`} className={`emo-orb emo-orb-${l.side} emo-${l.side}`} style={l.style} aria-hidden="true" />
       ))}
-      <span className="emo-hint" ref={hintRef} aria-hidden="true" />
-
       {/* He answers to a poke, and to Enter when the tab order reaches him. No ring, no
           hover box: he is a robot on a desk, not a control. */}
-      <button className="emo-hit" ref={hitRef} type="button" aria-label="Say hello to Emo, the robot on the desk" />
+      <button
+        className="emo-hit"
+        ref={hitRef}
+        type="button"
+        aria-label="Say hello to Emo, the robot on the desk. Hold space to talk to him, press escape to make him quiet."
+      />
 
-      <span className="emo-sr" role="status" aria-live="polite">
-        {mic === 'hot' ? 'Emo is listening. Release space to stop.' : mic === 'ready' ? 'Emo can hear you now: hold space to talk.' : ''}
-      </span>
-
-      {/* Two switches, both opt-in, both reversible, and nothing leaves the device: the
-          mic is open only while Space is held, and orientation stays in the page. A
-          device with no tilt sensor never gets offered the second one. */}
-      {mic !== 'blocked' && (
-        <span className="emo-senses">
-          <button className="emo-chip" type="button" onClick={armMic} data-live={mic === 'hot' ? '1' : '0'}>
-            <i aria-hidden="true" />
-            {mic === 'off' ? 'give emo a mic' : mic === 'ready' ? 'space to talk to emo' : 'emo is listening'}
-          </button>
-          {motion !== 'na' && (
-            <button className="emo-chip" type="button" onClick={armMotion} data-live={motion === 'on' ? '1' : '0'}>
-              <i aria-hidden="true" />
-              {motion === 'on' ? 'he can feel the desk tilt' : 'let him feel the desk tilt'}
-            </button>
-          )}
-        </span>
-      )}
+      {/* One line, two jobs. Screen readers get it always, because it is the accessible
+          name of whatever he is feeling; the eyes get it only when he has no voice to
+          say it with (no `speechSynthesis`, or you hushed him) — see `data-talk`. */}
+      <span className="emo-line" ref={lineRef} role="status" aria-live="polite" />
     </div>
   )
 }
