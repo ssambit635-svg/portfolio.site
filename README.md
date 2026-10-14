@@ -106,6 +106,64 @@ The build renders the actual React component tree into both HTML files. The clie
 
 Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders both pages and generates crawl files. Links between pages are relative (`dashboard/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
 
+### Emo, the robot on the desk
+
+The hero photo has a small desk robot standing left of the keyboard, and his eyes are
+painted into `src/assets/hero-monitor.jpg`. He is given a live face without the photo
+ever being retouched, and without anything laid over it:
+
+- `scripts/emo-geometry.mjs` measures him — the cyan cores of both eyes (found as pixels
+  in a band over his face, split at the emptiest column), how far each glow's foot
+  reaches, how bright his glass is around each eye, and his eye colours at their hot
+  centre, their body and their halo. It writes `src/lib/emoFace.ts` with every position
+  in percentages of the photo, so the face rides the hero crop at any viewport instead
+  of drifting off his head, and the travel limit that keeps an eye inside his display
+  and never across into the other one.
+- His face is **three blend layers per eye and no wrapper around them**. `darken` clips
+  whatever is brighter than his glass back down to his glass — that erases the painted
+  eyes and leaves the dark around them, and the reflection across the screen, exactly as
+  it was. `screen` then adds a halo, and `screen` adds the eye itself, in the colours
+  sampled from his own paint: light on glass, which is why it saturates over the
+  reflection instead of smearing across it. There is no plate, no patch and no rectangle
+  to colour-match, so there is no seam and no second display inside his head.
+  The layers are siblings for a reason: a `transform`, `z-index`, `filter` or faded
+  `opacity` on any ancestor turns it into a *blend container*, and the blending would
+  happen against that element's empty contents instead of against the photograph. Head
+  motion therefore reaches each layer as its own translation. `npm run test:seo` fails if
+  the isolation creeps back in, or if the paint order stops being clips → halos → eyes.
+- `src/hooks/useEmo.ts` watches the pointer, the keyboard under his nose, scroll
+  velocity, copy and cut, window resizes, battery, connectivity, the first gesture's tilt
+  ask (iOS only), and — while the visitor holds `Space` — the microphone. There are no
+  visible controls: the mic opens on Space and closes when Space comes up (the OS record
+  light goes out the moment they let go, and nothing is ever buffered, stored or sent),
+  and `Escape` mutes him for the rest of the visit. Handlers only record what happened;
+  one rAF loop paints ~11 custom properties straight onto the DOM, then stops when he
+  settles, when the hero scrolls away, when the tab is hidden and when a narrow crop
+  leaves him out of frame. While nobody is at the keyboard he wakes for a breath every
+  few seconds, which is where blinking, the wandering gaze and the late-night sleep live.
+- He speaks. Every line used to be a caption chip over the photograph; there is no chip
+  now. Words go into a screen-reader live region and out through `speechSynthesis` (a
+  small-cute pitch shift, two-note triangle-wave throat-clear from an oscillator, no
+  audio asset), and only fall back to visible text when the browser has no speech engine
+  or the visitor muted him. That way a muted or engine-less browser still gets the joke,
+  and a normal browser gets just a robot on a desk — not UI pasted on a still life.
+- The About pegboard is the real photograph. The composited ESP32, the Monster can
+  and the drawn ribbon cable that sat over the top of it have been removed; the
+  "hover to inspect" zoom card and its orange hint have been removed with them. The
+  photo is just the board, the existing headphone hook, the existing IDC plug stub
+  and the contact module bolted to the left. The headphone hook is shifted down a
+  hair by re-framing the artwork, and the polaroid sits below it instead of
+  crowding it.
+- `src/emo.css` turns those properties into blinks, squints, dilations and a dozen
+  moods — all of them brightness, size and colour, because a face that is a display does
+  not have eyelids. Tap him four times inside a second and the moods stop being polite:
+  his eyes squeeze shut inward (`pain`) and the flinch runs through the same lean and
+  wobble numbers while he says **that hurts** out loud. `prefers-reduced-motion` keeps his face and drops the twitching.
+
+Nothing is measured by eye and nothing is trusted to stay true: `npm run build` ends by
+re-measuring the photo (`emo-geometry.mjs --check`), so re-cropping the hero either moves
+his eyes or breaks the build — never misaligns them quietly.
+
 ## Customize content
 
 | Change | Edit |

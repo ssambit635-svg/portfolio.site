@@ -1,0 +1,232 @@
+/* Emo — the desk robot painted into the hero photo.
+
+   He is not covered by anything. Three blend layers do the whole job, all of them
+   measured off his own pixels:
+
+     darken   clips what is brighter than his glass back down to his glass. That erases
+              the painted eyes and does literally nothing to the dark around them, so no
+              rectangle, no plate, no "second display" — his screen stays his screen.
+     screen   adds his measured eye colours back as light, twice: a wide soft halo, then
+              the eye itself. Over the bright reflection across his glass it saturates
+              instead of smearing, which is what light does.
+
+   ONE STRUCTURAL RULE, and it is the whole reason he is a flat list instead of a
+   "head" element with parts inside it: a transform, a z-index, an opacity below 1 or a
+   filter creates a stacking context, and a stacking context is a *blend container* —
+   blend modes inside it would then blend against that element's own (empty) contents
+   instead of the photograph. So no ancestor between these leaves and
+   .hero-monitor-wrapper, which is the isolated group the photo lives in, may do that.
+   Head motion therefore reaches each leaf as its own translation, not as a transform on
+   a wrapper. (Ancestor-free is not enough on its own either: the leaves must be leaves,
+   which is why the eye is one element and its halo another, not a pseudo-element.) */
+
+.emo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: 1cqw; /* 1em is 1% of the hero frame, so he scales with the crop */
+  /* Rest values, so the first paint is his face and not a black box. */
+  --emo-gx: 0; --emo-gy: 0; --emo-lid: 0; --emo-pop: 0; --emo-squint: 0;
+  --emo-converge: 0; --emo-lean: 0; --emo-tilt: 0; --emo-voice: 0;
+  --emo-wobble: 0; --emo-shake: 0;
+  --emo-roam-x: 0; --emo-roam-y: 0; --emo-tilt-y: 0em;
+  /* The lean, the shake and the wobble are translations, so they need no pivot: the
+     tilt is a differential on the two eyes, which reads as a head turning. */
+  --emo-move-x: calc(var(--emo-shake) * 0.4em);
+  --emo-move-y: calc(var(--emo-lean) * -0.16em + var(--emo-wobble) * 0.12em + var(--emo-tilt-y));
+}
+
+/* A narrow phone crop leaves him out of frame; then there is nothing to animate. */
+.emo[data-off='1'] { visibility: hidden; }
+
+/* 1. The dark of his display, where his painted eyes are. A blurred rounded rect, so
+      it has no edge; and because it only ever clips light, the glass around it is
+      untouched — the highlight and the reflection survive him. */
+.emo-clip {
+  position: absolute;
+  left: var(--emo-box-x);
+  top: var(--emo-box-y);
+  width: var(--emo-box-w);
+  height: var(--emo-box-h);
+  border-radius: 44%;
+  background: var(--emo-eye-glass);
+  filter: blur(0.34em);
+  mix-blend-mode: darken;
+  translate: var(--emo-move-x) var(--emo-move-y);
+}
+
+/* 2. The light his eyes throw on the glass, so the dark above is never a dead patch. */
+.emo-glow {
+  position: absolute;
+  left: var(--emo-box-x);
+  top: var(--emo-box-y);
+  width: var(--emo-box-w);
+  height: var(--emo-box-h);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--emo-eye-glow), transparent 74%);
+  mix-blend-mode: screen;
+  /* Half strength: his painted halo peaks about 26/255 above the dark of his glass, and
+     a glow brighter than the light it belongs to is exactly the tell to avoid. */
+  opacity: calc(0.5 * (1 - var(--emo-lid) * 0.9) * (1 + var(--emo-pop) * 0.5));
+  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em + var(--emo-move-x))
+             calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y));
+}
+
+/* 3. The eye. Placed from his measured core box, so at rest it lands on the pixels it
+      replaces to within a pixel. No white-hot centre: the peak tone is the brightest
+      pixel of his paint, and anything brighter than that stops being his screen. */
+.emo-orb {
+  position: absolute;
+  left: var(--emo-core-x);
+  top: var(--emo-core-y);
+  width: var(--emo-core-w);
+  height: var(--emo-core-h);
+  border-radius: 34%;
+  background: radial-gradient(
+    72% 68% at 50% 46%,
+    var(--emo-eye-peak) 0 20%,
+    var(--emo-eye-mid) 56%,
+    var(--emo-eye-glow) 84%,
+    transparent 100%
+  );
+  filter: blur(0.05em);
+  mix-blend-mode: screen;
+  /* --emo-face-x is a face's own muscle: a wince pulls both eyes toward the nose, which
+     the shared gaze term could never express, because it is not per-eye. The halo stays
+     where the glass is, because light does not flinch. */
+  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em + var(--emo-move-x) + var(--emo-face-x, 0em))
+             calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y) + var(--emo-face-y, 0em));
+  /* A blink is a squash, and typing squints him the same way: an LED slit closing on
+     glass, never an eyelid. */
+  scale: calc(1 + var(--emo-pop) * 0.1 + var(--emo-face-sx, 0))
+         max(0.06, calc(1 - var(--emo-lid) - var(--emo-squint) * 0.3 + var(--emo-face-sy, 0)));
+  transform-origin: 50% calc(50% + var(--emo-face-anchor, 0em));
+  transition: filter 0.35s ease, opacity 0.35s ease;
+}
+
+.emo-a { --emo-side: -1; --emo-tilt-y: calc(var(--emo-tilt) * -0.34em); }
+.emo-b { --emo-side: 1; --emo-tilt-y: calc(var(--emo-tilt) * 0.34em); }
+
+/* Faces. Each one is a look, not a layout change, and none of them draws a box: a robot
+   with a display for a face changes brightness, size and colour. */
+[data-face='curious'] .emo-orb { filter: blur(0.05em) brightness(1.04); }
+[data-face='focused'] .emo-orb { filter: blur(0.04em) brightness(1.14) saturate(1.06); }
+[data-face='surprised'] .emo-orb { --emo-face-sx: 0.14; --emo-face-sy: 0.08; filter: blur(0.05em) brightness(1.16); }
+[data-face='wake'] .emo-orb { --emo-face-sx: 0.06; --emo-face-sy: 0.16; filter: blur(0.05em) brightness(1.18); }
+/* Squinted from the middle down: two arcs, from the squash and the anchor alone. */
+[data-face='happy'] .emo-orb { --emo-face-sy: -0.3; --emo-face-y: 0.08em; --emo-face-anchor: 0.5em; filter: blur(0.08em) brightness(1.12); }
+[data-face='worried'] .emo-a .emo-orb { --emo-face-y: -0.12em; --emo-face-sy: -0.14; }
+[data-face='worried'] .emo-b .emo-orb { --emo-face-sx: -0.08; --emo-face-sy: 0.06; }
+[data-face='sleep'] .emo-orb { --emo-face-sy: -0.9; --emo-face-anchor: 0.4em; filter: blur(0.08em) brightness(0.8); }
+[data-face='peek'] .emo-a .emo-orb { --emo-face-sy: -0.76; }
+[data-face='peek'] .emo-b .emo-orb { --emo-face-sy: -0.56; filter: blur(0.06em) brightness(1.08); }
+[data-face='dizzy'] .emo-orb { animation: emo-sway 1.5s ease-in-out infinite; }
+[data-face='listening'] .emo-orb { filter: blur(0.05em) brightness(calc(1 + var(--emo-voice) * 0.5)); }
+[data-face='lowbat'] .emo-orb { opacity: 0.72; }
+/* Roughly rapid tapping. Not a bigger version of surprised — a different muscle: the
+   eyes squeeze shut *inward*, both toward the nose and down, brightest at the pinch,
+   while the halo blooms up from behind the lids. */
+[data-face='pain'] .emo-orb {
+  --emo-face-sy: -0.62;
+  --emo-face-sx: -0.1;
+  --emo-face-x: calc(var(--emo-side) * -0.09em);
+  --emo-face-y: 0.06em;
+  --emo-face-anchor: 0.36em;
+  filter: blur(0.09em) brightness(1.3) saturate(1.2);
+}
+[data-face='pain'] .emo-glow {
+  opacity: 0.78;
+  background: radial-gradient(closest-side, var(--emo-eye-mid), transparent 74%);
+}
+/* His "no network" amber, through the same three measured stops: the eyes keep their
+   shape and their softness, only the light behind them changes colour. */
+[data-face='offline'] .emo-orb {
+  --emo-eye-peak: rgb(255, 196, 118);
+  --emo-eye-mid: rgb(214, 138, 60);
+  --emo-eye-glow: rgb(60, 30, 8);
+  animation: emo-led 1.6s steps(2, end) infinite;
+}
+[data-face='offline'] .emo-glow { background: radial-gradient(closest-side, rgb(90, 46, 10), transparent 74%); }
+/* Charging, on the eye itself: a bolt of light, not a badge. */
+.emo-orb-b::after {
+  content: '';
+  position: absolute;
+  left: 26%; top: 16%;
+  width: 48%; height: 68%;
+  background: rgb(226 255 250 / 0.5);
+  clip-path: polygon(56% 0, 18% 54%, 44% 54%, 36% 100%, 82% 40%, 52% 40%);
+}
+[data-power='charging'] .emo-orb-b { --emo-bolt: 1; }
+.emo-orb-b::after { opacity: var(--emo-bolt, 0); transition: opacity 0.4s ease; }
+
+@keyframes emo-sway {
+  0%, 100% { rotate: -5deg; }
+  50% { rotate: 5deg; }
+}
+@keyframes emo-led {
+  0%, 100% { filter: blur(0.05em) brightness(1); }
+  50% { filter: blur(0.05em) brightness(0.62); }
+}
+
+/* One tap target over his shell — he answers to a poke, and to Enter when the tab order
+   reaches him. Nothing is drawn on hover: he is a robot on a desk, not a control, and a
+   ring around his head is the fastest way to make him look pasted on. */
+.emo-hit {
+  position: absolute;
+  left: var(--emo-head-x);
+  top: var(--emo-head-y);
+  width: var(--emo-head-w);
+  height: var(--emo-head-h);
+  pointer-events: auto;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: 42% 46% 38% 40%;
+  cursor: pointer;
+}
+.emo-hit:focus-visible { outline: 1px solid rgb(120 255 240 / 0.5); outline-offset: 0.3em; }
+
+/* What he says, out loud. The sentence is in the DOM whatever the device can do, because
+   a live region is the accessible name of the moment — but it is 1px and clipped, since a
+   pill of uppercase text over a photograph is UI pasted on a still life. `data-talk` is the
+   one switch, set once by the hook: `tts` when the browser can speak, `text` when it cannot,
+   `off` when Escape hushed him. A caption is exactly what a muted robot owes you, so for the
+   last two the chip comes back. */
+.emo-line {
+  position: absolute;
+  left: calc(var(--emo-head-x) - 1%);
+  bottom: calc(100% - var(--emo-head-y) + 0.8%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  font: 500 clamp(10px, 1.05vw, 15px) var(--mono);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.emo[data-talk='text'] .emo-line,
+.emo[data-talk='off'] .emo-line {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  padding: 0.45em 0.7em;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #a9efe0;
+  background: rgb(4 11 11 / 0.72);
+  border: 1px solid rgb(120 255 240 / 0.2);
+  border-radius: 3px;
+  opacity: 0;
+  translate: 0 0.3em;
+  transition: opacity 0.3s ease, translate 0.3s ease;
+}
+/* An empty chip is an empty box, and an empty box on somebody's desk is a bug. */
+.emo-line:empty { display: none; }
+.emo[data-said] .emo-line { opacity: 1; translate: 0 0; }
+.emo[data-talk='off'] .emo-line { color: #cfe9e4; border-color: rgb(120 255 240 / 0.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .emo-orb, .emo-glow, .emo-line { transition: none; }
+  [data-face='dizzy'] .emo-orb, [data-face='offline'] .emo-orb { animation: none; }
+}

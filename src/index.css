@@ -53,11 +53,14 @@
   letter-spacing: .2em;
   white-space: nowrap;
 }
+/* The scene is sized off the photo, so on a narrow screen the crop is tighter
+   than the container: cap the type against the viewport too, so a line can never
+   run off the edge of the phone. */
 .hero .hero-screen-title {
   margin: 0;
   max-width: 100%;
   font-family: var(--sans);
-  font-size: 3.2cqw;
+  font-size: min(3.2cqw, 6.4vw);
   font-weight: 500;
   line-height: 1.25;
   letter-spacing: -.045em;
@@ -80,12 +83,15 @@
   background: repeating-linear-gradient(0deg, #00000012 0 1px, transparent 1px 3px);
   opacity: .35;
 }
+/* Anchored to the hero, not the photo: the scene is cropped from the top on
+   short wide screens, and the name must stay above the fold either way. */
 .hero-tagline {
   position: absolute;
-  top: 5%;
+  top: clamp(16px, 5vh, 64px);
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
+  z-index: 3;
   font-family: 'Pinyon Script', cursive;
   font-size: clamp(24px, 6vw, 48px);
   line-height: 1.2;
@@ -100,13 +106,25 @@
   to { opacity: 1; }
 }
 .hero-copy{position:relative;z-index:4;text-align:center;width:min(980px,82vw);margin-top:12px}.eyebrow{font-size:10px;letter-spacing:.18em;margin:0 0 18px;color:#b7b7b7}.hero h1{margin:0 auto;font-family:var(--serif);font-size:clamp(44px,6vw,90px);font-weight:400;line-height:.86;letter-spacing:-.035em;max-width:980px}.hero h1 em,.footer-kicker+ h2 em{font-weight:400}.hero-stage{position:absolute;inset:20% 0 0;display:flex;justify-content:center;align-items:center}.green-glow,.footer-glow{position:absolute;width:75vw;height:65vh;background:radial-gradient(ellipse,rgba(0,240,131,.5) 0,rgba(0,155,85,.19) 35%,transparent 72%);filter:blur(18px)}.tv{width:min(420px,52vw);position:absolute;top:11%;z-index:2}.tv-shell{height:280px;border:14px solid #181818;border-radius:8px;background:#111;box-shadow:inset 0 0 0 3px #393939,0 30px 50px #000;display:grid;grid-template-columns:1fr 68px;padding:14px}.tv-screen{border:7px solid #090909;border-radius:18%/12%;background:radial-gradient(ellipse,#222,#070707 68%);overflow:hidden;position:relative;box-shadow:inset 0 0 28px #000}.screen-noise{position:absolute;inset:0;opacity:.3;background:repeating-radial-gradient(ellipse at center,#343434 0,#121212 1px,#080808 3px)}.tv-panel{padding:20px 10px;display:flex;gap:16px;align-items:center;flex-direction:column}.tv-panel i{width:22px;height:22px;border-radius:50%;border:4px double #777}.tv-panel b{width:28px;height:40px;background:repeating-linear-gradient(#111 0 2px,#555 3px)}.tv-foot{position:absolute;bottom:-14px;width:65px;height:19px;background:#131313}.tv-foot.left{left:44px;transform:skew(-20deg)}.tv-foot.right{right:44px;transform:skew(20deg)}.desk{position:absolute;top:61%;width:min(700px,86vw);height:17px;background:linear-gradient(#80512f,#32190c);box-shadow:0 7px 18px #000}.camera{position:absolute;left:4%;bottom:14px;width:100px;height:72px;border-radius:8px;background:#171717;border:3px solid #333;transform:rotate(-3deg)}.camera i{position:absolute;width:53px;height:53px;border:8px double #555;border-radius:50%;left:25px;top:12px;background:#080808}.camera span{position:absolute;width:20px;height:14px;background:#222;top:-12px;left:12px}.book{position:absolute;right:2%;bottom:10px;width:105px;height:80px;background:#ddd;color:#111;transform:rotate(3deg);padding:10px;font-family:var(--serif);font-size:15px}.book b{display:block;font-size:34px}.hero-note{position:absolute;right:30px;bottom:28px;font-size:10px;color:#aaa;text-align:right}.scroll-cue{position:absolute;left:30px;bottom:28px;font-size:10px}.scroll-cue span{padding-left:9px;color:var(--green)}
-/* Anchor the scene to the top: centering a shorter photo created a black header strip. */
-.hero-frame{position:absolute;top:0;left:50%;transform:translateX(-50%);transform-origin:top center;width:min(118%,calc(100vh*1.7917));aspect-ratio:1376/768;pointer-events:none}.hero-frame>img{display:block;width:100%;height:100%}
-/* Keep the monitor, left notebook and right collectible inside the crop. */
-@media(max-aspect-ratio:1/1){
-  .hero-frame{width:118%;}
-  .hero-screen-label{font-size:1.5cqw;letter-spacing:.12em;}
+/* Full-bleed scene. One 1376×768 box that is never smaller than the viewport:
+   always wider than it (so the desk runs off both edges — no bezels, no
+   letterbox) and always taller (so the wood runs off the bottom too). The
+   surplus is cropped 65% above the monitor / 35% under the desk, which keeps
+   the light bar and most of the desk surface on screen at every ratio. */
+.hero-frame{
+  --hero-ar:1.7917;   /* 1376 / 768 — the photo's own ratio */
+  --hero-bleed:1.016; /* 1.6% past each edge: no hairline of page can show */
+  --hero-h:max(calc(100vw * var(--hero-bleed) / var(--hero-ar)), calc(100vh * var(--hero-bleed)));
+  position:absolute;
+  top:calc((100vh - var(--hero-h)) * .65);
+  left:50%;
+  transform:translateX(-50%);
+  transform-origin:top center;
+  width:calc(var(--hero-h) * var(--hero-ar));
+  height:var(--hero-h);
+  pointer-events:none;
 }
+.hero-frame>img{display:block;width:100%;height:100%}
 .tv-screen-fx{position:absolute;left:35%;top:26.8%;width:30.8%;height:44.5%;border-radius:9%/11%;overflow:hidden}.tv-screen-fx i{position:absolute;display:block}.tv-screen-fx .flicker{inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(140,255,170,.16),rgba(140,255,170,.05) 60%,transparent 78%);mix-blend-mode:screen;animation:tvFlicker 4.2s steps(1,end) infinite}.tv-screen-fx .scan{inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px);opacity:.28;animation:tvScan .9s linear infinite}.tv-screen-fx .roll{left:0;right:0;top:-16%;height:14%;background:linear-gradient(180deg,transparent,rgba(190,255,205,.09),transparent);mix-blend-mode:screen;animation:tvRoll 7.5s linear infinite}
 @keyframes tvFlicker{0%,100%{opacity:.85}7%{opacity:.62}9%{opacity:.95}23%{opacity:.74}26%{opacity:.9}41%{opacity:.58}43%{opacity:.88}67%{opacity:.7}69%{opacity:.92}83%{opacity:.66}86%{opacity:.9}}
 @keyframes tvScan{to{transform:translateY(3px)}}
@@ -168,7 +186,7 @@ footer{--machine-h:640px}
 .polaroid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;filter:saturate(.9)}
 .polaroid figcaption{font-family:var(--serif);font-style:italic;color:#333;text-align:center;font-size:clamp(9px,1.1vw,15px);padding:6% 0 7%;transform:rotate(-1.5deg)}
 .polaroid .pin{position:absolute;left:50%;top:-4%;width:9%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828 60%,#7f1010);box-shadow:0 3px 6px #000c,inset 0 -2px 3px #0006;z-index:3}
-.polaroid:hover,.polaroid:focus-visible{transform:rotate(0deg) scale(2.4);z-index:40;box-shadow:0 40px 90px #000e,0 10px 30px #000c}
+.polaroid:hover,.polaroid:focus-visible{transform:rotate(0deg) scale(2);z-index:40;box-shadow:0 40px 90px #000e,0 10px 30px #000c}
 @media(hover:none){.polaroid{transform:rotate(0deg) scale(1.6);z-index:40}}
 @media(min-width:851px){.about-grid{grid-template-columns:minmax(300px,1fr) 1fr;gap:4vw}}
 
