@@ -163,8 +163,10 @@ ever being retouched, and without anything laid over it:
   operating system's speech engine is deliberately not used: a calm adult OS voice was
   never him, and in embedded previews and stripped-down browsers it is switched off
   entirely — which is exactly how he once went mute mid-visit and had to caption himself.
-  Visible text now returns only on a device with no WebAudio at all, or when the visitor
-  hushed him with Escape; a muted or voiceless browser still gets the joke.
+  Visible text returns whenever sound cannot: on a device with no WebAudio at all, when
+  the visitor hushed him with Escape, and until the first line has actually reached a
+  speaker — browsers keep audio locked behind a real gesture, and some embedded frames
+  block it outright, so a silent-and-wordless robot is a state he is never allowed into.
 - The About pegboard is the real photograph. The composited ESP32, the Monster can
   and the drawn ribbon cable that sat over the top of it have been removed; the
   "hover to inspect" zoom card and its orange hint have been removed with them. The

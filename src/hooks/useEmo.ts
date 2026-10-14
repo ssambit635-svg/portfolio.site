@@ -15,7 +15,8 @@ import { createEmoVoice } from '../lib/emoVoice'
  * on the operating system's speech engine, which was never him and is switched off
  * entirely in some embedded browsers. Every line is still written into a live region,
  * because a device with no WebAudio at all — or a visitor who has hushed him with
- * Escape — is a device that needs the words on screen instead. See `data-talk`.
+ * Escape, or a browser that has not unlocked sound behind a real gesture yet — is
+ * a device that needs the words on screen instead. See `data-talk`.
  *
  * He never paints through React. One loop writes numbers as custom properties on
  * his root and flips a single `data-face` attribute, so a pointer move cannot
@@ -178,8 +179,16 @@ export function useEmo() {
      * then, his lines are read instead of heard. */
     const emoVoice = createEmoVoice(ensureAc)
     const canTalk = () => !!emoVoice && !muted && activated && !document.hidden && mic !== 'hot'
+    /* Sound is a promise the browser keeps only after a real gesture — and in some
+       embedded frames, not even then. So `soundOk` is not "has WebAudio", it is "a
+       line has actually come out of the speaker": until then the words stay on
+       screen, because a robot that is silent *and* wordless is a robot that looks
+       broken, which is exactly the bug this fixes. The first spoken line flips the
+       chip off for the rest of the visit. */
+    let soundOk = false
+    let soundHinted = false
     /** `voice` means the line is only for a screen reader; anything else shows it. */
-    const paintTalk = () => { root.dataset.talk = muted ? 'off' : emoVoice ? 'voice' : 'text' }
+    const paintTalk = () => { root.dataset.talk = muted ? 'off' : soundOk ? 'voice' : 'text' }
     paintTalk()
     const setMuted = (next: boolean) => {
       muted = next
@@ -242,6 +251,10 @@ export function useEmo() {
       emoVoice.clear()                     // the two-note throat-clear first
       const ms = emoVoice.say(text, 0.19)  // ...and the sentence after it, not over it
       talking = ms > 0
+      // The first line that actually reaches a speaker is the moment the caption
+      // chip has earned its retirement; a context that stays suspended (an embed
+      // that blocks audio entirely) keeps the words on screen instead.
+      if ((ms > 0) !== soundOk) { soundOk = ms > 0; paintTalk() }
       window.clearTimeout(talkTimer)
       talkTimer = window.setTimeout(() => { talking = false }, ms + 120)
     }
@@ -651,7 +664,16 @@ export function useEmo() {
         else if (petFor > 7) { fire('overpet'); petCool = now + 6000; petHeat = 0; petFor = 0 }
         else {
           if (!active || active.priority < 7) active = { face: 'purr', until: now + 420, priority: 6 }
-          if (!petSpoke) { petSpoke = true; say(PET_LINES[petSessions++ % PET_LINES.length], 2200) }
+          if (!petSpoke) {
+            petSpoke = true
+            if (!activated && !soundHinted) {
+              // A hover can never unlock a browser's audio — only a press or a key
+              // can — so the first hand that pets him without one gets told, in the
+              // one medium he still has before sound: the chip.
+              soundHinted = true
+              say('poke me once — my sound needs a click', 2600)
+            } else say(PET_LINES[petSessions++ % PET_LINES.length], 2200)
+          }
           startPurr()
         }
       } else {

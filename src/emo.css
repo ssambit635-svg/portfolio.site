@@ -217,10 +217,10 @@
 /* What he says, out loud. The sentence is in the DOM whatever the device can do, because
    a live region is the accessible name of the moment — but it is 1px and clipped, since a
    pill of uppercase text over a photograph is UI pasted on a still life. `data-talk` is the
-   one switch, set once by the hook: `voice` while his own WebAudio synthesiser speaks,
-   `text` when the device has no WebAudio at all, `off` when Escape hushed him. A caption
-   is exactly what a muted or voiceless robot owes you, so for the last two the chip
-   comes back. */
+   one switch, set by the hook: `voice` once a line has actually come out of a speaker,
+   `text` until then — no gesture yet, no WebAudio at all, or an embed that blocks audio —
+   and `off` when Escape hushed him. A caption is exactly what a muted, voiceless or
+   not-yet-unlocked robot owes you, so for the last two the chip comes back. */
 .emo-line {
   position: absolute;
   left: calc(var(--emo-head-x) - 1%);
