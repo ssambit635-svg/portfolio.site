@@ -1,0 +1,156 @@
+/* ---------------------------------------------------------------------------
+   The shutter.
+
+   A rebuilt copy of the loading sequence in `Recording 2026-10-16 194802.mp4`:
+   a black screen, hairline seams, a line of type that arrives one blurred
+   letter at a time, and then four vertical panels that lift off the page from
+   the bottom up, one after the other.
+
+   Everything here is an edge the browser draws — a seam is one device pixel, a
+   panel edge is a real edge, and the letters are the site's own type. A screen
+   recording of the same thing would be soft, fixed-resolution, unselectable and
+   unreadable to a screen reader; this is sharp at any size, selectable,
+   translatable, and it costs no download at all.
+
+   The panels are shutters over the live page, not a picture of one, so what
+   slides away at the end is exactly what was underneath.
+   --------------------------------------------------------------------------- */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  /* The shutters swallow the clicks while they are up: a click must never land
+     on a link that is still behind the black. */
+  pointer-events: auto;
+  /* The page behind is the real page: nothing is painted here but the shutters. */
+  background: transparent;
+  font-family: var(--sans);
+}
+
+/* The shutters themselves ---------------------------------------------------- */
+.preloader-shutters {
+  position: absolute;
+  inset: 0;
+}
+
+.preloader-shutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Left and right together, so the columns tile exactly and no hairline of
+     page can show between two of them. */
+  left: calc(var(--pl-i) * (100% / 4));
+  right: calc(100% - (var(--pl-i) + 1) * (100% / 4));
+  background: var(--black);
+  /* Scaled from the top edge, so the page is uncovered from the bottom up. */
+  transform-origin: top center;
+  transform: scaleY(1);
+  will-change: transform;
+  animation: pl-lift var(--pl-lift) cubic-bezier(0.2, 0.75, 0.25, 1)
+    calc(var(--pl-lift-delay) + var(--pl-i) * var(--pl-stagger)) forwards;
+}
+
+@keyframes pl-lift {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0); }
+}
+
+/* The seams ------------------------------------------------------------------ */
+.preloader-seams {
+  position: absolute;
+  inset: 0;
+  /* The seams fade as a group, so the group's opacity — not the seams' own —
+     carries the fade. An animation on the seams themselves would win over a
+     transition and snap them off instead. */
+  opacity: 1;
+  transition: opacity 260ms ease;
+}
+
+.preloader-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--pl-i) * (100% / 4) - 0.5px);
+  width: 1px;
+  background: rgb(255 255 255 / 0.42);
+  opacity: 0;
+  /* The recording's seams do not land straight: they slip a few pixels and
+     settle. It is a quarter of a second of glitch, and it is what makes the
+     grid read as a machine opening rather than a divider. */
+  animation:
+    pl-seam-in 340ms ease 100ms forwards,
+    pl-seam-slip 760ms steps(9, end) 100ms forwards;
+}
+
+@keyframes pl-seam-in {
+  to { opacity: 1; }
+}
+
+@keyframes pl-seam-slip {
+  0% { transform: translateX(0); }
+  12% { transform: translateX(4px); }
+  26% { transform: translateX(-3px); }
+  40% { transform: translateX(2px); }
+  54% { transform: translateX(-2px); }
+  68% { transform: translateX(1px); }
+  82% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+/* The line ------------------------------------------------------------------- */
+.preloader-caption {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  /* The recording's caption: a bold sans, centred, about 5% of the viewport's
+     height in cap height, a third of its width across. */
+  font-size: clamp(20px, min(4.6vw, 5.6vh), 52px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  color: #fff;
+  white-space: nowrap;
+  animation: pl-caption-out 340ms ease var(--pl-caption-out) forwards;
+}
+
+.preloader-caption span {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(9px);
+  animation: pl-char var(--pl-char-fade) cubic-bezier(0.2, 0.7, 0.2, 1)
+    calc(var(--pl-caption-in) + var(--pl-i) * var(--pl-char)) forwards;
+}
+
+@keyframes pl-char {
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes pl-caption-out {
+  to { opacity: 0; filter: blur(7px); }
+}
+
+/* The end -------------------------------------------------------------------- */
+.preloader.is-leaving .preloader-seams {
+  opacity: 0;
+}
+
+.preloader.is-leaving .preloader-caption {
+  opacity: 0;
+}
+
+/* Nothing plays until the hero photograph and the fonts are in: a shutter that
+   lifts onto an empty hero is worse than no shutter at all. */
+.preloader:not(.is-ready) .preloader-shutter,
+.preloader:not(.is-ready) .preloader-seam,
+.preloader:not(.is-ready) .preloader-caption,
+.preloader:not(.is-ready) .preloader-caption span {
+  animation-play-state: paused;
+}
+
+/* And nothing plays at all for a visitor who has asked for less movement. */
+@media (prefers-reduced-motion: reduce) {
+  .preloader { display: none; }
+}

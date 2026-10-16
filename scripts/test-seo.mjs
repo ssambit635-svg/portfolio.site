@@ -15,16 +15,17 @@ for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard]]) {
 }
 
 assert.match(home, /Sambit Swain \| Cloud &amp; Full-stack Developer/)
-/* The hero copy is laid on the panel's cylinder, so every word is its own inline-block.
-   Pin the text of the two elements instead of their raw adjacency: still real, crawlable
-   copy in the prerendered HTML, still nothing hiding behind an image. */
+/* The hero copy is real, crawlable text in the prerendered HTML, and it is set
+   flat: the panel's glass bends, the type does not. Pin the text of the two
+   elements instead of their raw adjacency, so the copy is checked and not the
+   markup around it. */
 const visible = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 const heroLabel = home.match(/<p class="hero-screen-label">([\s\S]*?)<\/p>/)?.[1] ?? ''
 const heroTitle = home.match(/<h1 class="hero-screen-title">([\s\S]*?)<\/h1>/)?.[1] ?? ''
 assert.equal(visible(heroLabel), 'CLOUD · FULL-STACK · CSE ’29')
 assert.equal(visible(heroTitle), 'From code to cloud. From pixels to production.')
 assert.equal((heroTitle.match(/class="hero-line"/g) || []).length, 2, 'the hero title should stay two lines')
-assert.equal((heroTitle.match(/class="hero-word"/g) || []).length, 8, 'every word of the headline should be on the arc')
+assert.doesNotMatch(heroTitle, /class="hero-word"/, 'the headline should be set flat, not bent word by word')
 // The discarded clock should not return in the rendered hero.
 assert.doesNotMatch(home, /desk-clock|dc-physical/)
 assert.match(home, /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/)

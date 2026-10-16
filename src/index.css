@@ -12,8 +12,122 @@
 @theme{--color-paper:#f3efe7;--color-paper-2:#eae4d8;--color-ink:#161513;--color-mute:#6a655c;--color-line:#d9d2c5;--color-rust:#b4451a;--color-signal:#c9f27a;--font-display:'Cormorant Garamond',serif;--font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-script:'Pinyon Script',cursive}
 :root{--black:#050505;--white:#f4f2ed;--green:#00f083;--gray:#969696;--line:#282828;--serif:'Cormorant Garamond','EB Garamond','Times New Roman',serif;--sans:'Inter','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--script:'Pinyon Script',cursive;color-scheme:dark}
 *{box-sizing:border-box}html{background:var(--black);color:var(--white);scroll-behavior:smooth}body{margin:0;background:var(--black);font-family:var(--sans);font-size:14px;line-height:1.45;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit}.skip-link{position:fixed;top:-60px;left:20px;z-index:100;padding:10px;background:white;color:black}.skip-link:focus{top:12px}:focus-visible{outline:1px solid var(--green);outline-offset:4px}::selection{background:var(--green);color:#000}
-.side-nav{position:fixed;z-index:50;left:28px;top:24px;width:90px}.nav-name{display:block;font-family:var(--serif);font-size:15px;margin-bottom:14px}.side-nav nav{display:flex;flex-direction:column;align-items:flex-start}.side-nav nav a{font-size:11px;line-height:1.55;transition:.2s}.side-nav nav a:hover{color:var(--green);padding-left:4px}.menu-toggle{display:none}
-.hero{min-height:100vh;min-height:100svh;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
+/* ——— the menu ————————————————————————————————————————————————————————————
+   Two readings of the same list. On a desk the pages are a cluster of orbs in
+   the corner — one handle, and the sections unroll out of it. On a phone the
+   same sections drop into the panel of a single button, because a fan of orbs
+   over a small screen is a guess, not a menu. The ways to write to the author
+   live in the panel on both. */
+.site-menu{position:fixed;inset:0;z-index:60;pointer-events:none}
+.site-menu>*{pointer-events:auto}
+.nav-name{position:absolute;left:28px;top:22px;display:block;font-family:var(--serif);font-size:15px;line-height:1;transition:color .2s}
+.nav-name:hover{color:var(--green)}
+.site-menu-cluster{position:absolute;left:24px;top:58px}
+.site-menu-actions{position:absolute;right:28px;top:16px}
+
+/* The button that opens the panel. */
+.menu-trigger{
+  min-height:40px;padding:8px 14px;gap:2px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(244,242,237,.82);
+  background:rgba(14,16,15,.72);
+  border:1px solid rgba(244,242,237,.16);
+  border-radius:999px;
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  box-shadow:0 12px 30px rgba(0,0,0,.45);
+  transition:color .2s,border-color .2s,background .2s;
+}
+.menu-trigger:hover{color:#fff;border-color:rgba(0,240,131,.55);background:rgba(16,22,20,.86)}
+.menu-chevron{color:rgba(244,242,237,.5);transition:transform .25s ease}
+.menu-trigger[aria-expanded="true"] .menu-chevron{transform:rotate(180deg)}
+
+/* The panel. */
+.menu-panel{
+  padding:8px;border-radius:14px;
+  background:rgba(9,11,10,.93);
+  border:1px solid rgba(244,242,237,.12);
+  box-shadow:0 26px 70px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter:blur(20px) saturate(1.25);
+  -webkit-backdrop-filter:blur(20px) saturate(1.25);
+  max-height:min(72vh,540px);overflow-y:auto;overscroll-behavior:contain;
+  animation:menu-panel-in .18s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes menu-panel-in{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+.menu-panel .menu-item{
+  height:46px;padding:0 12px;border-radius:10px;
+  text-align:left;
+  color:rgba(244,242,237,.78);
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  transition:background .18s,color .18s;
+}
+.menu-panel .menu-item>span{justify-content:flex-start;gap:12px}
+.menu-panel .menu-item:hover{background:rgba(244,242,237,.07);color:#fff}
+.menu-panel .menu-item:hover .menu-item-icon{color:var(--green)}
+.menu-item-icon{color:rgba(244,242,237,.5);transition:color .18s}
+.menu-item-icon svg{width:100%;height:100%}
+.menu-group+.menu-group{margin-top:6px;padding-top:6px;border-top:1px solid rgba(244,242,237,.08)}
+
+/* The orbs. */
+.menu-cluster-trigger{
+  color:rgba(244,242,237,.8);
+  background:rgba(12,15,14,.78);
+  border:1px solid rgba(244,242,237,.16);
+  box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  transition:color .22s,border-color .22s,background .22s;
+}
+.menu-cluster-trigger:hover{color:#fff;border-color:rgba(0,240,131,.55);background:rgba(16,22,20,.9)}
+.menu-cluster-trigger::after{
+  content:'Menu';
+  position:absolute;left:calc(100% + 14px);top:50%;
+  transform:translateY(-50%) translateX(-8px);
+  padding:5px 10px;border-radius:999px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(244,242,237,.92);
+  background:rgba(8,10,9,.92);
+  border:1px solid rgba(244,242,237,.12);
+  box-shadow:0 10px 24px rgba(0,0,0,.5);
+  white-space:nowrap;pointer-events:none;opacity:0;
+  transition:opacity .2s ease,transform .24s cubic-bezier(.4,0,.2,1);
+}
+.menu-cluster-trigger:hover::after,.menu-cluster-trigger:focus-visible::after{opacity:1;transform:translateY(-50%) translateX(0)}
+.menu-orb-icon{position:relative;display:grid;place-items:center;width:22px;height:22px}
+.menu-orb-icon svg{position:absolute;width:20px;height:20px;stroke-width:1.6;transition:opacity .22s,transform .28s cubic-bezier(.4,0,.2,1)}
+.menu-orb-mark-close{opacity:0;transform:scale(.55) rotate(-45deg)}
+.menu-cluster[data-expanded="true"] .menu-orb-mark-open{opacity:0;transform:scale(.55) rotate(45deg)}
+.menu-cluster[data-expanded="true"] .menu-orb-mark-close{opacity:1;transform:scale(1) rotate(0)}
+.menu-orb{position:relative;width:100%;height:100%;display:grid;place-items:center;color:rgba(244,242,237,.78);transition:color .22s}
+.menu-orb::before{
+  content:'';position:absolute;inset:0;border-radius:999px;z-index:0;
+  background:rgba(12,15,14,.8);
+  border:1px solid rgba(244,242,237,.14);
+  box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  clip-path:var(--orb-clip,circle(50% at 50% 55%));
+  transition:background .22s,border-color .22s;
+}
+.menu-orb>*{position:relative;z-index:1}
+.menu-orb:hover{color:#fff}
+.menu-orb:hover::before{border-color:rgba(0,240,131,.6);background:rgba(16,22,20,.9)}
+.menu-orb .menu-item-icon{width:20px;height:20px}
+.menu-chip{
+  position:absolute;left:calc(100% + 14px);top:50%;
+  transform:translateY(-50%) translateX(-8px);
+  padding:5px 10px;border-radius:999px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(244,242,237,.92);
+  background:rgba(8,10,9,.92);
+  border:1px solid rgba(244,242,237,.12);
+  box-shadow:0 10px 24px rgba(0,0,0,.5);
+  white-space:nowrap;pointer-events:none;opacity:0;
+  transition:opacity .2s ease,transform .24s cubic-bezier(.4,0,.2,1);
+}
+.menu-orb:hover .menu-chip,.menu-orb:focus-visible .menu-chip{opacity:1;transform:translateY(-50%) translateX(0)}
+.hero{--hero-ar:1.7917; /* 1376 / 768 — the photo's own ratio */
+  min-height:100vh;min-height:100svh;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
 .hero-monitor-wrapper {
   position: relative;
   isolation: isolate;
@@ -31,13 +145,22 @@
    the middle than at either end, and its bottom edge 5.2% higher. That lens is the
    clip-path, sampled off the photo's own bezel highlights, so neither the tint nor
    the glass texture can reach the bezel — the old straight-edged box is what bled
-   green out to the sides. The side falloff is dark, not green: a panel turning away
-   is shading, and it is what sells the curve. */
+   green out to the sides.
+
+   The panel is a surface, not a window. It used to be a translucent wash over the
+   photograph, which left the photo's own glass-edge highlights showing through as
+   two vertical bands inside the display and let the green of the wall bleed into
+   its edges. A matte OLED in a dark room is an even, deep black with one broad
+   whisper of sheen across it, so the panel is painted opaque: a single smooth
+   roll-off from edge to centre and no banding anywhere. */
 .hero-screen {
   position: absolute;
-  left: 20.5%;
+  /* The panel covers the whole glass of the display. It used to start 2.7% of
+     the photo further in, which left the photograph's own green edge showing
+     as a band down the left of the screen. */
+  left: 17.81%;
   top: 19.6%;
-  width: 59%;
+  width: 63.44%;
   height: 37.8%;
   overflow: hidden;
   display: flex;
@@ -48,10 +171,19 @@
   padding: 2.6cqw 3cqw;
   text-align: center;
   font-family: var(--sans);
-  clip-path: polygon(0.00% 0.50%, 2.46% 0.50%, 7.63% 1.19%, 16.00% 2.22%, 24.51% 2.57%, 33.00% 3.25%, 41.51% 3.60%, 50.00% 4.29%, 58.37% 3.60%, 66.88% 3.25%, 75.37% 2.91%, 83.88% 2.22%, 92.37% 1.19%, 100.00% 1.19%, 100.00% 99.37%, 92.37% 99.37%, 83.88% 99.02%, 75.37% 94.89%, 66.88% 94.89%, 58.37% 94.55%, 50.00% 94.55%, 41.51% 94.55%, 33.00% 94.89%, 24.51% 94.89%, 16.00% 99.02%, 7.63% 99.37%, 2.46% 99.71%, 0.00% 99.71%);
+  /* The outline of the display, measured off the photograph: the glass starts
+     at x=245 of 1376 and its top edge dips 4% of the box as it crosses the
+     middle, the right edge leans in by 14px and comes back out, and the bottom
+     is the monitor's own chin. Every point is in the panel's own box. */
+  clip-path: polygon(0% 0.51%, 17.78% 3.26%, 40.71% 4.30%, 63.65% 4.30%, 86.58% 3.26%, 98.05% 2.23%, 100% 0.85%, 98.39% 34.28%, 98.39% 51.53%, 99.20% 99.07%, 75.11% 97.00%, 50.80% 94.56%, 29.24% 94.56%, 6.31% 96.25%, 0% 99.00%);
   background:
-    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.03), transparent 58%),
-    linear-gradient(90deg, rgba(3, 10, 8, 0.62) 0, rgba(3, 10, 8, 0.16) 9%, transparent 20%, transparent 80%, rgba(3, 10, 8, 0.16) 91%, rgba(3, 10, 8, 0.62) 100%);
+    /* Matte glass: one broad, almost invisible sheen down the middle. No
+       hotspot, no bright edge, nothing that reads as a seam. */
+    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.032), transparent 62%),
+    /* The panel itself, opaque: a matte OLED is a surface, not a window. The
+       outermost hair is the colour of the monitor's own frame, so wherever the
+       panel overlaps the frame there is no edge to see. */
+    radial-gradient(100% 100% at 50% 50%, #081212 0%, #071111 58%, #030707 87%, #010101 100%);
 }
 .hero-screen-label {
   margin: 0;
@@ -79,16 +211,11 @@
      type from the glass without adding colour to it. */
   text-shadow: 0 .05cqw .1cqw rgba(210, 255, 235, 0.22), 0 .12cqw .4cqw rgba(0, 0, 0, 0.55);
 }
-/* One line per block, one word per inline-block: an inline-block is the only thing a
-   browser will rotate onto the cylinder, and the block line must not swallow it. */
+/* One line per block, and the line stays flat: the glass bends, the type does
+   not. Bending every word made the headline read as a fisheye. */
 .hero-screen-title .hero-line {
   display: block;
   white-space: nowrap;
-}
-.hero-word {
-  display: inline-block;
-  transform-origin: 50% 58%;
-  backface-visibility: hidden;
 }
 .hero-screen-title .hero-line + .hero-line {
   color: #c6dbd2;
@@ -138,7 +265,6 @@
    surplus is cropped 65% above the monitor / 35% under the desk, which keeps
    the light bar and most of the desk surface on screen at every ratio. */
 .hero-frame{
-  --hero-ar:1.7917;   /* 1376 / 768 — the photo's own ratio */
   --hero-bleed:1.016; /* 1.6% past each edge: no hairline of page can show */
   --hero-h:max(calc(100vw * var(--hero-bleed) / var(--hero-ar)), calc(100vh * var(--hero-bleed)));
   --hero-h:max(calc(100vw * var(--hero-bleed) / var(--hero-ar)), calc(100svh * var(--hero-bleed)));
@@ -160,56 +286,13 @@
 .tv-hello{position:absolute;left:50%;top:8%;transform:translateX(-50%);margin:0;display:flex;gap:.06em;font-family:var(--serif);font-style:italic;font-weight:400;color:#fff;font-size:clamp(30px,5vw,68px);line-height:1;letter-spacing:.02em;white-space:nowrap;text-shadow:0 0 24px rgba(255,255,255,.35),0 0 60px rgba(140,255,170,.25)}.tv-hello span{animation:helloIn .9s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--hd,0s)}.tv-hello span:nth-child(1){--hd:calc(var(--hello-at,0s) + 0s)}.tv-hello span:nth-child(2){--hd:calc(var(--hello-at,0s) + .32s)}.tv-hello span:nth-child(3){--hd:calc(var(--hello-at,0s) + .64s)}.tv-hello span:nth-child(4){--hd:calc(var(--hello-at,0s) + .96s)}.tv-hello span:nth-child(5){--hd:calc(var(--hello-at,0s) + 1.28s)}
 @keyframes helloIn{from{opacity:0;transform:translateY(.35em);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
 @media(min-aspect-ratio:2/1){.tv-hello{top:12.5%;font-size:clamp(20px,2.4vw,40px)}}
-.preloader {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity 320ms ease;
-}
-.preloader.is-leaving {
-  opacity: 0;
-}
-.preloader-frame {
-  container-type: inline-size;
-}
-.hero-screen.preloader-screen {
-  display: block;
-  gap: 0;
-  padding: 0;
-  background: none;
-}
-.hero-screen.preloader-screen::before {
-  display: none;
-}
-.preloader-meter {
-  position: absolute;
-  left: 50%;
-  bottom: 14%;
-  width: clamp(48px, 9cqw, 144px);
-  height: 1px;
-  overflow: hidden;
-  transform: translateX(-50%);
-  background: rgba(198, 219, 210, 0.2);
-}
-.preloader-meter span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: rgba(215, 232, 224, 0.82);
-  transform-origin: left center;
-  transition: transform 360ms cubic-bezier(0.22, 0.8, 0.2, 1);
-}
-.preloader.is-leaving .preloader-meter {
-  opacity: 0;
-  transition: opacity 180ms ease;
-}
+/* The preloader lives in src/preloader.css: it is a shutter over the page, not
+   a picture of one, and it brings its own edges. */
 .section{padding:120px max(28px,7vw) 140px 14vw;border-top:1px solid var(--line)}.section-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:70px}.section-head p{text-transform:uppercase;letter-spacing:.16em;font-size:9px;color:#9b9b9b}.section-head h2{font-family:var(--serif);font-size:clamp(60px,9vw,130px);font-weight:400;line-height:.7;letter-spacing:-.04em;margin:0}.work{display:grid;grid-template-columns:105px minmax(0,1.6fr) minmax(280px,.85fr);gap:28px;align-items:center;padding:60px 0;border-bottom:1px solid var(--line)}.work-meta{align-self:stretch;display:flex;flex-direction:column;justify-content:space-between;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#aaa}.work-media{aspect-ratio:16/10;position:relative;overflow:hidden;background:#101010}.work-media img{width:100%;height:100%;object-fit:cover;filter:saturate(.75);transition:transform .7s,filter .4s}.work-media:hover img{transform:scale(1.035);filter:saturate(1)}.work-media:after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 60%,rgba(0,0,0,.55))}.play{position:absolute;z-index:2;width:82px;height:82px;border-radius:50%;background:var(--white);color:#080808;display:grid;place-content:center;text-align:center;font-size:10px;line-height:1.2;right:20px;top:20px;transform:scale(0);transition:.25s}.work-media:hover .play{transform:scale(1)}.video-label{position:absolute;z-index:2;bottom:14px;left:15px;font-size:8px;letter-spacing:.15em}.work-copy h3{font-family:var(--serif);font-size:clamp(34px,4vw,62px);font-weight:400;line-height:.9;margin:0 0 20px}.work-copy>p{color:#aaa;font-size:13px;max-width:440px}.chips{display:flex;flex-wrap:wrap;gap:5px;margin:24px 0}.chips span{border:1px solid #383838;border-radius:30px;padding:5px 9px;font-size:8px;text-transform:uppercase}.project-links{display:flex;gap:20px}.project-links a{font-size:10px;border-bottom:1px solid #777;padding-bottom:3px}.project-links a:hover{color:var(--green)}
 .certified{background:#080808}.cert-grid{display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid var(--line);margin-bottom:45px}.cert{min-height:230px;display:grid;grid-template-columns:35px 140px 1fr;gap:22px;align-items:center;padding:25px;border-bottom:1px solid var(--line)}.cert:nth-child(odd){border-right:1px solid var(--line)}.cert-no{font-family:var(--serif);font-size:18px}.cert img,.cert-placeholder{width:140px;aspect-ratio:1;object-fit:cover;filter:grayscale(1);transition:.3s}.cert:hover img{filter:grayscale(0)}.cert-placeholder{background:#101d18;color:var(--green);font-family:var(--serif);font-size:34px;display:grid;place-content:center;text-align:center}.cert p{font-size:9px;text-transform:uppercase;color:#888;letter-spacing:.14em}.cert h3{font-family:var(--serif);font-size:28px;font-weight:400;margin:8px 0}.cert div>span{font-size:11px;color:#999}.white-button{background:var(--white);color:#090909;display:inline-flex;gap:45px;padding:12px 15px;font-size:11px}.white-button:hover{background:var(--green)}.cert-link{display:inline-flex;align-items:center;gap:7px;margin-top:12px;font-size:10px;text-transform:uppercase;letter-spacing:.14em;border-bottom:1px solid #777;padding-bottom:3px}.cert-link:hover{color:var(--green);border-color:var(--green)}.learn-link{display:inline-flex;align-items:center;gap:9px;margin-top:18px;font-size:10px;text-transform:uppercase;letter-spacing:.14em;border:1px solid var(--line);background:#101010;padding:9px 16px}.learn-link:hover{background:var(--white);color:#090909}
 .about-grid{display:grid;grid-template-columns:minmax(260px,.7fr) 1fr;gap:8vw;align-items:center}.portrait-wrap{position:relative}.portrait-wrap:before{content:'';position:absolute;inset:-12%;background:radial-gradient(circle,rgba(0,240,131,.22),transparent 65%)}.portrait-wrap img{width:100%;max-height:620px;object-fit:cover;filter:grayscale(1) contrast(1.08);position:relative}.bio p{font-family:var(--serif);font-size:clamp(25px,3vw,45px);line-height:1.06;margin:0 0 30px}.bio p+ p{color:#888}.education{margin:120px 0 60px}.education>h3{text-transform:uppercase;font-size:10px;letter-spacing:.16em;color:#999}.edu-row{display:grid;grid-template-columns:180px 1fr 1.3fr;gap:30px;padding:27px 0;border-top:1px solid var(--line);align-items:start}.edu-row span{font-size:10px;color:#999}.edu-row h4{font-family:var(--serif);font-weight:400;font-size:25px;margin:0}.edu-row p{margin:0;color:#999}.personal{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;display:flex;justify-content:space-between;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#aaa}
 footer{min-height:100vh;position:relative;overflow:visible;padding:12vh 5vw 25px 14vw;display:flex;flex-direction:column;justify-content:flex-end}.footer-glow{top:0;left:10%;width:80vw;height:70vh}.footer-kicker{position:relative;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.14em}.footer-kicker+h2{position:relative;text-align:center;font-family:var(--serif);font-size:clamp(70px,10vw,150px);font-weight:400;line-height:.7;margin:24px 0 80px}.console{position:relative;margin:auto auto 45px;width:min(1180px,98%);height:290px;border:2px solid #5d5c63;border-radius:28px;background:linear-gradient(155deg,#343339 0,#17171c 32%,#0c0c11 100%);display:grid;grid-template-columns:350px 1fr 285px;grid-template-rows:45px 1fr;padding:13px 18px 16px;gap:10px 20px;box-shadow:inset 0 2px 2px #777,inset 0 -9px 18px #000,0 18px 35px #000,0 3px 0 #050505}.console:before{content:'';position:absolute;inset:5px;border-radius:23px;border:1px solid #08080a;box-shadow:inset 0 0 0 1px #45444b;pointer-events:none}.console-screw{position:absolute;z-index:5;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#fff 0 7%,#999 9%,#2b2b30 33%,#060608 60%,#777 68%,#111 78%);box-shadow:0 2px 3px #000}.console-screw:after{content:'';position:absolute;width:8px;height:2px;background:#0b0b0d;left:4px;top:7px;transform:rotate(25deg)}.console-screw.tl{left:12px;top:10px}.console-screw.tr{right:12px;top:10px}.console-screw.bl{left:12px;bottom:10px}.console-screw.br{right:12px;bottom:10px}.console-status{grid-column:1;grid-row:1;height:32px;border:3px ridge #45454a;border-radius:20px;background:#070a09;box-shadow:inset 0 2px 8px #000,0 1px 0 #777;display:flex;align-items:center;justify-content:space-between;padding:0 13px 0 17px;color:#36ad68;font:9px monospace;letter-spacing:.18em;text-transform:uppercase;text-shadow:0 0 7px #20dd72}.console-status i{width:9px;height:9px;border-radius:50%;background:#55ff9a;box-shadow:0 0 4px #fff,0 0 13px #00ff70}.tune-knob{position:absolute;left:365px;top:10px;width:34px;height:34px;border-radius:50%;background:repeating-conic-gradient(#555 0 5deg,#151519 6deg 12deg);border:2px solid #67666d;box-shadow:inset 0 0 0 7px #17171b,0 2px 5px #000}.tune-knob i{position:absolute;width:2px;height:10px;background:#aaa;left:15px;top:4px;transform:rotate(30deg);transform-origin:bottom}.switches{grid-column:1;grid-row:2;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:8px;align-items:stretch;padding:1px 3px 3px}.switch{position:relative;min-width:0;border:1px solid #101013;border-radius:12px 12px 7px 7px;background:linear-gradient(165deg,#ededed 0,#aaa 40%,#555 72%,#242429 100%);color:#17171b;font:600 9px var(--sans);letter-spacing:.04em;display:flex;justify-content:center;align-items:center;text-align:center;text-shadow:0 1px 0 rgba(255,255,255,.5);box-shadow:inset 2px 3px 3px rgba(255,255,255,.8),inset -5px -7px 8px rgba(0,0,0,.35),0 7px 0 #09090c,0 9px 8px #000;transition:.12s;transform:perspective(90px) rotateX(-3deg)}.switch:before{content:'';position:absolute;inset:3px 5px auto;height:36%;border-radius:8px;background:linear-gradient(rgba(255,255,255,.36),transparent)}.switch i{display:none}.switch:hover{transform:translateY(5px);box-shadow:inset 2px 3px 3px rgba(255,255,255,.8),inset -5px -7px 8px rgba(0,0,0,.35),0 2px 0 #09090c,0 3px 5px #000}.s0,.s3{grid-column:span 2}.s1{background:linear-gradient(160deg,#dff4ff,#75a8e8 50%,#263a75 100%)}.s2{background:linear-gradient(160deg,#ff73c6,#d32f65 50%,#561823 100%);color:#fff;text-shadow:0 1px #000}.s4{background:linear-gradient(160deg,#f4e4c7,#d2ae79 55%,#684931 100%)}.s5{background:linear-gradient(160deg,#eba9dd,#bd5ea5 55%,#512b52 100%)}.s6{background:linear-gradient(160deg,#748eff,#183edf 58%,#061263 100%);color:#fff;text-shadow:0 1px #000}.speaker{grid-column:2;grid-row:1/3;margin:48px 0 9px;border-radius:6px;background:linear-gradient(90deg,#08080a,#17171b 10%,#09090b 50%,#17171b 90%,#08080a);border:1px solid #050506;box-shadow:inset 0 2px 7px #000,0 1px #515159;display:flex!important;flex-direction:column;justify-content:space-around;padding:7px 0}.speaker i{display:block;height:7px;margin:0 7px;border-radius:5px;background:linear-gradient(#020203,#17171a 45%,#020203);box-shadow:0 1px 0 #3e3e44,inset 0 2px 3px #000}.radar{grid-column:3;grid-row:1/3;position:relative;border:12px ridge #36363d;border-radius:50%;margin:4px 7px;background:radial-gradient(ellipse,#173d28 0,#06130c 67%,#010302 72%);display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 0 28px #000,inset 0 0 35px #23a85b,0 5px 12px #000}.radar:before{content:'';position:absolute;inset:6px;border:2px solid #030705;border-radius:50%;box-shadow:0 0 0 2px #67676d,0 0 0 5px #101014}.scope-grid{position:absolute;inset:15%;border-radius:50%;opacity:.2;background:linear-gradient(#38b86f 1px,transparent 1px),linear-gradient(90deg,#38b86f 1px,transparent 1px);background-size:18px 18px}.scope-wave{position:absolute;inset:18%;filter:drop-shadow(0 0 6px #2cff75)}.scope-wave i{position:absolute;left:10%;top:15%;width:38%;height:70%;border:3px solid #42ef7e;border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;transform:rotate(40deg)}.scope-wave i+ i{left:49%;transform:rotate(220deg)}.radar b{font-family:var(--serif);font-weight:400;font-size:34px;color:#82ffa9;text-shadow:0 0 12px #23ff75;opacity:0;transition:.2s}.radar:hover b{opacity:1}.radar:hover .scope-wave{opacity:.2}.footer-bottom{display:flex;justify-content:space-between;font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.08em}
-@media(max-width:960px){.side-nav{left:18px;top:16px;width:auto}.nav-name{display:inline-block}.menu-toggle{display:block;position:fixed;right:18px;top:14px;color:white;background:#111;border:1px solid #333;padding:7px 11px;z-index:2}.side-nav nav{display:none;position:fixed;inset:0;background:#050505;padding:90px 25px}.side-nav nav.is-open{display:flex}.side-nav nav a{font-family:var(--serif);font-size:48px;line-height:1.15}.hero-copy{width:92vw}.hero h1{font-size:clamp(38px,11vw,70px)}.hero-stage{inset:32% 0 0}.tv{width:72vw}.tv-shell{height:220px;grid-template-columns:1fr 52px;padding:10px}.desk{top:59%}.hero-note{display:none}.section{padding:90px 20px}.section-head{align-items:flex-start;flex-direction:column;gap:30px}.section-head h2{align-self:flex-end}.work{grid-template-columns:1fr;gap:18px}.work-meta{flex-direction:row}.work-copy{padding:10px 0 35px}.cert-grid{grid-template-columns:1fr}.cert:nth-child(odd){border-right:0}.cert{grid-template-columns:25px 100px 1fr;padding:20px 0;gap:12px}.cert img,.cert-placeholder{width:100px}.about-grid{grid-template-columns:1fr}.edu-row{grid-template-columns:1fr;gap:8px}.personal{flex-wrap:wrap;gap:15px}.console{height:auto;grid-template-columns:1fr 100px;padding:15px;gap:15px}.switches{grid-template-columns:repeat(2,1fr);height:260px}.speaker{display:none}.radar{height:100px}.footer-kicker+h2{margin-bottom:45px}.footer-bottom{gap:12px;flex-wrap:wrap}footer{padding-left:20px;padding-right:20px}}
+@media(max-width:960px){.hero-copy{width:92vw}.hero h1{font-size:clamp(38px,11vw,70px)}.hero-stage{inset:32% 0 0}.tv{width:72vw}.tv-shell{height:220px;grid-template-columns:1fr 52px;padding:10px}.desk{top:59%}.hero-note{display:none}.section{padding:90px 20px}.section-head{align-items:flex-start;flex-direction:column;gap:30px}.section-head h2{align-self:flex-end}.work{grid-template-columns:1fr;gap:18px}.work-meta{flex-direction:row}.work-copy{padding:10px 0 35px}.cert-grid{grid-template-columns:1fr}.cert:nth-child(odd){border-right:0}.cert{grid-template-columns:25px 100px 1fr;padding:20px 0;gap:12px}.cert img,.cert-placeholder{width:100px}.about-grid{grid-template-columns:1fr}.edu-row{grid-template-columns:1fr;gap:8px}.personal{flex-wrap:wrap;gap:15px}.console{height:auto;grid-template-columns:1fr 100px;padding:15px;gap:15px}.switches{grid-template-columns:repeat(2,1fr);height:260px}.speaker{display:none}.radar{height:100px}.footer-kicker+h2{margin-bottom:45px}.footer-bottom{gap:12px;flex-wrap:wrap}footer{padding-left:20px;padding-right:20px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
 footer{--machine-h:640px}
 @media(min-width:700px){footer{--machine-h:740px}}
@@ -260,12 +343,16 @@ footer{--machine-h:640px}
    screens instead of enlarging the 16:9 image until most of it is cropped away. */
 @media (max-width:960px) and (orientation:portrait){
   .hero{
-    min-height:max(420px,60svh,calc(18svh + 64.7vw + 32px));
+    /* The scene and the strip above it are the whole section: the section ends
+       where the scene ends, so there is no dead band under the desk either. */
+    --hero-top:clamp(120px,18svh,220px);
+    --hero-w:min(116vw,980px);
+    min-height:calc(var(--hero-top) + var(--hero-w) / var(--hero-ar));
   }
   .hero-frame{
     --hero-h:auto;
-    top:clamp(120px,18svh,220px);
-    width:min(116vw,980px);
+    top:var(--hero-top);
+    width:var(--hero-w);
     height:auto;
     aspect-ratio:var(--hero-ar);
   }
@@ -291,52 +378,41 @@ footer{--machine-h:640px}
 
 /* Touch controls respect safe areas and have comfortable tap targets. */
 @media (max-width:960px){
-  .side-nav{
-    top:calc(12px + env(safe-area-inset-top,0px));
-    left:calc(14px + env(safe-area-inset-left,0px));
-    right:calc(14px + env(safe-area-inset-right,0px));
-  }
   .nav-name{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
+    left:calc(14px + env(safe-area-inset-left,0px));
+    top:calc(10px + env(safe-area-inset-top,0px));
+    display:grid;
+    place-items:center;
     width:44px;
     height:44px;
-    margin:0;
   }
-  .menu-toggle{
-    top:calc(12px + env(safe-area-inset-top,0px));
+  /* The orbs are a desk-sized idea: on a phone the sections live in the panel. */
+  .site-menu-cluster{display:none}
+  .site-menu-actions{
     right:calc(12px + env(safe-area-inset-right,0px));
+    top:calc(10px + env(safe-area-inset-top,0px));
+  }
+  .menu-trigger{
     min-width:44px;
     min-height:44px;
-    display:flex;
-    align-items:center;
     justify-content:center;
-    padding:0 12px;
-    border-radius:999px;
+    padding:0 14px;
     -webkit-tap-highlight-color:transparent;
   }
-  .side-nav nav{
-    padding:calc(88px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));
-    overscroll-behavior:contain;
-  }
-  .side-nav nav a{
-    padding:4px 0;
-    font-size:clamp(38px,9vw,54px);
-  }
+  .menu-panel{max-height:min(64vh,520px)}
+  .menu-panel .menu-item{height:44px}
 }
 
 /* Let a landscape phone see the full scene, with any spare width staying dark
-   rather than chopping the top and bottom of the monitor. */
+   rather than chopping the top and bottom of the monitor. The scene still
+   fills the section from edge to edge: the height is the viewport's, so the
+   crop falls on the sides instead and there is never a bar above the scene
+   or below it. */
 @media (max-width:960px) and (orientation:landscape){
   .hero{min-height:100vh;min-height:100svh}
   .hero-frame{
-    --hero-h:min(55.8vw,100svh);
-    top:calc((100svh - var(--hero-h)) / 2);
-    width:min(100vw,calc(100svh * var(--hero-ar)));
-    height:auto;
-    aspect-ratio:var(--hero-ar);
-    transform:translateX(-50%);
+    --hero-h:100svh;
+    top:0;
   }
   .hero-tagline{
     top:max(calc(10px + env(safe-area-inset-top,0px)),4svh);
@@ -382,15 +458,5 @@ footer{--machine-h:640px}
 }
 
 @media (max-width: 960px) and (orientation: landscape) {
-  .side-nav nav {
-    overflow-y: auto;
-    padding-top: calc(68px + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .side-nav nav a {
-    min-height: 44px;
-    font-size: clamp(26px, 8vh, 36px);
-    line-height: 1.15;
-  }
+  .menu-panel{max-height:min(78vh,420px)}
 }

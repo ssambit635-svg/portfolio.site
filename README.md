@@ -22,7 +22,9 @@ Editorial paper layout, a systems map of the work and a separate certificates da
 - **Identity first:** Sambit Swain, a computer science student and cloud & full-stack developer in Berhampur, India.
 - **Eight projects, on a works wheel:** the index rests as a ring of covers around a title, the first scroll opens it into a drum and keeps turning until the last piece has passed the front. The same eight follow as a text index with their descriptions and genuine live/repository links.
 - **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
-- **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, no blocking intro sequence, no audio.
+- **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, and no audio anywhere except the robot in the hero, who speaks only after you have touched something.
+- **A shutter, not a splash:** the site opens behind four vertical panels that lift off it from the bottom up, with a line of type arriving one blurred letter at a time. It is the loading sequence in `Recording 2026-10-16 194802.mp4`, rebuilt in code rather than filmed — so it is sharp at any resolution, readable by a screen reader, and weighs nothing.
+- **A menu in two faces:** on a desk the sections are a cluster of orbs that unroll out of a single handle; on a phone the same list drops into the panel of one button.
 - **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
 
@@ -53,8 +55,10 @@ npm run dev
 | --- | --- |
 | `npm run dev` | Vite development server; React 19 renders metadata in development. |
 | `npm run typecheck` | Strict TypeScript checks. |
-| `npm run build` | Type-check, bundle, prerender HTML, generate crawl files and run SEO assertions. |
+| `npm run build` | Type-check, bundle, prerender HTML, generate crawl files, then run the SEO and voice assertions. |
+| `npm run test` | Run the SEO and voice assertions on their own. |
 | `npm run test:seo` | Check the existing `dist/` output; build first. |
+| `npm run test:voice` | Check Emo's voice against a mock browser that behaves like a real one. |
 | `npm run preview -- --host 0.0.0.0` | Serve the actual production output locally. |
 
 There is **no lint script/configuration** in this repository. Type checking and SEO assertions are not a substitute for a dedicated linter.
@@ -105,6 +109,109 @@ On the landing page, Home, Work, Systems, Toolbox, About, Learning and Contact a
 The build renders the actual React component tree into both HTML files. The client mounts the interactive version over that static content rather than hydrating it. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
 
 Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders both pages and generates crawl files. Links between pages are relative (`dashboard/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
+
+### The shutter (the preloader)
+
+`Recording 2026-10-16 194802.mp4` is a screen recording of a loading sequence: a
+black screen, a grid of hairline seams, a line of type that arrives one blurred
+letter at a time, and then four vertical panels that lift off the page from the
+bottom up, half a second apart, until the site is standing there in the open.
+That sequence is the site's preloader — rebuilt, not filmed, in
+`src/components/Preloader.tsx` and `src/preloader.css`.
+
+Rebuilt, because a screen recording of a preloader is a poor preloader:
+
+- It is 1180 × 606 of h264 with the window chrome baked in — soft on a retina
+  screen, blocky on a 4K one, and there is no resolution that is right.
+- The type inside it is a photograph of type. It cannot be selected, it cannot be
+  read by a screen reader, and it cannot be translated.
+- It costs a download before the site can be looked at.
+
+In the rebuild every edge is a real edge. The seams are one device pixel, the
+letters are the site's own Inter, and the panels are the page itself: they are
+shutters over the live document, not a picture of one, so what slides away at
+the end is exactly what was underneath — no cut, no second hero, no download.
+The timings are the recording's own: 42 ms a letter, four panels 500 ms apart,
+each lifting over 300 ms.
+
+Two rules keep it honest:
+
+- **Nothing starts until the hero photograph and the fonts are in.** A shutter
+  that lifts onto an empty hero is worse than no shutter at all. A 1.2 s safety
+  timer releases it anyway, so a font that never arrives cannot hold the page
+  hostage.
+- **A visitor who has asked for less motion gets no shutter at all.**
+  `prefers-reduced-motion: reduce` skips the preloader entirely, and the
+  prerendered HTML hides it when JavaScript is off.
+
+The one deliberate change is the order. The recording's caption arrives *after*
+the panels have lifted, because there it labels content that is already on
+screen. A loader has to run the other way round — the caption first, then the
+panels uncovering what it was talking about — or the page would have to be
+shown and then hidden again, which is a flash, not a loader.
+
+`docs/preloader-recording-vs-replica.png` puts the two side by side, frame for
+frame: the recording on the left, the rebuild on the right.
+
+### The scene fills the page
+
+The hero is one photograph of a desk, and it is the first thing on the page, so it
+has to reach the edges of the screen. A letterbox around it — a band of black
+above the monitor and another below the desk — turns a photograph into a picture
+in a frame, and the frame is the thing the eye notices first.
+
+- The scene is sized from the photo's own ratio (`--hero-ar`, 1376 / 768) and always
+  covers its section: on a wide desktop it is scaled past the viewport and bleeds
+  off the sides; on a landscape phone the height is the viewport's, so the crop
+  falls on the sides instead and there is no bar above or below; on a portrait
+  phone the section is exactly as tall as the strip above the scene plus the
+  scene itself, so the desk ends where the section ends.
+- The one place the scene does not fill the width is a landscape phone with spare
+  width to spare, where the extra is left dark rather than chopping the top and
+  bottom off the monitor.
+- The name (`Sambit · Swain`) is anchored to the hero rather than to the photo, so
+  it stays above the fold whichever way the scene is cropped, and it lands on the
+  dark ceiling the photograph has along its top edge.
+- **The glass bends, the type does not.** The monitor's display is a curved panel
+  and the clip-path in `src/index.css` draws it that way, but the headline is set
+  flat. Every word used to be rotated about its own centre and scaled up toward
+  the ends of the line, which bowed the headline into a fisheye and made the last
+  words of each line visibly larger than the first — on the one line the site is
+  read for, that reads as a mistake rather than as a screen.
+- **The display is a surface, not a window.** The headline sits on an opaque
+  panel, because a panel you can see the room through is a panel that shows the
+  room's light: the photograph's own green edge was coming through as a band
+  down each side of the screen, with a hard line where the panel's edge cut
+  across it. The panel now covers the whole glass, its outline is the display's
+  real outline measured off the photograph, and its outermost hair is the colour
+  of the monitor's frame so that where it overlaps the frame there is no edge to
+  see. What is left is a matte OLED: deep, even black with one broad sheen
+  across it and no banding anywhere.
+
+### The menu
+
+The navigation used to be a column of text in the corner on a desk and a
+full-screen sheet on a phone. It is now one component with two faces:
+
+- `src/components/Menu.tsx` holds the menu itself: `Menu` (a dropdown with a
+  trigger and a chevron), `MenuItem` (one line of it — a button, or a link when
+  it has an `href`) and `MenuContainer` (a cluster of orbs, the first one a
+  handle and the rest unrolling out of it).
+- On a desk the sections are the orbs in the top-left corner: one handle, and
+  the five pages unroll downwards out of it, each labelled on hover.
+- On a phone the orbs are gone — a fan of orbs over a small screen is a guess,
+  not a menu — and the same sections drop into the panel of a single **Menu**
+  button in the top-right, with the ways to write to the author under them.
+- The panel is dark glass over the photograph, the orbs are the same glass, and
+  the accent is the site's own green.
+- The keyboard path works: Tab reaches the handle, Enter opens it, the orbs
+  come next in the order they are drawn, and Escape closes the panel and hands
+  the focus back to the button that opened it. Choosing an item closes the
+  menu, a click outside closes it, and the page behind a phone's panel is held
+  still while it is open.
+
+`docs/menu-two-faces.png` puts the two faces side by side: the handle and the
+unrolled orbs on a desk, and the single button on a phone.
 
 ### Emo, the robot on the desk
 
@@ -167,6 +274,25 @@ ever being retouched, and without anything laid over it:
   the visitor hushed him with Escape, and until the first line has actually reached a
   speaker — browsers keep audio locked behind a real gesture, and some embedded frames
   block it outright, so a silent-and-wordless robot is a state he is never allowed into.
+- **Three things had to be true for him to be heard at all**, and all three are now
+  tested by `npm run test:voice` (`scripts/test-voice.mjs`, which runs the shipped
+  module against a mock browser that behaves like a real one):
+  - *The context is handed out the instant it exists, not the instant it runs.* The
+    browser's `resume()` is asynchronous, so a context created inside a gesture is still
+    `suspended` for a tick. A voice that insists on `running` before it speaks throws
+    away the first line of every visit; a suspended context still has a clock, and
+    anything scheduled against it fires the moment it wakes.
+  - *The context is created inside a gesture.* A context made on a hover is born
+    suspended and the browser may never let it run, so the first real interaction wakes
+    the hardware before it is needed.
+  - *The caption is retired by a measurement, not a guess.* The master bus is metered
+    (`output()` in `src/lib/emoVoice.ts`), and the chip only goes away once the meter
+    has seen the voice. A context that happens to be running is not the same thing as
+    sound a person can hear.
+  He also got louder: a sawtooth's harmonics only line up with a vowel table by luck,
+  so on the low notes the three formants could pass almost nothing. A parallel body
+  voice — the note itself, rolled off above 2.2 kHz — now guarantees every syllable has
+  a floor under it, and a limiter on the bus keeps a long syllable from clipping.
 - The About pegboard is the real photograph. The composited ESP32, the Monster can
   and the drawn ribbon cable that sat over the top of it have been removed; the
   "hover to inspect" zoom card and its orange hint have been removed with them. The

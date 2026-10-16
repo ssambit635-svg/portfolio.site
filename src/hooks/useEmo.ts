@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { createEmoVoice } from '../lib/emoVoice'
+import { createEmoAudio, createEmoVoice } from '../lib/emoVoice'
 
 /**
  * Emo's senses.
@@ -157,18 +157,15 @@ export function useEmo() {
     // moment a browser would let him make a sound at all.
     let activated = false, talking = false, lastLine = '', lastLineAt = 0, talkTimer = 0
     /* One context for all of his sounds: the voice, the purr and the mic's analyser. He
-     * cannot be given a context before a gesture, so it is made on demand, not on mount. */
-    let ac: AudioContext | null = null
-    const ensureAc = (): AudioContext | null => {
-      if (!ac) {
-        const Ctor = window.AudioContext
-          ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-        if (!Ctor) return null
-        try { ac = new Ctor() } catch { return null }
-      }
-      if (ac.state === 'suspended') void ac.resume()
-      return ac.state === 'running' ? ac : null
-    }
+     * cannot be given a context before a gesture, so it is made on demand, not on mount.
+     *
+     * It is handed back the moment it exists, even while it is still suspended. The
+     * browser's `resume()` is asynchronous, so a context created inside a gesture is
+     * still `suspended` for a tick — and a voice that insists on `running` before it
+     * speaks throws away the first line of every visit. A suspended context still has
+     * a clock, and anything scheduled against it fires the moment it wakes. */
+    const audio = createEmoAudio()
+    const ensureAc = (): AudioContext | null => audio.context()
     /* --- his voice ----------------------------------------------------------
      * A voice of his own: a small formant-babble synthesiser on WebAudio
      * (src/lib/emoVoice.ts), not the operating system's speech engine. The OS
@@ -190,6 +187,16 @@ export function useEmo() {
     /** `voice` means the line is only for a screen reader; anything else shows it. */
     const paintTalk = () => { root.dataset.talk = muted ? 'off' : soundOk ? 'voice' : 'text' }
     paintTalk()
+    /* The bus is metered, so "a line came out of a speaker" is a measurement and
+       not a guess. A context that happens to be running is not the same thing as
+       sound a person can hear: an embed can block audio outright, and a caption
+       that has been retired leaves a silent robot with nothing to say. So the
+       chip only goes away once the meter has actually seen the voice. */
+    const checkSound = () => {
+      if (soundOk) return
+      const level = emoVoice?.output() ?? 0
+      if (level > 0.002) { soundOk = true; paintTalk() }
+    }
     const setMuted = (next: boolean) => {
       muted = next
       sessionStorage.setItem('emo-muted', next ? '1' : '0')
@@ -234,11 +241,13 @@ export function useEmo() {
       if (!purr) return
       const { osc, lfo, gain } = purr
       purr = null
-      const t = ac?.currentTime ?? 0
-      gain.gain.cancelScheduledValues(t)
-      gain.gain.setTargetAtTime(0.0001, t, 0.12)
-      osc.stop(t + 0.6)
-      lfo.stop(t + 0.6)
+      const t = ensureAc()?.currentTime ?? 0
+      try {
+        gain.gain.cancelScheduledValues(t)
+        gain.gain.setTargetAtTime(0.0001, t, 0.12)
+        osc.stop(t + 0.6)
+        lfo.stop(t + 0.6)
+      } catch { /* already stopped: nothing to silence */ }
     }
 
     const speak = (text: string) => {
@@ -247,16 +256,23 @@ export function useEmo() {
       if (text === lastLine && now - lastLineAt < LINE_GAP) return
       lastLine = text
       lastLineAt = now
-      emoVoice.stop()                      // he says one thing at a time
-      emoVoice.clear()                     // the two-note throat-clear first
-      const ms = emoVoice.say(text, 0.19)  // ...and the sentence after it, not over it
-      talking = ms > 0
+      let ms = 0
+      try {
+        emoVoice.stop()                      // he says one thing at a time
+        emoVoice.clear()                     // the two-note throat-clear first
+        ms = emoVoice.say(text, 0.19)        // ...and the sentence after it, not over it
+        talking = ms > 0
+      } catch {
+        // A WebAudio refusal must never take the page down with it: he loses his
+        // voice for that line, not the whole visit.
+        talking = false
+      }
       // The first line that actually reaches a speaker is the moment the caption
-      // chip has earned its retirement; a context that stays suspended (an embed
-      // that blocks audio entirely) keeps the words on screen instead.
-      if ((ms > 0) !== soundOk) { soundOk = ms > 0; paintTalk() }
+      // chip has earned its retirement; a device that keeps the meter at zero (an
+      // embed that blocks audio entirely) keeps the words on screen instead.
+      if (ms > 0) checkSound()
       window.clearTimeout(talkTimer)
-      talkTimer = window.setTimeout(() => { talking = false }, ms + 120)
+      talkTimer = window.setTimeout(() => { talking = false; checkSound() }, ms + 120)
     }
 
     let hintTimer = 0
@@ -426,6 +442,9 @@ export function useEmo() {
       if (document.hidden) { hiddenAt = performance.now(); onScreen = false; stop(); closeMic() }
       else {
         onScreen = true
+        // Browsers suspend a context in a background tab, and not all of them
+        // bring it back on their own: without this he is mute after a tab switch.
+        if (ensureAc()?.state === 'suspended') audio.wake()
         if (performance.now() - hiddenAt > 20_000) fire('wake')
         start()
       }
@@ -712,7 +731,10 @@ export function useEmo() {
       const settled =
         Math.abs(gx - tx) + Math.abs(gy - ty) + Math.abs(pop - 0.5 * near * near) + lid + nuzzle +
         voice + wobble + shake < 0.014
-      restFrames = settled && !active && !analyser ? restFrames + 1 : 0
+      // While he is talking the loop has to keep running, even if his face has
+      // settled: the meter is read here, and the meter is what retires the caption.
+      if (talking) checkSound()
+      restFrames = settled && !active && !analyser && !talking ? restFrames + 1 : 0
       if (restFrames > 110) { restFrames = 0; stop(); breathe(); return }
       raf = onScreen && !document.hidden ? requestAnimationFrame(frame) : 0
     }
@@ -747,6 +769,10 @@ export function useEmo() {
       window.removeEventListener('pointerdown', onGesture, true)
       window.removeEventListener('keydown', onGesture, true)
       if (!tiltAsked && motion !== 'on') { tiltAsked = true; armTilt() }
+      // Wake the audio hardware on the very first gesture. A context cannot be made
+      // before one, and a context that is made and left asleep eats the first line —
+      // so the hardware is woken here, and the robot's first word is never lost.
+      ensureAc()
     }
     window.addEventListener('pointerdown', onGesture, { capture: true, passive: true })
     window.addEventListener('keydown', onGesture, { capture: true })
@@ -798,7 +824,7 @@ export function useEmo() {
       stopPurr()
       emoVoice?.stop()
       window.clearTimeout(talkTimer)
-      void ac?.close()
+      audio.close()
     }
   }, [])
 

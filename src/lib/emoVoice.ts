@@ -19,6 +19,19 @@
  * Nothing here is an asset and nothing is random per boot: the vowel and the note
  * of a syllable come from a hash of its word, so the same sentence always sounds
  * like the same sentence — a voice, not a slot machine.
+ *
+ * Two things about the plumbing matter more than they look:
+ *
+ *   - The context is handed out the instant it exists, even while it is still
+ *     suspended. `resume()` is asynchronous, so a context asked for inside a
+ *     gesture is still `suspended` for a tick — and a voice that refuses to speak
+ *     until the clock is running throws away the first line of every visit. A
+ *     suspended context still has a clock, and anything scheduled against it
+ *     fires the moment it wakes, so a line queued during a gesture is never lost.
+ *   - The master bus is metered. `output()` reports the loudest sample actually
+ *     leaving the bus, which is the only honest way to answer "did a line come
+ *     out of a speaker?" — a context that is running is not the same thing as
+ *     sound a person can hear.
  */
 
 /** [F1, F2, F3] in Hz, the classic vowel table, lifted ~12% for a small head. */
@@ -40,6 +53,8 @@ export interface EmoVoice {
   clear: () => void
   /** Cut him off mid-syllable. */
   stop: () => void
+  /** The loudest sample leaving the master bus, 0…1. Zero when he is not speaking. */
+  output: () => number
 }
 
 const hash = (word: string) => {
@@ -53,10 +68,70 @@ const syllables = (word: string) => {
 }
 
 /**
+ * The one audio context he uses, and the rules for handing it out.
+ *
+ * The browser will not let a context run before a real gesture, and `resume()` is
+ * asynchronous — a context created inside a gesture is still `suspended` for a
+ * tick. So the context is handed out the moment it exists, and the browser is
+ * asked to wake it on every call. A suspended context still has a clock, and
+ * anything scheduled against it fires the moment it wakes.
+ *
+ * Withholding the context until the clock is running is what cost him the first
+ * line of every visit: the context was created, the resume was requested, the
+ * state was read one tick too early, and the sentence was dropped on the floor.
+ */
+export interface EmoAudio {
+  /** The context, created on demand. Suspended is fine: the clock still holds. */
+  context: () => AudioContext | null
+  /** The context, but only once it is genuinely running. */
+  running: () => AudioContext | null
+  /** Ask the browser to wake it. Safe to call at any time. */
+  wake: () => void
+  /** Close it for good. */
+  close: () => void
+}
+
+export function createEmoAudio(): EmoAudio {
+  let ac: AudioContext | null = null
+  const Ctor = typeof window !== 'undefined'
+    ? window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    : null
+
+  const context = (): AudioContext | null => {
+    if (!Ctor) return null
+    if (!ac) {
+      try { ac = new Ctor() } catch { return null }
+    }
+    if (ac.state === 'suspended') {
+      // Older engines return nothing from resume(); a promise that never arrives
+      // must not become an unhandled rejection either.
+      try { void ac.resume()?.catch(() => undefined) } catch { /* no resume to make */ }
+    }
+    return ac.state === 'closed' ? null : ac
+  }
+
+  return {
+    context,
+    running: () => {
+      const ctx = context()
+      return ctx && ctx.state === 'running' ? ctx : null
+    },
+    wake: () => { void context() },
+    close: () => {
+      const ctx = ac
+      ac = null
+      try { void ctx?.close() } catch { /* already closed */ }
+    },
+  }
+}
+
+/**
  * `ac` is a provider, not a context: the browser only allows one after a real
  * gesture, so the voice is built first and wakes up whenever the context does.
- * Returns null when the device has no WebAudio at all — then, and only then,
- * his lines have to be read instead of heard.
+ * It may hand back a context that is still suspended — see the note at the top of
+ * this file — and it may hand back null, when the device has no WebAudio at all.
+ * Then, and only then, his lines have to be read instead of heard.
  */
 export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
   if (typeof window === 'undefined') return null
@@ -68,14 +143,42 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
   let master: GainNode | null = null
   let utter: GainNode | null = null
   let noise: AudioBuffer | null = null
+  let meter: AnalyserNode | null = null
+  let meterData = new Uint8Array(128)
 
   const bus = (): GainNode | null => {
     const ctx = ac()
-    if (!ctx) return null
+    if (!ctx || ctx.state === 'closed') return null
     if (!master || master.context !== ctx) {
       master = ctx.createGain()
-      master.gain.value = 0.11
-      master.connect(ctx.destination)
+      master.gain.value = 0.15
+      /* One bus for everything he says, with a limiter on the end. Three formant
+         bands plus a body voice can add up on a long syllable, and a voice that
+         clips is a voice that sounds broken rather than loud. */
+      let tail: AudioNode = master
+      if (typeof ctx.createDynamicsCompressor === 'function') {
+        try {
+          const comp = ctx.createDynamicsCompressor()
+          comp.threshold.value = -14
+          comp.knee.value = 10
+          comp.ratio.value = 4
+          comp.attack.value = 0.004
+          comp.release.value = 0.14
+          master.connect(comp)
+          tail = comp
+        } catch { /* no compressor: the bus still works, just louder on peaks */ }
+      }
+      if (typeof ctx.createAnalyser === 'function') {
+        try {
+          meter = ctx.createAnalyser()
+          meter.fftSize = 256
+          meter.smoothingTimeConstant = 0
+          meterData = new Uint8Array(meter.fftSize)
+          tail.connect(meter)
+          tail = meter
+        } catch { /* no meter: `output()` simply reports silence */ }
+      }
+      tail.connect(ctx.destination)
     }
     return master
   }
@@ -100,7 +203,7 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
       osc.frequency.value = hz
       const at = t + i * 0.075
       gain.gain.setValueAtTime(0.0002, at)
-      gain.gain.exponentialRampToValueAtTime(0.05, at + 0.014)
+      gain.gain.exponentialRampToValueAtTime(0.16, at + 0.014)
       gain.gain.exponentialRampToValueAtTime(0.0002, at + 0.062)
       osc.connect(gain).connect(out)
       osc.start(at)
@@ -139,6 +242,18 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
       fg.gain.value = amps[i] ?? 0.2
       osc.connect(bp).connect(fg).connect(env)
     }
+    /* The body of the voice. A sawtooth's harmonics only line up with a vowel
+       table by luck, so on the low notes the three formants can pass almost
+       nothing and the syllable comes out as a whisper. This path is the note
+       itself — rolled off above 2.2 kHz so it stays a voice and not a hiss —
+       and it is what guarantees every syllable has a floor under it. */
+    const body = ctx.createBiquadFilter()
+    body.type = 'lowpass'
+    body.frequency.value = 2200
+    body.Q.value = 0.7
+    const bodyGain = ctx.createGain()
+    bodyGain.gain.value = 0.6
+    osc.connect(body).connect(bodyGain).connect(env)
     // A whisper of unfiltered saw, so the blip keeps a robotic edge under the vowel.
     const edge = ctx.createGain()
     edge.gain.value = 0.07
@@ -170,7 +285,7 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
   const say = (text: string, delaySec = 0.04) => {
     const ctx = ac()
     const out = bus()
-    if (!ctx || !out) return 0
+    if (!ctx || !out || ctx.state === 'closed') return 0
     const g = ctx.createGain()
     g.gain.value = 1
     g.connect(out)
@@ -207,5 +322,21 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
     u.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.04)
   }
 
-  return { say, clear, stop }
+  /** The loudest sample on the bus. The only honest "did he make a sound?" test. */
+  const output = () => {
+    if (!meter) return 0
+    try {
+      meter.getByteTimeDomainData(meterData)
+      let peak = 0
+      for (let i = 0; i < meterData.length; i++) {
+        const v = Math.abs((meterData[i] ?? 128) - 128)
+        if (v > peak) peak = v
+      }
+      return peak / 128
+    } catch {
+      return 0
+    }
+  }
+
+  return { say, clear, stop, output }
 }
