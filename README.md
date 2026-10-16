@@ -210,6 +210,9 @@ full-screen sheet on a phone. It is now one component with two faces:
   menu, a click outside closes it, and the page behind a phone's panel is held
   still while it is open.
 
+`docs/menu-two-faces.png` puts the two faces side by side: the handle and the
+unrolled orbs on a desk, and the single button on a phone.
+
 ### Emo, the robot on the desk
 
 The hero photo has a small desk robot standing left of the keyboard, and his eyes are
