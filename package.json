@@ -12,10 +12,12 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && npm run test:seo",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs && npm run test:seo && npm run test:voice",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test:seo": "node scripts/test-seo.mjs"
+    "test": "npm run test:seo && npm run test:voice",
+    "test:seo": "node scripts/test-seo.mjs",
+    "test:voice": "node scripts/test-voice.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
@@ -38,6 +40,7 @@
     "@types/react": "~19.2.2",
     "@types/react-dom": "~19.2.1",
     "@vitejs/plugin-react": "^5.0.4",
+    "esbuild": "^0.28.2",
     "jpeg-js": "^0.4.4",
     "pngjs": "^7.0.0",
     "tailwindcss": "^4.1.16",

@@ -22,7 +22,8 @@ Editorial paper layout, a systems map of the work and a separate certificates da
 - **Identity first:** Sambit Swain, a computer science student and cloud & full-stack developer in Berhampur, India.
 - **Eight projects, on a works wheel:** the index rests as a ring of covers around a title, the first scroll opens it into a drum and keeps turning until the last piece has passed the front. The same eight follow as a text index with their descriptions and genuine live/repository links.
 - **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
-- **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, no blocking intro sequence, no audio.
+- **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, and no audio anywhere except the robot in the hero, who speaks only after you have touched something.
+- **A shutter, not a splash:** the site opens behind four vertical panels that lift off it from the bottom up, with a line of type arriving one blurred letter at a time. It is the loading sequence in `Recording 2026-10-16 194802.mp4`, rebuilt in code rather than filmed — so it is sharp at any resolution, readable by a screen reader, and weighs nothing.
 - **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
 
@@ -53,8 +54,10 @@ npm run dev
 | --- | --- |
 | `npm run dev` | Vite development server; React 19 renders metadata in development. |
 | `npm run typecheck` | Strict TypeScript checks. |
-| `npm run build` | Type-check, bundle, prerender HTML, generate crawl files and run SEO assertions. |
+| `npm run build` | Type-check, bundle, prerender HTML, generate crawl files, then run the SEO and voice assertions. |
+| `npm run test` | Run the SEO and voice assertions on their own. |
 | `npm run test:seo` | Check the existing `dist/` output; build first. |
+| `npm run test:voice` | Check Emo's voice against a mock browser that behaves like a real one. |
 | `npm run preview -- --host 0.0.0.0` | Serve the actual production output locally. |
 
 There is **no lint script/configuration** in this repository. Type checking and SEO assertions are not a substitute for a dedicated linter.
@@ -105,6 +108,49 @@ On the landing page, Home, Work, Systems, Toolbox, About, Learning and Contact a
 The build renders the actual React component tree into both HTML files. The client mounts the interactive version over that static content rather than hydrating it. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
 
 Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders both pages and generates crawl files. Links between pages are relative (`dashboard/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
+
+### The shutter (the preloader)
+
+`Recording 2026-10-16 194802.mp4` is a screen recording of a loading sequence: a
+black screen, a grid of hairline seams, a line of type that arrives one blurred
+letter at a time, and then four vertical panels that lift off the page from the
+bottom up, half a second apart, until the site is standing there in the open.
+That sequence is the site's preloader — rebuilt, not filmed, in
+`src/components/Preloader.tsx` and `src/preloader.css`.
+
+Rebuilt, because a screen recording of a preloader is a poor preloader:
+
+- It is 1180 × 606 of h264 with the window chrome baked in — soft on a retina
+  screen, blocky on a 4K one, and there is no resolution that is right.
+- The type inside it is a photograph of type. It cannot be selected, it cannot be
+  read by a screen reader, and it cannot be translated.
+- It costs a download before the site can be looked at.
+
+In the rebuild every edge is a real edge. The seams are one device pixel, the
+letters are the site's own Inter, and the panels are the page itself: they are
+shutters over the live document, not a picture of one, so what slides away at
+the end is exactly what was underneath — no cut, no second hero, no download.
+The timings are the recording's own: 42 ms a letter, four panels 500 ms apart,
+each lifting over 300 ms.
+
+Two rules keep it honest:
+
+- **Nothing starts until the hero photograph and the fonts are in.** A shutter
+  that lifts onto an empty hero is worse than no shutter at all. A 1.2 s safety
+  timer releases it anyway, so a font that never arrives cannot hold the page
+  hostage.
+- **A visitor who has asked for less motion gets no shutter at all.**
+  `prefers-reduced-motion: reduce` skips the preloader entirely, and the
+  prerendered HTML hides it when JavaScript is off.
+
+The one deliberate change is the order. The recording's caption arrives *after*
+the panels have lifted, because there it labels content that is already on
+screen. A loader has to run the other way round — the caption first, then the
+panels uncovering what it was talking about — or the page would have to be
+shown and then hidden again, which is a flash, not a loader.
+
+`docs/preloader-recording-vs-replica.png` puts the two side by side, frame for
+frame: the recording on the left, the rebuild on the right.
 
 ### Emo, the robot on the desk
 
@@ -167,6 +213,25 @@ ever being retouched, and without anything laid over it:
   the visitor hushed him with Escape, and until the first line has actually reached a
   speaker — browsers keep audio locked behind a real gesture, and some embedded frames
   block it outright, so a silent-and-wordless robot is a state he is never allowed into.
+- **Three things had to be true for him to be heard at all**, and all three are now
+  tested by `npm run test:voice` (`scripts/test-voice.mjs`, which runs the shipped
+  module against a mock browser that behaves like a real one):
+  - *The context is handed out the instant it exists, not the instant it runs.* The
+    browser's `resume()` is asynchronous, so a context created inside a gesture is still
+    `suspended` for a tick. A voice that insists on `running` before it speaks throws
+    away the first line of every visit; a suspended context still has a clock, and
+    anything scheduled against it fires the moment it wakes.
+  - *The context is created inside a gesture.* A context made on a hover is born
+    suspended and the browser may never let it run, so the first real interaction wakes
+    the hardware before it is needed.
+  - *The caption is retired by a measurement, not a guess.* The master bus is metered
+    (`output()` in `src/lib/emoVoice.ts`), and the chip only goes away once the meter
+    has seen the voice. A context that happens to be running is not the same thing as
+    sound a person can hear.
+  He also got louder: a sawtooth's harmonics only line up with a vowel table by luck,
+  so on the low notes the three formants could pass almost nothing. A parallel body
+  voice — the note itself, rolled off above 2.2 kHz — now guarantees every syllable has
+  a floor under it, and a limiter on the bus keeps a long syllable from clipping.
 - The About pegboard is the real photograph. The composited ESP32, the Monster can
   and the drawn ribbon cable that sat over the top of it have been removed; the
   "hover to inspect" zoom card and its orange hint have been removed with them. The
