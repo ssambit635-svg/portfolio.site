@@ -13,7 +13,8 @@
 :root{--black:#050505;--white:#f4f2ed;--green:#00f083;--gray:#969696;--line:#282828;--serif:'Cormorant Garamond','EB Garamond','Times New Roman',serif;--sans:'Inter','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--script:'Pinyon Script',cursive;color-scheme:dark}
 *{box-sizing:border-box}html{background:var(--black);color:var(--white);scroll-behavior:smooth}body{margin:0;background:var(--black);font-family:var(--sans);font-size:14px;line-height:1.45;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit}.skip-link{position:fixed;top:-60px;left:20px;z-index:100;padding:10px;background:white;color:black}.skip-link:focus{top:12px}:focus-visible{outline:1px solid var(--green);outline-offset:4px}::selection{background:var(--green);color:#000}
 .side-nav{position:fixed;z-index:50;left:28px;top:24px;width:90px}.nav-name{display:block;font-family:var(--serif);font-size:15px;margin-bottom:14px}.side-nav nav{display:flex;flex-direction:column;align-items:flex-start}.side-nav nav a{font-size:11px;line-height:1.55;transition:.2s}.side-nav nav a:hover{color:var(--green);padding-left:4px}.menu-toggle{display:none}
-.hero{min-height:100vh;min-height:100svh;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
+.hero{--hero-ar:1.7917; /* 1376 / 768 — the photo's own ratio */
+  min-height:100vh;min-height:100svh;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
 .hero-monitor-wrapper {
   position: relative;
   isolation: isolate;
@@ -138,7 +139,6 @@
    surplus is cropped 65% above the monitor / 35% under the desk, which keeps
    the light bar and most of the desk surface on screen at every ratio. */
 .hero-frame{
-  --hero-ar:1.7917;   /* 1376 / 768 — the photo's own ratio */
   --hero-bleed:1.016; /* 1.6% past each edge: no hairline of page can show */
   --hero-h:max(calc(100vw * var(--hero-bleed) / var(--hero-ar)), calc(100vh * var(--hero-bleed)));
   --hero-h:max(calc(100vw * var(--hero-bleed) / var(--hero-ar)), calc(100svh * var(--hero-bleed)));
@@ -217,12 +217,16 @@ footer{--machine-h:640px}
    screens instead of enlarging the 16:9 image until most of it is cropped away. */
 @media (max-width:960px) and (orientation:portrait){
   .hero{
-    min-height:max(420px,60svh,calc(18svh + 64.7vw + 32px));
+    /* The scene and the strip above it are the whole section: the section ends
+       where the scene ends, so there is no dead band under the desk either. */
+    --hero-top:clamp(120px,18svh,220px);
+    --hero-w:min(116vw,980px);
+    min-height:calc(var(--hero-top) + var(--hero-w) / var(--hero-ar));
   }
   .hero-frame{
     --hero-h:auto;
-    top:clamp(120px,18svh,220px);
-    width:min(116vw,980px);
+    top:var(--hero-top);
+    width:var(--hero-w);
     height:auto;
     aspect-ratio:var(--hero-ar);
   }
@@ -284,16 +288,15 @@ footer{--machine-h:640px}
 }
 
 /* Let a landscape phone see the full scene, with any spare width staying dark
-   rather than chopping the top and bottom of the monitor. */
+   rather than chopping the top and bottom of the monitor. The scene still
+   fills the section from edge to edge: the height is the viewport's, so the
+   crop falls on the sides instead and there is never a bar above the scene
+   or below it. */
 @media (max-width:960px) and (orientation:landscape){
   .hero{min-height:100vh;min-height:100svh}
   .hero-frame{
-    --hero-h:min(55.8vw,100svh);
-    top:calc((100svh - var(--hero-h)) / 2);
-    width:min(100vw,calc(100svh * var(--hero-ar)));
-    height:auto;
-    aspect-ratio:var(--hero-ar);
-    transform:translateX(-50%);
+    --hero-h:100svh;
+    top:0;
   }
   .hero-tagline{
     top:max(calc(10px + env(safe-area-inset-top,0px)),4svh);

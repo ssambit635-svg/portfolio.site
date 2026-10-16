@@ -152,6 +152,26 @@ shown and then hidden again, which is a flash, not a loader.
 `docs/preloader-recording-vs-replica.png` puts the two side by side, frame for
 frame: the recording on the left, the rebuild on the right.
 
+### The scene fills the page
+
+The hero is one photograph of a desk, and it is the first thing on the page, so it
+has to reach the edges of the screen. A letterbox around it — a band of black
+above the monitor and another below the desk — turns a photograph into a picture
+in a frame, and the frame is the thing the eye notices first.
+
+- The scene is sized from the photo's own ratio (`--hero-ar`, 1376 / 768) and always
+  covers its section: on a wide desktop it is scaled past the viewport and bleeds
+  off the sides; on a landscape phone the height is the viewport's, so the crop
+  falls on the sides instead and there is no bar above or below; on a portrait
+  phone the section is exactly as tall as the strip above the scene plus the
+  scene itself, so the desk ends where the section ends.
+- The one place the scene does not fill the width is a landscape phone with spare
+  width to spare, where the extra is left dark rather than chopping the top and
+  bottom off the monitor.
+- The name (`Sambit · Swain`) is anchored to the hero rather than to the photo, so
+  it stays above the fold whichever way the scene is cropped, and it lands on the
+  dark ceiling the photograph has along its top edge.
+
 ### Emo, the robot on the desk
 
 The hero photo has a small desk robot standing left of the keyboard, and his eyes are
