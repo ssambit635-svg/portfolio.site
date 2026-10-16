@@ -24,6 +24,7 @@ Editorial paper layout, a systems map of the work and a separate certificates da
 - **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
 - **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, and no audio anywhere except the robot in the hero, who speaks only after you have touched something.
 - **A shutter, not a splash:** the site opens behind four vertical panels that lift off it from the bottom up, with a line of type arriving one blurred letter at a time. It is the loading sequence in `Recording 2026-10-16 194802.mp4`, rebuilt in code rather than filmed — so it is sharp at any resolution, readable by a screen reader, and weighs nothing.
+- **A menu in two faces:** on a desk the sections are a cluster of orbs that unroll out of a single handle; on a phone the same list drops into the panel of one button.
 - **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
 
@@ -186,6 +187,28 @@ in a frame, and the frame is the thing the eye notices first.
   of the monitor's frame so that where it overlaps the frame there is no edge to
   see. What is left is a matte OLED: deep, even black with one broad sheen
   across it and no banding anywhere.
+
+### The menu
+
+The navigation used to be a column of text in the corner on a desk and a
+full-screen sheet on a phone. It is now one component with two faces:
+
+- `src/components/Menu.tsx` holds the menu itself: `Menu` (a dropdown with a
+  trigger and a chevron), `MenuItem` (one line of it — a button, or a link when
+  it has an `href`) and `MenuContainer` (a cluster of orbs, the first one a
+  handle and the rest unrolling out of it).
+- On a desk the sections are the orbs in the top-left corner: one handle, and
+  the five pages unroll downwards out of it, each labelled on hover.
+- On a phone the orbs are gone — a fan of orbs over a small screen is a guess,
+  not a menu — and the same sections drop into the panel of a single **Menu**
+  button in the top-right, with the ways to write to the author under them.
+- The panel is dark glass over the photograph, the orbs are the same glass, and
+  the accent is the site's own green.
+- The keyboard path works: Tab reaches the handle, Enter opens it, the orbs
+  come next in the order they are drawn, and Escape closes the panel and hands
+  the focus back to the button that opened it. Choosing an item closes the
+  menu, a click outside closes it, and the page behind a phone's panel is held
+  still while it is open.
 
 ### Emo, the robot on the desk
 

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import MacLaptop from './components/MacLaptop'
+import SiteMenu from './components/SiteMenu'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import EmoRobot from './components/EmoRobot'
@@ -10,48 +11,8 @@ import { credentials, experience, profile, projects } from './lib/site'
 import { useLenis } from './hooks/useLenis'
 import heroMonitor from './assets/hero-monitor.jpg'
 
-const links = [
-  ['Home', '#home'],
-  ['Works', '#works'],
-  ['Certified', '#certified'],
-  ['About me', '#about'],
-  ['Contact', '#contact']
-] as const
-
 function Arrow() {
   return <span aria-hidden="true">↗</span>
-}
-
-function Nav() {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    if (!open) return
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [open])
-
-  return (
-    <header className="side-nav">
-      <a className="nav-name" href="#home" aria-label="Sambit Swain — home">SS</a>
-      <button
-        className="menu-toggle"
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-controls="main-navigation"
-        aria-expanded={open}
-        aria-label={open ? 'Close navigation' : 'Open navigation'}
-      >
-        {open ? 'Close' : 'Menu'}
-      </button>
-      <nav id="main-navigation" className={open ? 'is-open' : ''} aria-label="Main navigation">
-        {links.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}
-      </nav>
-    </header>
-  )
 }
 
 /**
@@ -197,5 +158,5 @@ export default function App({ staticRender = false }: { staticRender?: boolean }
   void staticRender
   useLenis()
   useEffect(() => { document.documentElement.dataset.theme = 'reference' }, [])
-  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><Nav/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
+  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
 }
