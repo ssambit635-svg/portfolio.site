@@ -171,6 +171,12 @@ in a frame, and the frame is the thing the eye notices first.
 - The name (`Sambit · Swain`) is anchored to the hero rather than to the photo, so
   it stays above the fold whichever way the scene is cropped, and it lands on the
   dark ceiling the photograph has along its top edge.
+- **The glass bends, the type does not.** The monitor's display is a curved panel
+  and the clip-path in `src/index.css` draws it that way, but the headline is set
+  flat. Every word used to be rotated about its own centre and scaled up toward
+  the ends of the line, which bowed the headline into a fisheye and made the last
+  words of each line visibly larger than the first — on the one line the site is
+  read for, that reads as a mistake rather than as a screen.
 
 ### Emo, the robot on the desk
 

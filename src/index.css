@@ -80,16 +80,11 @@
      type from the glass without adding colour to it. */
   text-shadow: 0 .05cqw .1cqw rgba(210, 255, 235, 0.22), 0 .12cqw .4cqw rgba(0, 0, 0, 0.55);
 }
-/* One line per block, one word per inline-block: an inline-block is the only thing a
-   browser will rotate onto the cylinder, and the block line must not swallow it. */
+/* One line per block, and the line stays flat: the glass bends, the type does
+   not. Bending every word made the headline read as a fisheye. */
 .hero-screen-title .hero-line {
   display: block;
   white-space: nowrap;
-}
-.hero-word {
-  display: inline-block;
-  transform-origin: 50% 58%;
-  backface-visibility: hidden;
 }
 .hero-screen-title .hero-line + .hero-line {
   color: #c6dbd2;
