@@ -32,13 +32,22 @@
    the middle than at either end, and its bottom edge 5.2% higher. That lens is the
    clip-path, sampled off the photo's own bezel highlights, so neither the tint nor
    the glass texture can reach the bezel — the old straight-edged box is what bled
-   green out to the sides. The side falloff is dark, not green: a panel turning away
-   is shading, and it is what sells the curve. */
+   green out to the sides.
+
+   The panel is a surface, not a window. It used to be a translucent wash over the
+   photograph, which left the photo's own glass-edge highlights showing through as
+   two vertical bands inside the display and let the green of the wall bleed into
+   its edges. A matte OLED in a dark room is an even, deep black with one broad
+   whisper of sheen across it, so the panel is painted opaque: a single smooth
+   roll-off from edge to centre and no banding anywhere. */
 .hero-screen {
   position: absolute;
-  left: 20.5%;
+  /* The panel covers the whole glass of the display. It used to start 2.7% of
+     the photo further in, which left the photograph's own green edge showing
+     as a band down the left of the screen. */
+  left: 17.81%;
   top: 19.6%;
-  width: 59%;
+  width: 63.44%;
   height: 37.8%;
   overflow: hidden;
   display: flex;
@@ -49,10 +58,19 @@
   padding: 2.6cqw 3cqw;
   text-align: center;
   font-family: var(--sans);
-  clip-path: polygon(0.00% 0.50%, 2.46% 0.50%, 7.63% 1.19%, 16.00% 2.22%, 24.51% 2.57%, 33.00% 3.25%, 41.51% 3.60%, 50.00% 4.29%, 58.37% 3.60%, 66.88% 3.25%, 75.37% 2.91%, 83.88% 2.22%, 92.37% 1.19%, 100.00% 1.19%, 100.00% 99.37%, 92.37% 99.37%, 83.88% 99.02%, 75.37% 94.89%, 66.88% 94.89%, 58.37% 94.55%, 50.00% 94.55%, 41.51% 94.55%, 33.00% 94.89%, 24.51% 94.89%, 16.00% 99.02%, 7.63% 99.37%, 2.46% 99.71%, 0.00% 99.71%);
+  /* The outline of the display, measured off the photograph: the glass starts
+     at x=245 of 1376 and its top edge dips 4% of the box as it crosses the
+     middle, the right edge leans in by 14px and comes back out, and the bottom
+     is the monitor's own chin. Every point is in the panel's own box. */
+  clip-path: polygon(0% 0.51%, 17.78% 3.26%, 40.71% 4.30%, 63.65% 4.30%, 86.58% 3.26%, 98.05% 2.23%, 100% 0.85%, 98.39% 34.28%, 98.39% 51.53%, 99.20% 99.07%, 75.11% 97.00%, 50.80% 94.56%, 29.24% 94.56%, 6.31% 96.25%, 0% 99.00%);
   background:
-    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.03), transparent 58%),
-    linear-gradient(90deg, rgba(3, 10, 8, 0.62) 0, rgba(3, 10, 8, 0.16) 9%, transparent 20%, transparent 80%, rgba(3, 10, 8, 0.16) 91%, rgba(3, 10, 8, 0.62) 100%);
+    /* Matte glass: one broad, almost invisible sheen down the middle. No
+       hotspot, no bright edge, nothing that reads as a seam. */
+    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.032), transparent 62%),
+    /* The panel itself, opaque: a matte OLED is a surface, not a window. The
+       outermost hair is the colour of the monitor's own frame, so wherever the
+       panel overlaps the frame there is no edge to see. */
+    radial-gradient(100% 100% at 50% 50%, #081212 0%, #071111 58%, #030707 87%, #010101 100%);
 }
 .hero-screen-label {
   margin: 0;

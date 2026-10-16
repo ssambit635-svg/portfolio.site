@@ -177,6 +177,15 @@ in a frame, and the frame is the thing the eye notices first.
   the ends of the line, which bowed the headline into a fisheye and made the last
   words of each line visibly larger than the first — on the one line the site is
   read for, that reads as a mistake rather than as a screen.
+- **The display is a surface, not a window.** The headline sits on an opaque
+  panel, because a panel you can see the room through is a panel that shows the
+  room's light: the photograph's own green edge was coming through as a band
+  down each side of the screen, with a hard line where the panel's edge cut
+  across it. The panel now covers the whole glass, its outline is the display's
+  real outline measured off the photograph, and its outermost hair is the colour
+  of the monitor's frame so that where it overlaps the frame there is no edge to
+  see. What is left is a matte OLED: deep, even black with one broad sheen
+  across it and no banding anywhere.
 
 ### Emo, the robot on the desk
 
