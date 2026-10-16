@@ -3,50 +3,99 @@ import MacLaptop from './components/MacLaptop'
 import RevealText from './components/RevealText'
 import PegBoard from './components/PegBoard'
 import EmoRobot from './components/EmoRobot'
+import HeroKeyboard from './components/HeroKeyboard'
 import WorksWheel from './components/WorksWheel'
 import { credentials, experience, profile, projects } from './lib/site'
 import { setScrollLocked, useLenis } from './hooks/useLenis'
 import { prefersReducedMotion } from './lib/utils'
 import heroMonitor from './assets/hero-monitor.jpg'
 
-/** Preloader greeting sequence — 0.9s per language, 5 languages = 4.5s, then a 0.5s fade. */
-const WELCOMES = [
-  ['en', 'Welcome'],
-  ['hi', 'स्वागत है'],
-  ['or', 'ସ୍ୱାଗତ'],
-  ['fr', 'Bienvenue'],
-  ['ja', 'ようこそ'],
-] as const
-
+/** A quiet, screen-accurate loader: only the monitor's thin status rule moves. */
 function Preloader() {
   const [done, setDone] = useState(false)
   const [reduced, setReduced] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const [progress, setProgress] = useState(0.08)
+
   useEffect(() => {
     if (prefersReducedMotion()) {
       setReduced(true)
       return
     }
-    document.documentElement.dataset.boot = '1'
+
+    let cancelled = false
+    let closing = false
+    let safetyTimer = 0
+    let minimumTimer = 0
+    let completeTimer = 0
+    let fadeTimer = 0
+    let readyAssets = 0
+    const startedAt = performance.now()
     setScrollLocked(true)
-    const t = setTimeout(() => {
-      setDone(true)
-      setScrollLocked(false)
-    }, 6100)
+
+    const reportAssetReady = () => {
+      readyAssets += 1
+      if (cancelled || closing) return
+      setProgress(readyAssets === 1 ? 0.56 : 0.9)
+    }
+
+    const heroImage = document.querySelector<HTMLImageElement>('.hero-monitor')
+    const imageReady = heroImage
+      ? heroImage.decode().catch(() => undefined)
+      : Promise.resolve()
+    const fontsReady = document.fonts.ready.catch(() => undefined)
+    void imageReady.then(reportAssetReady)
+    void fontsReady.then(reportAssetReady)
+
+    const allReady = Promise.all([imageReady, fontsReady]).then(() => undefined)
+    const safety = new Promise<void>((resolve) => {
+      safetyTimer = window.setTimeout(resolve, 1800)
+    })
+
+    void Promise.race([allReady, safety]).then(async () => {
+      window.clearTimeout(safetyTimer)
+      if (cancelled) return
+
+      const remaining = Math.max(0, 420 - (performance.now() - startedAt))
+      if (remaining > 0) {
+        await new Promise<void>((resolve) => {
+          minimumTimer = window.setTimeout(resolve, remaining)
+        })
+      }
+      if (cancelled) return
+
+      setProgress(1)
+      completeTimer = window.setTimeout(() => {
+        if (cancelled) return
+        closing = true
+        setLeaving(true)
+        fadeTimer = window.setTimeout(() => {
+          if (cancelled) return
+          setScrollLocked(false)
+          setDone(true)
+        }, 320)
+      }, 140)
+    })
+
     return () => {
-      clearTimeout(t)
+      cancelled = true
+      window.clearTimeout(safetyTimer)
+      window.clearTimeout(minimumTimer)
+      window.clearTimeout(completeTimer)
+      window.clearTimeout(fadeTimer)
       setScrollLocked(false)
     }
   }, [])
+
   if (done || reduced) return null
   return (
-    <div className="preloader" aria-hidden="true">
-      <div className="pre-glow" />
-      <div className="pre-words">
-        {WELCOMES.map(([lang, word]) => (
-          <span key={lang} lang={lang}>
-            {word}
-          </span>
-        ))}
+    <div className={`preloader${leaving ? ' is-leaving' : ''}`} aria-hidden="true">
+      <div className="hero-frame preloader-frame">
+        <div className="hero-screen preloader-screen">
+          <div className="preloader-meter">
+            <span style={{ transform: `scaleX(${progress})` }} />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -66,11 +115,30 @@ function Arrow() {
 
 function Nav() {
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [open])
+
   return (
     <header className="side-nav">
       <a className="nav-name" href="#home" aria-label="Sambit Swain — home">SS</a>
-      <button className="menu-toggle" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Toggle navigation">{open ? 'Close' : 'Menu'}</button>
-      <nav className={open ? 'is-open' : ''} aria-label="Main navigation">
+      <button
+        className="menu-toggle"
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-controls="main-navigation"
+        aria-expanded={open}
+        aria-label={open ? 'Close navigation' : 'Open navigation'}
+      >
+        {open ? 'Close' : 'Menu'}
+      </button>
+      <nav id="main-navigation" className={open ? 'is-open' : ''} aria-label="Main navigation">
         {links.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}
       </nav>
     </header>
@@ -131,6 +199,7 @@ function Hero() {
             </h1>
           </div>
           <EmoRobot />
+          <HeroKeyboard />
         </div>
       </div>
       {/* Outside the frame: the photo is cropped top and bottom to bleed edge to

@@ -318,7 +318,7 @@
 /* Portrait and phone widths: the type moves under the drum and the index goes
    away — it is unreadable at that size, and the list below the wheel carries
    every link anyway. */
-@media (max-width: 850px) {
+@media (max-width: 960px) {
   /* The nav crosses the corner on a phone, so the chrome drops below it. */
   .ww-kicker {
     right: auto;
@@ -347,6 +347,11 @@
   .ww-meta-desc {
     max-width: none;
     font-size: 12px;
+  }
+  .ww-front-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
   }
   .ww-index {
     display: none;
@@ -464,7 +469,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 960px) {
   .works-index {
     padding: 64px 20px 90px;
   }
