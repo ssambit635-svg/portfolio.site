@@ -88,11 +88,11 @@ function Works() {
         }}
       />
 
-      {/* The same eight, in text. Crawlable copy, and the reading path for
+      {/* The same nine, in text. Crawlable copy, and the reading path for
           anyone who would rather not turn a wheel to see the work. */}
       <div className="works-index">
         <div className="works-index-head">
-          <p>The same eight, in text</p>
+          <p>The same nine, in text</p>
           <a href={profile.github} target="_blank" rel="noreferrer">All repositories <Arrow /></a>
         </div>
         <ol className="works-list">

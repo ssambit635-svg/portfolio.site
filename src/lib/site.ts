@@ -9,6 +9,7 @@ import certDocker from '../assets/certs/docker-basics.jpg'
 import certLinux from '../assets/certs/linux-unhatched.jpg'
 import certPython from '../assets/certs/python-essentials.jpg'
 
+import shotArch from '../assets/projects/arch.jpg'
 import shotKivo from '../assets/projects/kivo.jpg'
 import shotShadow from '../assets/projects/shadow-quest.jpg'
 import shotAnnadata from '../assets/projects/annadata-connect.jpg'
@@ -96,6 +97,28 @@ export type Project = {
 }
 
 export const projects: Project[] = [
+  {
+    id: 'arch',
+    title: 'ARCH',
+    kind: 'DevOps',
+    description:
+      'A self-hosted incident response workspace: alerts, context and decisions in one place, from first alert to postmortem. Human-reviewed assistance drafts triage and customer updates, and a public status page keeps customers informed — all on infrastructure you control.',
+    year: '2026',
+    stack: ['Next.js', 'React', 'TypeScript', 'PostgreSQL', 'Prisma'],
+    image: shotArch,
+    href: 'https://arch-qrh6.onrender.com/',
+    action: 'Live demo',
+    repo: 'https://github.com/ssambit635-svg/ARCH.git',
+    status: 'live',
+    featured: true,
+    note: coldStartNote,
+    plane: {
+      Client: 'React 19',
+      API: 'Next.js / Node',
+      Data: 'PostgreSQL',
+      Infra: 'Docker · Render'
+    }
+  },
   {
     id: 'kivo',
     title: 'Kivo',

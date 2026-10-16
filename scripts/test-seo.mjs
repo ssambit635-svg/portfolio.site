@@ -37,7 +37,9 @@ for (const match of home.matchAll(/href="#([^"]+)"/g)) {
   assert.ok(home.includes(`id="${match[1]}"`), `Broken in-page link: #${match[1]}`)
 }
 assert.match(home, /class="skip-link"[^>]*href="#works"/)
-assert.equal((home.match(/id="project-/g) || []).length, 8, 'All projects should be anchored')
+assert.equal((home.match(/id="project-/g) || []).length, 9, 'All projects should be anchored')
+assert.match(home, /self-hosted incident response workspace/)
+assert.match(home, /href="https:\/\/arch-qrh6\.onrender\.com\/"/)
 assert.match(home, /procurement centres with live queue tokens/)
 assert.match(home, /samurai-inspired focus app/)
 assert.match(home, /href="dashboard\/"/)
