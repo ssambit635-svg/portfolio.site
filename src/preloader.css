@@ -52,8 +52,12 @@
 }
 
 @keyframes pl-lift {
-  from { transform: scaleY(1); }
-  to { transform: scaleY(0); }
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0);
+  }
 }
 
 /* The seams ------------------------------------------------------------------ */
@@ -84,18 +88,36 @@
 }
 
 @keyframes pl-seam-in {
-  to { opacity: 1; }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes pl-seam-slip {
-  0% { transform: translateX(0); }
-  12% { transform: translateX(4px); }
-  26% { transform: translateX(-3px); }
-  40% { transform: translateX(2px); }
-  54% { transform: translateX(-2px); }
-  68% { transform: translateX(1px); }
-  82% { transform: translateX(-1px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  12% {
+    transform: translateX(4px);
+  }
+  26% {
+    transform: translateX(-3px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  54% {
+    transform: translateX(-2px);
+  }
+  68% {
+    transform: translateX(1px);
+  }
+  82% {
+    transform: translateX(-1px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 /* The line ------------------------------------------------------------------- */
@@ -125,11 +147,17 @@
 }
 
 @keyframes pl-char {
-  to { opacity: 1; filter: blur(0); }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 @keyframes pl-caption-out {
-  to { opacity: 0; filter: blur(7px); }
+  to {
+    opacity: 0;
+    filter: blur(7px);
+  }
 }
 
 /* The end -------------------------------------------------------------------- */
@@ -152,5 +180,7 @@
 
 /* And nothing plays at all for a visitor who has asked for less movement. */
 @media (prefers-reduced-motion: reduce) {
-  .preloader { display: none; }
+  .preloader {
+    display: none;
+  }
 }

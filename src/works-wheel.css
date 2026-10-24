@@ -114,7 +114,9 @@
   letter-spacing: 0.14em;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
 }
 .ww-card:hover .ww-cta,
@@ -167,11 +169,7 @@
   position: absolute;
   left: max(20px, 5vw);
   top: 50%;
-  width: clamp(
-    180px,
-    calc(50% - var(--ww-cardw, 34vmin) / 2 - max(20px, 5vw) - 30px),
-    360px
-  );
+  width: clamp(180px, calc(50% - var(--ww-cardw, 34vmin) / 2 - max(20px, 5vw) - 30px), 360px);
   transform: translateY(-50%);
   opacity: 0;
   visibility: hidden;
@@ -240,18 +238,6 @@
   color: var(--green);
   border-color: var(--green);
 }
-/* A caveat under the actions — the free hosts that sleep, so a first click is
-   not read as a dead link. */
-.ww-meta-note {
-  margin: 16px 0 0;
-  max-width: 36ch;
-  padding-left: 10px;
-  border-left: 2px solid var(--green);
-  color: #8d8880;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
 .ww-index {
   position: absolute;
   right: max(20px, 2.5vw);
@@ -283,7 +269,7 @@
 .ww-index-no {
   margin-right: 8px;
   font-size: 0.85em;
-  color: #57534e;
+  color: #8d8880;
 }
 .ww-index button.is-active .ww-index-no {
   color: var(--green);
@@ -312,7 +298,7 @@
 .ww-hint-count i {
   margin: 0 2px;
   font-style: normal;
-  color: #57534e;
+  color: #8d8880;
 }
 
 /* Portrait and phone widths: the type moves under the drum and the index goes
@@ -408,7 +394,7 @@
 }
 .works-row {
   display: grid;
-  grid-template-columns: 52px minmax(0, 0.9fr) minmax(0, 1.5fr) auto;
+  grid-template-columns: 52px minmax(0, 0.9fr) minmax(0, 1.5fr) 200px;
   gap: 26px;
   align-items: start;
   padding: 26px 0;
@@ -461,11 +447,10 @@
   color: var(--green);
   border-color: var(--green);
 }
-.works-row-note {
-  margin: 0;
-  max-width: 22ch;
+.works-footnote {
+  margin: 28px 0 0;
   color: #8d8880;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 

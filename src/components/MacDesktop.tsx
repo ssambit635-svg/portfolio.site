@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { profile } from '../lib/site'
 import { useClock } from '../hooks/useClock'
-import wallpaper from '../assets/macos-wallpaper.png'
+import wallpaper from '../assets/macos-wallpaper.jpg'
 import '../mac-desktop.css'
 
 /**

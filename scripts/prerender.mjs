@@ -2,17 +2,17 @@ import { build } from 'vite'
 import { readFile, readdir, writeFile, cp, rm } from 'node:fs/promises'
 
 /**
- * The entry sequence rasterises the name into a canvas atlas, so the display
- * face has to be on the canvas before the first frame is measured. Vite hashes
- * the font files, so find them rather than guessing a path — a preload starts
- * the fetch alongside the stylesheet instead of after it.
+ * The display face (Cormorant Garamond) and the body face (Inter) are on screen at
+ * first paint. Preloading them starts the font fetch alongside the stylesheet
+ * instead of after it. Vite hashes the font files, so find them rather than guessing
+ * a path.
  *
  * `prefix` is the relative path back to the site root for the page being
  * rendered ('' → './', dashboard/ → '../'), so preloads resolve at any base.
  */
 async function fontPreloadHead(prefix) {
   const files = await readdir('dist/assets')
-  const needed = ['newsreader-latin-400-normal', 'ibm-plex-sans-latin-400-normal']
+  const needed = ['cormorant-garamond-latin-400-normal', 'inter-latin-400-normal']
   const links = needed
     .map((stem) => files.find((file) => file.startsWith(stem) && file.endsWith('.woff2')))
     .filter(Boolean)
@@ -31,8 +31,12 @@ const relativise = (html, prefix) =>
 /** Real pages, rendered from the same React tree the browser mounts. No server at runtime. */
 const pages = [
   { name: 'home', entry: 'src/entry-server.tsx', outDir: 'dist-ssr-home', bundle: 'entry-server.js', html: 'dist/index.html', prefix: './' },
-  { name: 'dashboard', entry: 'src/entry-dashboard.tsx', outDir: 'dist-ssr-dashboard', bundle: 'entry-dashboard.js', html: 'dist/dashboard/index.html', prefix: '../' }
+  { name: 'dashboard', entry: 'src/entry-dashboard.tsx', outDir: 'dist-ssr-dashboard', bundle: 'entry-dashboard.js', html: 'dist/dashboard/index.html', prefix: '../' },
+  { name: 'cv', entry: 'src/entry-cv.tsx', outDir: 'dist-ssr-cv', bundle: 'entry-cv.js', html: 'dist/cv/index.html', prefix: '../' }
 ]
+
+/** Every page that is in the sitemap. Keep in step with `pages` above and in seo.ts. */
+const sitemapPaths = ['', 'dashboard/', 'cv/']
 
 let siteUrl = ''
 try {
@@ -56,11 +60,12 @@ try {
   const xml = siteUrl.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
   await writeFile(
     'dist/sitemap.xml',
-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${xml}</loc></url><url><loc>${xml}dashboard/</loc></url></urlset>\n`
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${sitemapPaths.map((path) => `<url><loc>${xml}${path}</loc></url>`).join('')}</urlset>\n`
   )
   await writeFile('dist/robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}sitemap.xml\n`)
   console.log(`Prerendered portfolio and crawl files for ${siteUrl}`)
 } finally {
   await rm('dist-ssr-home', { recursive: true, force: true })
   await rm('dist-ssr-dashboard', { recursive: true, force: true })
+  await rm('dist-ssr-cv', { recursive: true, force: true })
 }

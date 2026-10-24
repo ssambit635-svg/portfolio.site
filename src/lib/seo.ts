@@ -8,7 +8,7 @@ if (!['https:', 'http:'].includes(parsed.protocol) || parsed.search || parsed.ha
 }
 export const siteUrl = `${parsed.origin}${parsed.pathname.replace(/\/+$/, '')}/`
 
-export type PageKey = 'home' | 'dashboard'
+export type PageKey = 'home' | 'dashboard' | 'cv'
 
 export type PageMeta = {
   /** path relative to siteUrl, '' for the homepage */
@@ -37,6 +37,13 @@ export const pages: Record<PageKey, PageMeta> = {
     title: 'Certificates & achievements | Sambit Swain',
     description:
       'Course certificates and achievements from Sambit Swain — AWS, Cisco NetAcad, Simplilearn, ExcelR and the hackathon builds behind them.'
+  },
+  cv: {
+    path: 'cv/',
+    prefix: '../',
+    title: 'CV | Sambit Swain',
+    description:
+      'One-page CV of Sambit Swain, a cloud and full-stack developer and B.Tech Computer Science student in Berhampur, India: projects, certifications and hackathon wins.'
   }
 }
 
@@ -92,6 +99,28 @@ export const dashboardStructuredData = {
   ]
 }
 
+export const cvStructuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person', '@id': `${siteUrl}#person`,
+      name: profile.name, url: siteUrl, jobTitle: profile.role,
+      email: profile.email, telephone: profile.phone,
+      image: `${siteUrl}sambit-swain.jpg`,
+      address: { '@type': 'PostalAddress', addressLocality: 'Berhampur', addressRegion: 'Odisha', addressCountry: 'IN' },
+      sameAs: [profile.github, profile.linkedin]
+    },
+    {
+      '@type': 'ProfilePage', '@id': `${siteUrl}cv/#page`,
+      name: 'CV — Sambit Swain', url: pageUrl('cv'),
+      description: pages.cv.description,
+      isPartOf: { '@id': `${siteUrl}#website` },
+      about: { '@id': `${siteUrl}#person` },
+      inLanguage: 'en'
+    }
+  ]
+}
+
 const safe = (data: unknown) =>
   JSON.stringify(data)
     .replace(/</g, '\\u003c')
@@ -101,3 +130,4 @@ const safe = (data: unknown) =>
 // Never let profile data terminate the JSON-LD script element.
 export const safeJsonLd = safe(structuredData)
 export const safeDashboardJsonLd = safe(dashboardStructuredData)
+export const safeCvJsonLd = safe(cvStructuredData)

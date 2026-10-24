@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import MacLaptop from './components/MacLaptop'
 import SiteMenu from './components/SiteMenu'
 import RevealText from './components/RevealText'
@@ -7,7 +6,11 @@ import EmoRobot from './components/EmoRobot'
 import HeroKeyboard from './components/HeroKeyboard'
 import WorksWheel from './components/WorksWheel'
 import Preloader from './components/Preloader'
+import UptimeDot from './components/UptimeDot'
+import AskEmo from './components/AskEmo'
+import StackBuilder from './components/StackBuilder'
 import { credentials, experience, profile, projects } from './lib/site'
+import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
 import heroMonitor from './assets/hero-monitor.jpg'
 
@@ -82,7 +85,6 @@ function Works() {
                 <a className="ww-front-link" href={project.href} target="_blank" rel="noreferrer" aria-label={`${project.action} for ${project.title}`}>{project.action} <Arrow /></a>
                 {project.repo && <a className="ww-front-link" href={project.repo} target="_blank" rel="noreferrer" aria-label={`Source code for ${project.title}`}>Source <Arrow /></a>}
               </p>
-              {project.note && <p className="ww-meta-note">{project.note}</p>}
             </>
           )
         }}
@@ -105,15 +107,19 @@ function Works() {
               </div>
               <p className="works-row-desc">{project.description}</p>
               <div className="works-row-side">
+                {project.status === 'live' && <UptimeDot id={project.id} title={project.title} />}
                 <p className="works-row-links">
                   <a href={project.href} target="_blank" rel="noreferrer">{project.action}</a>
                   {project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source</a>}
                 </p>
-                {project.note && <p className="works-row-note">{project.note}</p>}
               </div>
             </li>
           ))}
         </ol>
+        <p className="works-footnote">
+          Free-tier hosting: the first visit to a live demo can take 30–60 seconds while it wakes.
+          {formatCheckedAt() && <> Status dots were checked {formatCheckedAt()}, at the last build.</>}
+        </p>
       </div>
     </section>
   )
@@ -128,6 +134,7 @@ function Certified() {
           <span className="cert-no">{String(i + 1).padStart(2, '0')}</span>
           {cert.image ? <img src={cert.image} alt="" loading="lazy"/> : <div className="cert-placeholder">SS<br/>/26</div>}
           <div><p>{cert.issuer}</p><h3>{cert.title}</h3><span>{cert.detail}</span>
+            {cert.credentialId && <p className="cert-id">{`Credential ID ${cert.credentialId}`}</p>}
             {cert.href && <a className="cert-link" href={cert.href} target="_blank" rel="noreferrer">{cert.action ?? 'View'} <Arrow /></a>}
           </div>
         </article>)}
@@ -154,9 +161,7 @@ function Footer() {
   return <footer id="contact"><MacLaptop /></footer>
 }
 
-export default function App({ staticRender = false }: { staticRender?: boolean }) {
-  void staticRender
+export default function App() {
   useLenis()
-  useEffect(() => { document.documentElement.dataset.theme = 'reference' }, [])
-  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
+  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><AskEmo/><About/><StackBuilder/></main><Footer/></>
 }

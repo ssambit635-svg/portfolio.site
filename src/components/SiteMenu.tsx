@@ -1,5 +1,5 @@
-import { AtSign, BadgeCheck, Briefcase, FileText, FolderGit2, House, LayoutGrid, Link2, Mail, User, X } from 'lucide-react'
-import { Menu, MenuContainer, MenuItem } from './Menu'
+import { AtSign, BadgeCheck, Briefcase, FileText, FolderGit2, House, Layers, Link2, Mail, MessageCircle, ScrollText, User } from 'lucide-react'
+import { Menu, MenuItem } from './Menu'
 import { profile } from '../lib/site'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
@@ -8,7 +8,9 @@ const sections = [
   { label: 'Home', href: '#home', Icon: House },
   { label: 'Works', href: '#works', Icon: Briefcase },
   { label: 'Certified', href: '#certified', Icon: BadgeCheck },
+  { label: 'Ask Emo', href: '#ask', Icon: MessageCircle },
   { label: 'About me', href: '#about', Icon: User },
+  { label: 'Stack builder', href: '#stack', Icon: Layers },
   { label: 'Contact', href: '#contact', Icon: Mail }
 ]
 
@@ -18,43 +20,21 @@ const actions = [
   { label: 'GitHub', href: profile.github, Icon: FolderGit2, external: true },
   { label: 'LinkedIn', href: profile.linkedin, Icon: Link2, external: true },
   { label: 'X', href: profile.x, Icon: AtSign, external: true },
+  { label: 'One-page CV', href: 'cv/', Icon: ScrollText, external: false },
   { label: 'Certificates', href: 'dashboard/', Icon: FileText, external: false }
 ]
 
 /**
- * The site's menu.
- *
- * On a desk the sections are a cluster of orbs in the corner — one handle, and
- * the pages unroll out of it. On a phone the same sections drop into the
- * panel of a single button, because a fan of orbs over a small screen is a
- * game of blind faith, not a menu. The ways to write to the author sit in the
- * panel on both.
+ * The site's one menu: a single MENU panel in the top-right corner, on every
+ * screen size. The panel holds the sections and the ways to reach the author;
+ * the monogram top-left goes home.
  */
 export default function SiteMenu() {
   const isCompact = useMediaQuery('(max-width: 960px)')
 
   return (
     <div className="site-menu">
-      <a className="nav-name" href="#home" aria-label="Sambit Swain — home">SS</a>
-
-      <nav className="site-menu-cluster" aria-label="Sections">
-        <MenuContainer label="Sections">
-          <span className="menu-orb-icon" aria-hidden="true">
-            <LayoutGrid className="menu-orb-mark-open" />
-            <X className="menu-orb-mark-close" />
-          </span>
-          {sections.map(({ label, href, Icon }) => (
-            <MenuItem
-              key={href}
-              href={href}
-              icon={<Icon />}
-              chip={label}
-              ariaLabel={label}
-              className="menu-orb"
-            />
-          ))}
-        </MenuContainer>
-      </nav>
+      <a className="nav-name" href="#home" aria-label="SS — home">SS</a>
 
       <div className="site-menu-actions">
         <Menu

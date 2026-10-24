@@ -5,6 +5,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+  # Rebuild every day so the project status dots stay current without a server.
+  # 03:17 UTC is 08:47 in Odisha (IST).
+  schedule:
+    - cron: '17 3 * * *'
 
 permissions:
   contents: read
@@ -35,11 +39,20 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Lint and format check
+        run: npm run lint && npm run format:check
+
       - name: Build site
         env:
           VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
           VITE_GOOGLE_SITE_VERIFICATION: ${{ vars.VITE_GOOGLE_SITE_VERIFICATION }}
         run: npm run build
+
+      - name: Install Chromium for accessibility tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Accessibility tests
+        run: npm run test:a11y
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
