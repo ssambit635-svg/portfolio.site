@@ -181,7 +181,7 @@
   border-bottom-color: var(--green);
 }
 
-/* ---- Stack builder ------------------------------------------------------- */
+/* ---- Stack builder: index cards pinned to a steel board ------------------- */
 .stack-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
@@ -190,70 +190,137 @@
 }
 .stack-board {
   position: relative;
-  padding: 36px;
-  border: 1px solid var(--line);
-  background-color: #0c0c0c;
-  background-image: radial-gradient(circle, #262626 1.6px, transparent 1.8px);
-  background-size: 28px 28px;
-  background-position: 14px 14px;
+  padding: 44px 40px 40px;
+  border-radius: 3px;
+  border: 1px solid #2b2b2b;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.28)),
+    var(--board) center / cover no-repeat,
+    #1b1c1d;
+  box-shadow:
+    inset 0 0 70px rgba(0, 0, 0, 0.65),
+    0 22px 40px -18px rgba(0, 0, 0, 0.8);
 }
-.stack-pegs {
+/* The four screws of a real board. */
+.stack-board::before,
+.stack-board::after {
+  content: '';
+  position: absolute;
+  bottom: 14px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d8dadd 0 15%, #7d8288 45%, #2a2d31 90%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.stack-board::before {
+  left: 14px;
+}
+.stack-board::after {
+  right: 14px;
+}
+.stack-cards {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 30px 22px;
 }
-.peg {
+.pin-card {
+  --tilt: 0deg;
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  background: transparent;
+  min-width: 118px;
+  padding: 24px 14px 12px;
   border: 0;
-  padding: 0;
+  border-radius: 1px;
   cursor: pointer;
-  color: #a8a39a;
+  color: #1d1b18;
   font-family: var(--mono);
   font-size: 12px;
-  letter-spacing: 0.04em;
-}
-.peg-hook {
-  width: 10px;
-  height: 22px;
-  border-radius: 5px 5px 0 0;
-  background: #3a3a3a;
+  letter-spacing: 0.02em;
+  /* A ruled index card: blue lines and a red margin, over paper. */
+  background-color: #efe9dc;
+  background-image:
+    linear-gradient(to right, transparent 30px, rgba(192, 57, 43, 0.4) 30px 31px, transparent 31px),
+    repeating-linear-gradient(to bottom, transparent 0 19px, rgba(70, 105, 165, 0.22) 19px 20px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    2px 5px 0 rgba(0, 0, 0, 0.3),
+    0 14px 22px -10px rgba(0, 0, 0, 0.85);
+  transform: rotate(var(--tilt));
   transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
-.peg-name {
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  background: #111;
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease,
-    background 0.2s ease;
+.pin-card:hover,
+.pin-card:focus-visible {
+  transform: rotate(calc(var(--tilt) * 0.3)) translateY(-2px);
 }
-.peg:hover .peg-name,
-.peg:focus-visible .peg-name {
-  border-color: #5a5a5a;
-  color: var(--white);
+.pin-card:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 5px;
 }
-.peg-on .peg-hook {
-  background: var(--green);
-  transform: translateY(3px);
+/* The pushpin: a steel head with a highlight and a shadow on the card. */
+.pin-head {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  margin-left: -7.5px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 34% 30%,
+    #f7f7f7 0 10%,
+    #a4a9ae 32%,
+    #4b5056 70%,
+    #1d1f22 100%
+  );
+  box-shadow: 2px 4px 3px rgba(0, 0, 0, 0.55);
+  transition: background 0.25s ease;
 }
-.peg-on .peg-name {
-  border-color: var(--green);
-  background: rgba(0, 240, 131, 0.08);
-  color: var(--white);
+.pin-text {
+  position: relative;
+  text-align: center;
+  line-height: 1.3;
 }
-.peg:focus-visible {
-  outline: 1px solid var(--green);
-  outline-offset: 4px;
+/* Pinned: a red pin, the card lifts and comes off its tilt, the name is inked. */
+.pin-card-on {
+  transform: translateY(-5px) rotate(0deg);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    4px 10px 0 rgba(0, 0, 0, 0.3),
+    0 22px 26px -12px rgba(0, 0, 0, 0.9);
+}
+.pin-card-on .pin-head {
+  background: radial-gradient(
+    circle at 34% 30%,
+    #ffc1b6 0 10%,
+    #e0463a 32%,
+    #8e1d15 72%,
+    #3d0c08 100%
+  );
+  box-shadow:
+    2px 5px 4px rgba(0, 0, 0, 0.6),
+    0 0 10px rgba(224, 70, 58, 0.45);
+}
+.pin-card-on .pin-text {
+  font-weight: 600;
+  color: #0f0e0c;
+  text-decoration: underline;
+  text-decoration-color: #c0392b;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin-card,
+  .pin-head {
+    transition: none;
+  }
 }
 .stack-result {
   border-left: 1px solid var(--line);
