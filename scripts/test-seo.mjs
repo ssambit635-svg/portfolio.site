@@ -77,7 +77,7 @@ for (const href of [
   assert.ok(dashboard.includes(href), `Missing certificate link: ${href}`)
 }
 // The landing grid prints each credential's detail, including the SkillUp code.
-assert.match(home, /certificate code 10821711/i)
+assert.match(home, /Credential ID 10821711/i)
 
 const sitemap = await readFile('dist/sitemap.xml', 'utf8')
 assert.equal((sitemap.match(/<loc>/g) || []).length, 2)

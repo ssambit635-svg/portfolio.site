@@ -15,7 +15,7 @@ function CertCard({ credential }: { credential: Credential }) {
             alt={`${credential.issuer} — ${credential.title} certificate`}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            className="h-full w-full object-contain p-2 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           />
         ) : (
           <div className="grid h-full place-items-center px-4 text-center">
@@ -47,7 +47,7 @@ function CertCard({ credential }: { credential: Credential }) {
 
 export default function Dashboard() {
   return (
-    <>
+    <div className="min-h-screen bg-paper text-ink">
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
@@ -129,6 +129,6 @@ export default function Dashboard() {
           </a>
         </div>
       </footer>
-    </>
+    </div>
   )
 }

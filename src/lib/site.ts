@@ -71,13 +71,6 @@ export const about = {
 export const planes = ['Client', 'API', 'Data', 'Infra'] as const
 export type Plane = (typeof planes)[number]
 
-/**
- * Shown on cards whose demo runs on a free host that sleeps after inactivity
- * (Render's free web services spin down after ~15 minutes idle and take up to
- * a minute to wake), so a first click isn't mistaken for a dead link.
- */
-const coldStartNote = 'Free-tier hosting — first load can take 30–60 s.'
-
 export type Project = {
   id: string
   title: string
@@ -92,8 +85,6 @@ export type Project = {
   status: 'live' | 'lab' | 'local'
   plane: Record<Plane, string>
   featured?: boolean
-  /** Caveat rendered under the card actions — currently the cold-start note. */
-  note?: string
 }
 
 export const projects: Project[] = [
@@ -111,7 +102,6 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/ARCH.git',
     status: 'live',
     featured: true,
-    note: coldStartNote,
     plane: {
       Client: 'React 19',
       API: 'Next.js / Node',
@@ -133,7 +123,6 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/kivo.git',
     status: 'live',
     featured: true,
-    note: coldStartNote,
     plane: {
       Client: 'Android capture',
       API: 'Express / Node',
@@ -155,7 +144,6 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/Shadow-quest.git',
     status: 'live',
     featured: true,
-    note: coldStartNote,
     plane: {
       Client: 'React / Capacitor',
       API: 'Node',
@@ -177,7 +165,6 @@ export const projects: Project[] = [
     repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git',
     status: 'live',
     featured: true,
-    note: coldStartNote,
     plane: {
       Client: 'React / Capacitor',
       API: 'Express',
@@ -243,7 +230,6 @@ export const projects: Project[] = [
     featured: true,
     // The page is on Vercel, but its data comes from a free Render API that
     // sleeps, so the dashboard sits on "Loading" until that wakes.
-    note: coldStartNote,
     plane: {
       Client: 'React / Recharts',
       API: 'FastAPI',
@@ -378,6 +364,8 @@ export type Credential = {
   issuer: string
   title: string
   detail: string
+  /** Verification code printed on the certificate, shown on its own line. */
+  credentialId?: string
   /** Certificate scan. Optional: cards without one fall back to a type-only tile. */
   image?: string
   /** Public page for the credential — the issuer's course page or program page. */
@@ -400,7 +388,8 @@ export const credentials: Credential[] = [
     issuer: 'Simplilearn',
     title: 'Docker Basics',
     detail:
-      'Images, containers and the Dockerfile workflow — the SkillUp course “Getting Started with Docker”. Certificate code 10821711.',
+      'Images, containers and the Dockerfile workflow — the SkillUp course “Getting Started with Docker”.',
+    credentialId: '10821711',
     image: certDocker,
     href: 'https://www.simplilearn.com/learn-docker-basics-free-course-skillup',
     action: 'Course'

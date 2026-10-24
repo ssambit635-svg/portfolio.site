@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run test:seo && npm run test:voice",
     "test:seo": "node scripts/test-seo.mjs",
-    "test:voice": "node scripts/test-voice.mjs"
+    "test:voice": "node scripts/test-voice.mjs",
+    "test:a11y": "node scripts/test-a11y.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
@@ -41,8 +42,10 @@
     "@types/react": "~19.2.2",
     "@types/react-dom": "~19.2.1",
     "@vitejs/plugin-react": "^5.0.4",
+    "axe-core": "^4.14.0",
     "esbuild": "^0.28.2",
     "jpeg-js": "^0.4.4",
+    "playwright-core": "^1.64.1",
     "pngjs": "^7.0.0",
     "tailwindcss": "^4.1.16",
     "typescript": "^5.9.3",

@@ -82,7 +82,6 @@ function Works() {
                 <a className="ww-front-link" href={project.href} target="_blank" rel="noreferrer" aria-label={`${project.action} for ${project.title}`}>{project.action} <Arrow /></a>
                 {project.repo && <a className="ww-front-link" href={project.repo} target="_blank" rel="noreferrer" aria-label={`Source code for ${project.title}`}>Source <Arrow /></a>}
               </p>
-              {project.note && <p className="ww-meta-note">{project.note}</p>}
             </>
           )
         }}
@@ -109,11 +108,11 @@ function Works() {
                   <a href={project.href} target="_blank" rel="noreferrer">{project.action}</a>
                   {project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source</a>}
                 </p>
-                {project.note && <p className="works-row-note">{project.note}</p>}
               </div>
             </li>
           ))}
         </ol>
+        <p className="works-footnote">Free-tier hosting: the first visit to a live demo can take 30–60 seconds while it wakes.</p>
       </div>
     </section>
   )
@@ -128,6 +127,7 @@ function Certified() {
           <span className="cert-no">{String(i + 1).padStart(2, '0')}</span>
           {cert.image ? <img src={cert.image} alt="" loading="lazy"/> : <div className="cert-placeholder">SS<br/>/26</div>}
           <div><p>{cert.issuer}</p><h3>{cert.title}</h3><span>{cert.detail}</span>
+            {cert.credentialId && <p className="cert-id">{`Credential ID ${cert.credentialId}`}</p>}
             {cert.href && <a className="cert-link" href={cert.href} target="_blank" rel="noreferrer">{cert.action ?? 'View'} <Arrow /></a>}
           </div>
         </article>)}
