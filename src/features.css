@@ -1,0 +1,359 @@
+/* Features: uptime dots, Ask Emo and the stack builder. They sit in the landing
+   page's dark palette: black stage, white type, green accent, Cormorant display,
+   IBM Plex Mono for labels. */
+
+/* ---- Uptime -------------------------------------------------------------- */
+.uptime {
+  --uptime: #969696;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--uptime);
+  white-space: nowrap;
+}
+.uptime-up {
+  --uptime: var(--green);
+}
+.uptime-slow {
+  --uptime: #f5c451;
+}
+.uptime-sleeping {
+  --uptime: #8fb8ff;
+}
+.uptime-down {
+  --uptime: #ff6b5b;
+}
+.uptime-unreachable {
+  --uptime: #ff9a6b;
+}
+.uptime-unknown {
+  --uptime: #969696;
+}
+.uptime-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--uptime);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--uptime) 22%, transparent);
+}
+.uptime-up .uptime-dot {
+  animation: uptime-pulse 2.8s ease-out infinite;
+}
+@keyframes uptime-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--uptime) 45%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .uptime-up .uptime-dot {
+    animation: none;
+  }
+}
+
+/* ---- Ask Emo ------------------------------------------------------------- */
+.ask-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+.ask-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9b9b9b;
+  margin-bottom: 16px;
+}
+.ask-field {
+  display: flex;
+  border: 1px solid var(--line);
+  background: #0b0b0b;
+}
+.ask-field:focus-within {
+  border-color: var(--green);
+}
+.ask-field input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  padding: 18px 20px;
+  font-family: var(--serif);
+  font-size: 26px;
+  color: var(--white);
+  outline: none;
+}
+.ask-field input::placeholder {
+  color: #5d5d5d;
+}
+.ask-submit {
+  background: var(--green);
+  color: #050505;
+  border: 0;
+  padding: 0 26px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ask-submit:hover {
+  background: var(--white);
+}
+.ask-suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ask-suggestions button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: #cfcac0;
+  padding: 8px 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.ask-suggestions button:hover,
+.ask-suggestions button:focus-visible {
+  border-color: var(--green);
+  color: var(--white);
+}
+.ask-answer {
+  min-height: 260px;
+  border-left: 1px solid var(--line);
+  padding-left: 40px;
+}
+.ask-asked {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9b9b9b;
+  margin: 0 0 18px;
+}
+.ask-text {
+  font-family: var(--serif);
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.3;
+  color: var(--white);
+  margin: 0;
+}
+.ask-idle {
+  color: #9b9b9b;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.ask-links {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.ask-links a {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.ask-links a:hover,
+.ask-links a:focus-visible {
+  border-bottom-color: var(--green);
+}
+
+/* ---- Stack builder ------------------------------------------------------- */
+.stack-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+.stack-board {
+  position: relative;
+  padding: 36px;
+  border: 1px solid var(--line);
+  background-color: #0c0c0c;
+  background-image: radial-gradient(circle, #262626 1.6px, transparent 1.8px);
+  background-size: 28px 28px;
+  background-position: 14px 14px;
+}
+.stack-pegs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.peg {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: #a8a39a;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.peg-hook {
+  width: 10px;
+  height: 22px;
+  border-radius: 5px 5px 0 0;
+  background: #3a3a3a;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+.peg-name {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: #111;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+.peg:hover .peg-name,
+.peg:focus-visible .peg-name {
+  border-color: #5a5a5a;
+  color: var(--white);
+}
+.peg-on .peg-hook {
+  background: var(--green);
+  transform: translateY(3px);
+}
+.peg-on .peg-name {
+  border-color: var(--green);
+  background: rgba(0, 240, 131, 0.08);
+  color: var(--white);
+}
+.peg:focus-visible {
+  outline: 1px solid var(--green);
+  outline-offset: 4px;
+}
+.stack-result {
+  border-left: 1px solid var(--line);
+  padding-left: 40px;
+  min-height: 260px;
+}
+.stack-result-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.stack-result-head p {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9b9b9b;
+}
+.stack-clear {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: #cfcac0;
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.stack-clear:hover,
+.stack-clear:focus-visible {
+  border-color: var(--green);
+  color: var(--white);
+}
+.stack-msg {
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1.3;
+  color: var(--white);
+  margin: 0 0 20px;
+}
+.stack-msg a {
+  color: var(--green);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.stack-msg a:hover,
+.stack-msg a:focus-visible {
+  border-bottom-color: var(--green);
+}
+.stack-hits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+.stack-hits li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.stack-hits a {
+  color: var(--white);
+  font-family: var(--serif);
+  font-size: 24px;
+  text-decoration: none;
+}
+.stack-hits a:hover,
+.stack-hits a:focus-visible {
+  color: var(--green);
+}
+.stack-hits span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8d8880;
+  white-space: nowrap;
+}
+
+/* ---- Narrow screens ------------------------------------------------------ */
+@media (max-width: 860px) {
+  .ask-grid,
+  .stack-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .ask-answer,
+  .stack-result {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+  }
+  .ask-field input {
+    font-size: 22px;
+  }
+}

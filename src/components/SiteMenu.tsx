@@ -1,4 +1,4 @@
-import { AtSign, BadgeCheck, Briefcase, FileText, FolderGit2, House, Link2, Mail, User } from 'lucide-react'
+import { AtSign, BadgeCheck, Briefcase, FileText, FolderGit2, House, Layers, Link2, Mail, MessageCircle, ScrollText, User } from 'lucide-react'
 import { Menu, MenuItem } from './Menu'
 import { profile } from '../lib/site'
 import { useMediaQuery } from '../hooks/useMediaQuery'
@@ -8,7 +8,9 @@ const sections = [
   { label: 'Home', href: '#home', Icon: House },
   { label: 'Works', href: '#works', Icon: Briefcase },
   { label: 'Certified', href: '#certified', Icon: BadgeCheck },
+  { label: 'Ask Emo', href: '#ask', Icon: MessageCircle },
   { label: 'About me', href: '#about', Icon: User },
+  { label: 'Stack builder', href: '#stack', Icon: Layers },
   { label: 'Contact', href: '#contact', Icon: Mail }
 ]
 
@@ -18,6 +20,7 @@ const actions = [
   { label: 'GitHub', href: profile.github, Icon: FolderGit2, external: true },
   { label: 'LinkedIn', href: profile.linkedin, Icon: Link2, external: true },
   { label: 'X', href: profile.x, Icon: AtSign, external: true },
+  { label: 'One-page CV', href: 'cv/', Icon: ScrollText, external: false },
   { label: 'Certificates', href: 'dashboard/', Icon: FileText, external: false }
 ]
 

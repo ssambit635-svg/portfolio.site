@@ -28,10 +28,11 @@ export default defineConfig({
     assetsInlineLimit: 2048,
     chunkSizeWarningLimit: 1400,
     rollupOptions: {
-      // Two real pages: the landing page and the certificates dashboard.
+      // Three real pages: the landing page, the certificates dashboard and the one-page CV.
       input: {
         home: fileURLToPath(new URL('./index.html', import.meta.url)),
-        dashboard: fileURLToPath(new URL('./dashboard/index.html', import.meta.url))
+        dashboard: fileURLToPath(new URL('./dashboard/index.html', import.meta.url)),
+        cv: fileURLToPath(new URL('./cv/index.html', import.meta.url))
       }
     }
   }

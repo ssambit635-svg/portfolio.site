@@ -4,8 +4,9 @@ import { readFile, readdir } from 'node:fs/promises'
 
 const home = await readFile('dist/index.html', 'utf8')
 const dashboard = await readFile('dist/dashboard/index.html', 'utf8')
+const cv = await readFile('dist/cv/index.html', 'utf8')
 
-for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard]]) {
+for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard], ['CV', cv]]) {
   assert.equal((html.match(/<h1\b/g) || []).length, 1, `${name} should have one H1`)
   assert.equal((html.match(/<title>/g) || []).length, 1, `${name} should have one title`)
   assert.match(html, /<html lang="en">/)
@@ -30,7 +31,7 @@ assert.doesNotMatch(heroTitle, /class="hero-word"/, 'the headline should be set 
 assert.doesNotMatch(home, /desk-clock|dc-physical/)
 assert.match(home, /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/)
 assert.match(home, /name="twitter:card" content="summary_large_image"/)
-for (const id of ['home', 'works', 'certified', 'about', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
+for (const id of ['home', 'works', 'certified', 'ask', 'about', 'stack', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
   assert.ok(home.includes(`id="${id}"`), `Missing page target #${id}`)
 }
 for (const match of home.matchAll(/href="#([^"]+)"/g)) {
@@ -79,9 +80,30 @@ for (const href of [
 // The landing grid prints each credential's detail, including the SkillUp code.
 assert.match(home, /Credential ID 10821711/i)
 
+// Ask Emo and the stack builder are real, labelled controls in the prerendered page.
+assert.match(home, /<section id="ask"[\s\S]*?<input id="ask-input" type="text"/, 'Ask Emo should have a labelled text input')
+assert.match(home, /<label for="ask-input"/, 'the Ask Emo input needs its label')
+assert.match(home, /<section id="stack"[\s\S]*?aria-pressed="false"/, 'the stack builder pegs should be toggle buttons')
+assert.ok(home.indexOf('id="ask"') > home.indexOf('id="certified"') && home.indexOf('id="ask"') < home.indexOf('id="about"'), 'Ask Emo sits between Certified and About')
+// Each live project shows its status dot, with the time of the last check.
+assert.ok((home.match(/class="uptime uptime-/g) || []).length >= 1, 'live projects should show an uptime status')
+assert.match(home, /Status dots were checked/, 'the status should say when it was checked')
+
+// The CV is its own page with its own structured data, not the homepage's or the dashboard's.
+assert.match(cv, /<title>CV \| Sambit Swain<\/title>/)
+assert.match(cv, /<h1 id="cv-name">Sambit Swain<\/h1>/)
+assert.match(cv, /rel="canonical" href="https:\/\/[^"]+\/cv\/"/, 'the CV canonical should end in /cv/')
+const cvData = JSON.parse(cv.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null')
+assert.ok(cvData?.['@graph']?.some(node => node['@type'] === 'ProfilePage'), 'the CV should declare a ProfilePage')
+assert.doesNotMatch(cv, /CollectionPage/, 'the CV should not carry the dashboard structured data')
+assert.match(cv, /ssambit635@gmail\.com/, 'the CV should carry a way to reach him')
+assert.match(cv, /Docker Basics/, 'the CV should list the certifications')
+assert.match(cv, /href="\.\.\/"/, 'the CV should link back to the portfolio')
+
 const sitemap = await readFile('dist/sitemap.xml', 'utf8')
-assert.equal((sitemap.match(/<loc>/g) || []).length, 2)
+assert.equal((sitemap.match(/<loc>/g) || []).length, 3, 'sitemap should list home, dashboard and cv')
 assert.ok(sitemap.includes(`<loc>${canonical}</loc>`))
+assert.ok(sitemap.includes(`<loc>${canonical}cv/</loc>`), 'the CV should be in the sitemap')
 assert.ok((await readFile('dist/robots.txt', 'utf8')).includes(`Sitemap: ${canonical}sitemap.xml`))
 
 const assetFiles = await readdir('dist/assets')

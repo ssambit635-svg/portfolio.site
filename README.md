@@ -4,7 +4,7 @@
 ### Cloud & Full-stack Developer
 
 A personal portfolio for the projects, experiments and hackathon builds I ship.
-A dark editorial landing page, a systems map of the work, and a paper-toned certificates dashboard—backed by crawlable HTML.
+A dark editorial landing page, a paper-toned certificates dashboard, a one-page printable CV, and four features on top: an offline Ask Emo, live status dots, a pegboard stack builder and the CV itself—all backed by crawlable HTML.
 
 [**Explore the portfolio ↗**](https://ssambit635-svg.github.io/portfolio.site/) · [GitHub](https://github.com/ssambit635-svg) · [LinkedIn](https://www.linkedin.com/in/sambit-swain-7032a8378) · [Email](mailto:ssambit635@gmail.com)
 
@@ -20,12 +20,15 @@ A dark editorial landing page, a systems map of the work, and a paper-toned cert
 ## At a glance
 
 - **Identity first:** Sambit Swain, a computer science student and cloud & full-stack developer in Berhampur, India.
-- **Eight projects, on a works wheel:** the index rests as a ring of covers around a title, the first scroll opens it into a drum and keeps turning until the last piece has passed the front. The same eight follow as a text index with their descriptions and genuine live/repository links.
-- **Two pages:** the portfolio, plus `/dashboard` for square certificate tiles and achievements — opened from the "More certificates & achievements" button in the Learning section.
+- **Nine projects, on a works wheel:** the index rests as a ring of covers around a title, the first scroll opens it into a drum and keeps turning until the last piece has passed the front. The same nine follow as a text index with their descriptions and genuine live/repository links.
+- **Three pages:** the portfolio, `/dashboard/` for square certificate tiles and achievements (opened from the "All certificates & achievements" button under Certified), and `/cv/`, a one-page A4 CV that prints or saves as a single PDF page.
+- **Ask Emo:** a text panel that answers questions about the projects, stack, certificates, hackathons and contact details. It runs in the browser from the site's own data, with no model and no paid API.
+- **Live status dots:** each live project shows whether it is up, slow, asleep on free hosting, down or unreachable, as of the last build. A daily scheduled deploy refreshes it.
+- **Stack builder:** technologies are pegs on a pegboard. Hang the ones you want and see which projects use all of them.
 - **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, and no audio anywhere except the robot in the hero, who speaks only after you have touched something.
 - **A shutter, not a splash:** the site opens behind four vertical panels that lift off it from the bottom up, with a line of type arriving one blurred letter at a time. It is the loading sequence in `Recording 2026-10-16 194802.mp4`, rebuilt in code rather than filmed — so it is sharp at any resolution, readable by a screen reader, and weighs nothing.
 - **One menu everywhere:** a single **Menu** panel in the top-right corner holds the sections and the ways to reach the author, on desktop and phone alike. The monogram top-left links home.
-- **Search-ready delivery:** both pages render real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
+- **Search-ready delivery:** every page renders real content into the initial HTML, with canonical metadata, social previews, JSON-LD and generated crawl files.
 - **No runtime backend:** production output is static and deploys to GitHub Pages.
 
 ## Selected work
@@ -53,14 +56,16 @@ npm run dev
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Vite development server; React 19 renders metadata in development. |
-| `npm run typecheck` | Strict TypeScript checks. |
+| `npm run dev` | Vite development server; refreshes the project status snapshot if it is missing. |
+| `npm run typecheck` | Strict TypeScript checks (creates the status snapshot first if it is missing). |
+| `npm run uptime` | Check every live project now and rewrite `src/generated/uptime.json`. |
 | `npm run lint` | ESLint (typescript-eslint recommended + React hooks rules) over the sources and scripts. |
-| `npm run build` | Type-check, bundle, prerender HTML, generate crawl files, then run the SEO and voice assertions. |
-| `npm run test` | Run the SEO and voice assertions on their own. |
+| `npm run build` | Refresh the status snapshot, type-check, bundle, prerender HTML, generate crawl files, then run the SEO, feature and voice assertions. |
+| `npm run test` | Run the SEO, feature and voice assertions on their own. |
+| `npm run test:features` | Check the Ask Emo answers and the stack builder against the real site data. |
 | `npm run test:seo` | Check the existing `dist/` output; build first. |
 | `npm run test:voice` | Check Emo's voice against a mock browser that behaves like a real one. |
-| `npm run test:a11y` | Run axe-core (WCAG 2.x A/AA) against the built `/` and `/dashboard/` pages at desktop and phone widths. Needs a browser: set `CHROME_PATH` to a Chrome/Chromium binary, or run `npx playwright install chromium` once. CI installs Chromium and runs this after the build. |
+| `npm run test:a11y` | Run axe-core (WCAG 2.x A/AA) against the built `/`, `/dashboard/` and `/cv/` pages at desktop and phone widths, and print the CV to PDF to check it is one A4 page. Needs a browser: set `CHROME_PATH` to a Chrome/Chromium binary, or run `npx playwright install chromium` once. CI installs Chromium and runs this after the build. |
 | `npm run preview -- --host 0.0.0.0` | Serve the actual production output locally. |
 
 Linting is ESLint with `eslint.config.js`. It is part of CI, alongside the type check, the SEO and voice assertions, and the accessibility audit.
@@ -70,54 +75,71 @@ Linting is ESLint with `eslint.config.js`. It is part of CI, alongside the type 
 **React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · GSAP · Lenis · Fontsource · Simple Icons**
 
 ```text
-.github/workflows/deploy.yml   GitHub Pages build, accessibility tests, deployment
-dashboard/
-  index.html                   Dev entry for the certificates page (served at /dashboard/)
+.github/workflows/deploy.yml   Daily and push-triggered GitHub Pages build, lint, accessibility tests, deploy
 index.html                     Dev entry for the landing page
+dashboard/index.html           Dev entry for the certificates page (served at /dashboard/)
+cv/index.html                  Dev entry for the one-page CV (served at /cv/)
 public/
   sambit-swain.jpg             Current portrait used by the hero and social previews
   favicon.svg                  Header mark adapted as a favicon
 scripts/
-  prerender.mjs                Build-time rendering of both pages + sitemap / robots
-  test-seo.mjs                 Production HTML and crawl-file assertions
+  prerender.mjs                Build-time rendering of every page + sitemap / robots
+  check-uptime.mjs             Checks the live projects and writes src/generated/uptime.json
+  lib/load-module.mjs          Bundles a src/ module for Node scripts (site data, ask, stack)
+  lib/uptime-status.mjs        Turns one HTTP check into up / slow / asleep / down / unreachable
+  test-seo.mjs                 Production HTML, crawl-file and CV assertions
+  test-features.mjs            Ask Emo answers and stack builder rules, against the real data
   test-voice.mjs               Emo's voice, against a mock browser
-  test-a11y.mjs                axe-core WCAG 2.x A/AA audit of the built pages
+  test-a11y.mjs                axe-core WCAG 2.x A/AA audit, and the one-page CV PDF check
   emo-geometry.mjs, led-matrix.mjs   Generators for Emo's face and the LED logos
 src/
-  App.tsx                      Landing page: hero, works, certified, about, footer
+  App.tsx                      Landing page: hero, works, certified, Ask Emo, about, stack builder, footer
   pages/Dashboard.tsx          Certificates and achievements page
+  pages/Cv.tsx                 The one-page CV, built from the same site data
   components/
     SiteMenu.tsx               The one MENU panel and the monogram
     Menu.tsx                   Generic dropdown menu primitives
     WorksWheel.tsx             The works index as a wheel you turn (works-wheel.css)
+    AskEmo.tsx                 Ask Emo: the question panel (features.css)
+    StackBuilder.tsx           Stack builder: tool pegs and matching projects (features.css)
+    UptimeDot.tsx              A project's status dot in the works list (features.css)
     EmoRobot.tsx, HeroKeyboard.tsx, MacDesktop.tsx, MacLaptop.tsx, PegBoard.tsx
     Preloader.tsx, RevealText.tsx, Mark.tsx, Seo.tsx
   hooks/                       Clock, Emo, Lenis smooth scroll, media queries
   lib/
     site.ts                    Profile, projects, experience, credentials, achievements
     seo.ts                     Production URL, page metadata and Schema.org graphs
+    ask.ts                     Ask Emo: indexes the site's facts and scores a question against them
+    stack.ts                   Stack builder: the tools in use and the projects that match them
+    uptime.ts                  The status snapshot as the site reads it
     emoFace.ts, emoVoice.ts, ledLogos.ts, gsap.ts, utils.ts
+  generated/                   Status snapshot written at build time (gitignored)
   assets/                      Project screenshots, certificate scans, wallpapers
+  features.css                 Styles for Ask Emo, the stack builder and the status dots
+  cv.css                       Styles for the CV page, screen and print
   entry-server.tsx             Render the landing page at build time
   entry-dashboard.tsx          Render the dashboard at build time
+  entry-cv.tsx                 Render the CV at build time
   main.tsx                     Interactive client entry (landing page)
   dashboard.tsx                Interactive client entry (dashboard)
+  cv.tsx                       Interactive client entry (CV)
 ```
 
 ### Rendering and routing
 
-There are **two real pages**, both plain files in the build — there is no client-side router:
+There are **three real pages**, all plain files in the build — there is no client-side router:
 
 | Page | File | Served at |
 | --- | --- | --- |
 | Portfolio | `dist/index.html` | `/` |
 | Certificates & achievements | `dist/dashboard/index.html` | `/dashboard/` |
+| One-page CV | `dist/cv/index.html` | `/cv/` |
 
-On the landing page, Home, Works, Certified, About me and Contact are section links (`#home`, `#works`, `#certified`, `#about`, `#contact`). Project cards have stable `#project-…` anchors and link to their existing external destinations; there are no invented detail pages. The Certified section ends with an **All certificates & achievements** button that opens `/dashboard/`.
+On the landing page, Home, Works, Certified, Ask Emo, About me, Stack builder and Contact are section links (`#home`, `#works`, `#certified`, `#ask`, `#about`, `#stack`, `#contact`). The **Menu** panel links to the CV as well. Project cards have stable `#project-…` anchors and link to their existing external destinations; there are no invented detail pages. The Certified section ends with an **All certificates & achievements** button that opens `/dashboard/`.
 
-The build renders the actual React component tree into both HTML files. The client mounts the interactive version over that static content rather than hydrating it. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
+The build renders the actual React component tree into each HTML file. The client mounts the interactive version over that static content rather than hydrating it. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
 
-Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders both pages and generates crawl files. Links between pages are relative (`dashboard/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
+Vite has no built-in sitemap or metadata routing API. Metadata comes from React 19's native elements in one component (`pages` in `src/lib/seo.ts` holds each page's title, description and path); a small build script renders every page and generates crawl files. Links between pages are relative (`dashboard/`, `cv/` and `../`), so both work unchanged under a GitHub Pages project subpath, a custom domain or a local preview. Temporary server output is removed after rendering—no Node server is deployed.
 
 ### The shutter (the preloader)
 
@@ -303,12 +325,48 @@ Nothing is measured by eye and nothing is trusted to stay true: `npm run build` 
 re-measuring the photo (`emo-geometry.mjs --check`), so re-cropping the hero either moves
 his eyes or breaks the build — never misaligns them quietly.
 
+## Features
+
+### Ask Emo (`#ask`)
+
+A text panel above About. Type a question or pick an example; Emo answers from the site's own facts: projects, experience, certificates, achievements, the about text and contact details.
+
+- **No model, no API, no server.** `src/lib/ask.ts` indexes every fact once, tokenises the question (stop words removed, plurals and -ing forms folded), and scores each fact by the words it shares. A question that names a project or certificate title is matched directly.
+- **Technology questions list projects.** "Which projects use Python?" lists every project whose stack includes Python. Several technologies in one question ask for projects that use all of them, and when none do, the closest project is named.
+- **Honest fallback.** If nothing matches, Emo says it does not have that in his notes and offers questions he can answer. Nothing is sent anywhere; the answer is computed in the page.
+- **Tested** by `scripts/test-features.mjs`, against the real data, not a copy.
+
+### Live status dots (in Works)
+
+Each live project in the works list shows a status dot and word, as of the last build:
+
+| Status | Meaning |
+| --- | --- |
+| Up | Responded in under 3 seconds |
+| Slow | Responded, but took 3 seconds or more |
+| Asleep | Timed out, or returned 502/503/504: free hosting that is asleep. The first visit wakes it. |
+| Down | Returned another error code |
+| Unreachable | Could not be reached at all |
+| Not checked | No check has run yet |
+
+The check (`scripts/check-uptime.mjs`) runs before the type check and build, and writes `src/generated/uptime.json` (gitignored). It never fails the build; if it cannot run, every project shows "Not checked". `npm run dev` and `npm run typecheck` create the file only when it is missing. The deploy workflow also runs on a daily schedule, so the status is rebuilt each day without a server. This is a snapshot, not live polling, and the Works footnote says when it was taken.
+
+### Stack builder (`#stack`)
+
+Each technology used across the projects is a peg on a pegboard. Click a peg (or press it with the keyboard) to hang it. The panel lists the projects that use every technology you have hung. If none use them all, it names the closest project and how many of your choices it uses. Each peg is a real toggle button with `aria-pressed`, so screen readers and keyboards get the same controls. Dragging is not supported.
+
+### One-page CV (`/cv/`)
+
+A static page in the menu as **One-page CV**: an A4 sheet with the profile, education, projects, certificates, achievements and tools, all from `src/lib/site.ts`. The screen shows the sheet on a grey desk with a print button. The print stylesheet removes the controls and the browser's margins, so the browser's print or save-as-PDF produces one page. `npm run test:a11y` prints the page to PDF and fails unless the result is exactly one A4 page.
+
 ## Customize content
 
 | Change | Edit |
 | --- | --- |
 | Name, contact, social profiles, project descriptions | `src/lib/site.ts` |
-| Skills / technologies | `src/lib/skills.ts` |
+| Technologies (used by the stack builder) | `stack` on each project in `src/lib/site.ts` |
+| Ask Emo's matching and answer wording | `src/lib/ask.ts` (facts come from `src/lib/site.ts`) |
+| CV layout | `src/pages/Cv.tsx` and `src/cv.css` |
 | Portrait | `public/sambit-swain.jpg` |
 | Screenshots / certificate scans | `src/assets/projects/`, `src/assets/certs/` |
 | Certificates and achievements (dashboard) | `credentials` / `achievements` in `src/lib/site.ts` |
@@ -316,6 +374,7 @@ his eyes or breaks the build — never misaligns them quietly.
 | Page paths, titles and structured data | `pages` in `src/lib/seo.ts` |
 | Color tokens, fonts and label styles | `src/index.css` |
 | Certificates & achievements page | `src/pages/Dashboard.tsx` |
+| How a status is judged (slow after 3 s, asleep on 502/503/504 or timeout) | `scripts/lib/uptime-status.mjs` |
 
 The resume is currently `#` in profile data, so the nonfunctional download button is not shown. Set `profile.resume` to a genuine public resume URL to enable it. Do not add placeholder professional profiles or unsupported project features.
 
@@ -428,7 +487,7 @@ Before promoting a deployment, test:
 - Homepage, metadata, social preview image, `/sitemap.xml` and `/robots.txt` over HTTP.
 - Mobile widths (320, 375, 390, 768 px), project-card text, menu scrolling and footer wrapping.
 - Keyboard-only navigation, the learning-list buttons, anchors and resume if configured.
-- Both pages — `/` and `/dashboard/` — and the link between them.
+- All pages — `/`, `/dashboard/` and `/cv/` — and the links between them.
 - Scroll reveals, parallax and the pixel dissolve between blocks, including with reduced motion enabled.
 - Certificate tiles on the dashboard, including a credential whose scan has not been uploaded yet.
 - JavaScript-disabled content and a slow mobile connection.

@@ -1,10 +1,16 @@
-import { pages, safeDashboardJsonLd, safeJsonLd, siteUrl, type PageKey } from '../lib/seo'
+import { pages, safeCvJsonLd, safeDashboardJsonLd, safeJsonLd, siteUrl, type PageKey } from '../lib/seo'
+
+const jsonLdFor: Record<PageKey, string> = {
+  home: safeJsonLd,
+  dashboard: safeDashboardJsonLd,
+  cv: safeCvJsonLd
+}
 
 /** React 19 native metadata, rendered into the document head during the build. */
 export default function Seo({ page = 'home' }: { page?: PageKey }) {
   const meta = pages[page]
   const url = siteUrl + meta.path
-  const json = page === 'home' ? safeJsonLd : safeDashboardJsonLd
+  const json = jsonLdFor[page]
 
   return (
     <>

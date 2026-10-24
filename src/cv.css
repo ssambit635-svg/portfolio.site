@@ -1,0 +1,179 @@
+/* One-page CV. Screen: the A4 sheet sits on a grey desk. Print: the sheet is the
+   whole page, with no browser header or footer, so it saves as exactly one page. */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+html,
+body {
+  background: #d9d4ca;
+  color: #161513;
+}
+
+.cv-page {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-body);
+}
+
+.cv-toolbar {
+  width: 210mm;
+  max-width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+.cv-toolbar a {
+  color: #161513;
+}
+.cv-toolbar button {
+  background: #161513;
+  color: #f3efe7;
+  border: 0;
+  padding: 10px 16px;
+  font: inherit;
+  cursor: pointer;
+}
+.cv-toolbar a:focus-visible,
+.cv-toolbar button:focus-visible {
+  outline: 2px solid #b4451a;
+  outline-offset: 3px;
+}
+
+.cv-sheet {
+  width: 210mm;
+  height: 297mm;
+  max-width: 100%;
+  padding: 12mm 15mm;
+  background: #fbf9f4;
+  box-shadow: 0 10px 40px rgba(22, 21, 19, 0.18);
+  overflow: hidden;
+  font-size: 8.9pt;
+  line-height: 1.38;
+}
+
+.cv-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  border-bottom: 1.5px solid #161513;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+.cv-head h1 {
+  font-family: var(--font-display);
+  font-size: 36pt;
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.cv-role {
+  margin: 6px 0 0;
+  font-size: 10pt;
+  color: #6a655c;
+  letter-spacing: 0.02em;
+}
+.cv-contact {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  font-size: 8.6pt;
+  line-height: 1.6;
+}
+.cv-contact a {
+  color: #161513;
+  text-decoration: none;
+}
+
+.cv-block {
+  margin-bottom: 6px;
+}
+.cv-block h2 {
+  font-size: 7.6pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b4451a;
+  font-weight: 600;
+  margin: 0 0 5px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #d9d2c5;
+}
+.cv-block p {
+  margin: 0 0 3px;
+}
+.cv-row {
+  margin-bottom: 4px;
+}
+.cv-row h3 {
+  font-size: 9.6pt;
+  font-weight: 600;
+  margin: 0;
+}
+.cv-meta {
+  color: #6a655c;
+  font-weight: 400;
+}
+.cv-row .cv-meta {
+  font-size: 8.4pt;
+}
+.cv-row p:last-child {
+  margin-bottom: 0;
+}
+
+.cv-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 18px;
+}
+.cv-grid .cv-row {
+  break-inside: avoid;
+}
+
+.cv-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.cv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cv-list li {
+  margin-bottom: 4px;
+}
+.cv-list .cv-meta {
+  display: block;
+  font-size: 8.4pt;
+}
+
+@media print {
+  html,
+  body {
+    background: #fbf9f4;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .cv-page {
+    padding: 0;
+    display: block;
+    min-height: 0;
+  }
+  .cv-sheet {
+    box-shadow: none;
+    width: 100%;
+    max-width: none;
+    height: 297mm;
+  }
+}

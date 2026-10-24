@@ -6,7 +6,11 @@ import EmoRobot from './components/EmoRobot'
 import HeroKeyboard from './components/HeroKeyboard'
 import WorksWheel from './components/WorksWheel'
 import Preloader from './components/Preloader'
+import UptimeDot from './components/UptimeDot'
+import AskEmo from './components/AskEmo'
+import StackBuilder from './components/StackBuilder'
 import { credentials, experience, profile, projects } from './lib/site'
+import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
 import heroMonitor from './assets/hero-monitor.jpg'
 
@@ -103,6 +107,7 @@ function Works() {
               </div>
               <p className="works-row-desc">{project.description}</p>
               <div className="works-row-side">
+                {project.status === 'live' && <UptimeDot id={project.id} title={project.title} />}
                 <p className="works-row-links">
                   <a href={project.href} target="_blank" rel="noreferrer">{project.action}</a>
                   {project.repo && <a href={project.repo} target="_blank" rel="noreferrer">Source</a>}
@@ -111,7 +116,10 @@ function Works() {
             </li>
           ))}
         </ol>
-        <p className="works-footnote">Free-tier hosting: the first visit to a live demo can take 30–60 seconds while it wakes.</p>
+        <p className="works-footnote">
+          Free-tier hosting: the first visit to a live demo can take 30–60 seconds while it wakes.
+          {formatCheckedAt() && <> Status dots were checked {formatCheckedAt()}, at the last build.</>}
+        </p>
       </div>
     </section>
   )
@@ -155,5 +163,5 @@ function Footer() {
 
 export default function App() {
   useLenis()
-  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
+  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><AskEmo/><About/><StackBuilder/></main><Footer/></>
 }

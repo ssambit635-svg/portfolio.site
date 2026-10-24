@@ -1,6 +1,6 @@
 // Accessibility assertions: run axe-core against the built pages in a real
-// browser. Fails on any WCAG 2.x A/AA violation on either page at a desktop and
-// a phone width.
+// browser. Fails on any WCAG 2.x A/AA violation on any page at a desktop and
+// a phone width. Also prints the one-page CV to PDF and fails unless it is one page.
 //
 // Browser: set CHROME_PATH to a Chrome/Chromium binary, or run
 // `npx playwright install chromium` once and leave CHROME_PATH unset.
@@ -15,7 +15,7 @@ import { chromium } from 'playwright-core'
 const root = fileURLToPath(new URL('../dist/', import.meta.url))
 const require = createRequire(import.meta.url)
 const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8')
-const pages = ['/', '/dashboard/']
+const pages = ['/', '/dashboard/', '/cv/']
 const viewports = [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'phone', width: 390, height: 844 }
@@ -51,6 +51,26 @@ const browser = await chromium.launch({
 const failures = []
 let checks = 0
 try {
+  // The CV must print as exactly one A4 page.
+  const cvContext = await browser.newContext({ viewport: { width: 1280, height: 900 } })
+  const cvPage = await cvContext.newPage()
+  await cvPage.goto(base + '/cv/', { waitUntil: 'load' })
+  await cvPage.emulateMedia({ media: 'print' })
+  // The sheet clips at its edge, so a clipped CV would still print as one page. Measure it.
+  const overflow = await cvPage.evaluate(() => {
+    const sheet = document.querySelector('.cv-sheet')
+    return sheet.scrollHeight - sheet.clientHeight
+  })
+  checks++
+  console.log(`  ${overflow <= 1 ? 'ok  ' : 'FAIL'} cv fits  ${overflow}px over the A4 sheet`)
+  if (overflow > 1) failures.push(`cv — content is ${overflow}px taller than the A4 sheet and would be cut off`)
+  const pdf = await cvPage.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true })
+  const pdfPages = (pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)\b/g) || []).length
+  checks++
+  console.log(`  ${pdfPages === 1 ? 'ok  ' : 'FAIL'} cv pdf    ${pdfPages} page(s) when printed on A4`)
+  if (pdfPages !== 1) failures.push(`cv — printed to ${pdfPages} pages, must be exactly 1 (A4)`)
+  await cvContext.close()
+
   for (const viewport of viewports) {
     for (const path of pages) {
       const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, reducedMotion: 'reduce' })
