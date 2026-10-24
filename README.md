@@ -69,31 +69,38 @@ There is **no lint script/configuration** in this repository. Type checking, SEO
 **React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · GSAP · Lenis · Fontsource · Simple Icons**
 
 ```text
-.github/workflows/deploy.yml   GitHub Pages build and deployment
+.github/workflows/deploy.yml   GitHub Pages build, accessibility tests, deployment
 dashboard/
-  index.html                 Certificates & achievements page (served at /dashboard/)
+  index.html                   Dev entry for the certificates page (served at /dashboard/)
+index.html                     Dev entry for the landing page
 public/
   sambit-swain.jpg             Current portrait used by the hero and social previews
-  favicon.svg                 Existing header mark adapted as a favicon
+  favicon.svg                  Header mark adapted as a favicon
 scripts/
-  prerender.mjs               Build-time rendering of both pages + sitemap / robots generation
-  test-seo.mjs                Production HTML and crawl-file assertions
+  prerender.mjs                Build-time rendering of both pages + sitemap / robots
+  test-seo.mjs                 Production HTML and crawl-file assertions
+  test-voice.mjs               Emo's voice, against a mock browser
+  test-a11y.mjs                axe-core WCAG 2.x A/AA audit of the built pages
+  emo-geometry.mjs, led-matrix.mjs   Generators for Emo's face and the LED logos
 src/
-  assets/                    Project screenshots, certificate scans, AWS logo
+  App.tsx                      Landing page: hero, works, certified, about, footer
+  pages/Dashboard.tsx          Certificates and achievements page
   components/
-    Seo.tsx                  Central React 19 metadata (per page)
-    WorksWheel.tsx           The works index as a wheel you turn (see src/works-wheel.css)
-    sections/                Hero, Systems, Work, About, Stats (Toolbox), WorkedAt (Learning)
-    fx/                      Counter, pixel dissolve, skill logos
-  pages/Dashboard.tsx        Certificates + achievements page
-  hooks/                     Scrolling, reveal, clock, theme
-  lib/site.ts                Profile, projects, experience, credentials, achievements
-  lib/seo.ts                 Production URL, page metadata and Schema.org graphs
-  lib/skills.ts              Skills and brand marks
-  entry-server.tsx           Render the landing page at build time
-  entry-dashboard.tsx        Render the dashboard at build time
-  main.tsx                   Interactive client entry (landing page)
-  dashboard.tsx              Interactive client entry (dashboard)
+    SiteMenu.tsx               The one MENU panel and the monogram
+    Menu.tsx                   Generic dropdown menu primitives
+    WorksWheel.tsx             The works index as a wheel you turn (works-wheel.css)
+    EmoRobot.tsx, HeroKeyboard.tsx, MacDesktop.tsx, MacLaptop.tsx, PegBoard.tsx
+    Preloader.tsx, RevealText.tsx, Mark.tsx, Seo.tsx
+  hooks/                       Clock, Emo, Lenis smooth scroll, media queries
+  lib/
+    site.ts                    Profile, projects, experience, credentials, achievements
+    seo.ts                     Production URL, page metadata and Schema.org graphs
+    emoFace.ts, emoVoice.ts, ledLogos.ts, gsap.ts, utils.ts
+  assets/                      Project screenshots, certificate scans, wallpapers
+  entry-server.tsx             Render the landing page at build time
+  entry-dashboard.tsx          Render the dashboard at build time
+  main.tsx                     Interactive client entry (landing page)
+  dashboard.tsx                Interactive client entry (dashboard)
 ```
 
 ### Rendering and routing
