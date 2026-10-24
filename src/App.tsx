@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import MacLaptop from './components/MacLaptop'
 import SiteMenu from './components/SiteMenu'
 import RevealText from './components/RevealText'
@@ -154,9 +153,7 @@ function Footer() {
   return <footer id="contact"><MacLaptop /></footer>
 }
 
-export default function App({ staticRender = false }: { staticRender?: boolean }) {
-  void staticRender
+export default function App() {
   useLenis()
-  useEffect(() => { document.documentElement.dataset.theme = 'reference' }, [])
   return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><About/></main><Footer/></>
 }
