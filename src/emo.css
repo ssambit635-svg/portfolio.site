@@ -26,20 +26,36 @@
   pointer-events: none;
   font-size: 1cqw; /* 1em is 1% of the hero frame, so he scales with the crop */
   /* Rest values, so the first paint is his face and not a black box. */
-  --emo-gx: 0; --emo-gy: 0; --emo-lid: 0; --emo-pop: 0; --emo-squint: 0;
-  --emo-converge: 0; --emo-lean: 0; --emo-tilt: 0; --emo-voice: 0;
-  --emo-wobble: 0; --emo-shake: 0;
-  --emo-nuzzle: 0; --emo-purr: 0;
-  --emo-roam-x: 0; --emo-roam-y: 0; --emo-tilt-y: 0em;
+  --emo-gx: 0;
+  --emo-gy: 0;
+  --emo-lid: 0;
+  --emo-pop: 0;
+  --emo-squint: 0;
+  --emo-converge: 0;
+  --emo-lean: 0;
+  --emo-tilt: 0;
+  --emo-voice: 0;
+  --emo-wobble: 0;
+  --emo-shake: 0;
+  --emo-nuzzle: 0;
+  --emo-purr: 0;
+  --emo-roam-x: 0;
+  --emo-roam-y: 0;
+  --emo-tilt-y: 0em;
   /* The lean, the shake and the wobble are translations, so they need no pivot: the
      tilt is a differential on the two eyes, which reads as a head turning. The nuzzle
      is the lift of a head being scratched, and it rides the same translation. */
   --emo-move-x: calc(var(--emo-shake) * 0.4em);
-  --emo-move-y: calc(var(--emo-lean) * -0.16em + var(--emo-wobble) * 0.12em + var(--emo-tilt-y) - var(--emo-nuzzle) * 0.12em);
+  --emo-move-y: calc(
+    var(--emo-lean) * -0.16em + var(--emo-wobble) * 0.12em + var(--emo-tilt-y) - var(--emo-nuzzle) *
+      0.12em
+  );
 }
 
 /* A narrow phone crop leaves him out of frame; then there is nothing to animate. */
-.emo[data-off='1'] { visibility: hidden; }
+.emo[data-off='1'] {
+  visibility: hidden;
+}
 
 /* 1. The dark of his display, where his painted eyes are. A blurred rounded rect, so
       it has no edge; and because it only ever clips light, the glass around it is
@@ -70,8 +86,11 @@
   /* Half strength: his painted halo peaks about 26/255 above the dark of his glass, and
      a glow brighter than the light it belongs to is exactly the tell to avoid. */
   opacity: calc(0.5 * (1 - var(--emo-lid) * 0.9) * (1 + var(--emo-pop) * 0.5));
-  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em + var(--emo-move-x))
-             calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y));
+  translate: calc(
+      (var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em +
+        var(--emo-move-x)
+    )
+    calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y));
 }
 
 /* 3. The eye. Placed from his measured core box, so at rest it lands on the pixels it
@@ -96,29 +115,63 @@
   /* --emo-face-x is a face's own muscle: a wince pulls both eyes toward the nose, which
      the shared gaze term could never express, because it is not per-eye. The halo stays
      where the glass is, because light does not flinch. */
-  translate: calc((var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em + var(--emo-move-x) + var(--emo-face-x, 0em))
-             calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y) + var(--emo-face-y, 0em));
+  translate: calc(
+      (var(--emo-gx) - var(--emo-converge) * var(--emo-side)) * var(--emo-roam-x) * 1em +
+        var(--emo-move-x) + var(--emo-face-x, 0em)
+    )
+    calc(var(--emo-gy) * var(--emo-roam-y) * 1em + var(--emo-move-y) + var(--emo-face-y, 0em));
   /* A blink is a squash, and typing squints him the same way: an LED slit closing on
      glass, never an eyelid. */
   scale: calc(1 + var(--emo-pop) * 0.1 + var(--emo-face-sx, 0))
-         max(0.06, calc(1 - var(--emo-lid) - var(--emo-squint) * 0.3 + var(--emo-face-sy, 0)));
+    max(0.06, calc(1 - var(--emo-lid) - var(--emo-squint) * 0.3 + var(--emo-face-sy, 0)));
   transform-origin: 50% calc(50% + var(--emo-face-anchor, 0em));
-  transition: filter 0.35s ease, opacity 0.35s ease;
+  transition:
+    filter 0.35s ease,
+    opacity 0.35s ease;
 }
 
-.emo-a { --emo-side: -1; --emo-tilt-y: calc(var(--emo-tilt) * -0.34em); }
-.emo-b { --emo-side: 1; --emo-tilt-y: calc(var(--emo-tilt) * 0.34em); }
+.emo-a {
+  --emo-side: -1;
+  --emo-tilt-y: calc(var(--emo-tilt) * -0.34em);
+}
+.emo-b {
+  --emo-side: 1;
+  --emo-tilt-y: calc(var(--emo-tilt) * 0.34em);
+}
 
 /* Faces. Each one is a look, not a layout change, and none of them draws a box: a robot
    with a display for a face changes brightness, size and colour. */
-[data-face='curious'] .emo-orb { filter: blur(0.05em) brightness(1.04); }
-[data-face='focused'] .emo-orb { filter: blur(0.04em) brightness(1.14) saturate(1.06); }
-[data-face='surprised'] .emo-orb { --emo-face-sx: 0.14; --emo-face-sy: 0.08; filter: blur(0.05em) brightness(1.16); }
-[data-face='wake'] .emo-orb { --emo-face-sx: 0.06; --emo-face-sy: 0.16; filter: blur(0.05em) brightness(1.18); }
+[data-face='curious'] .emo-orb {
+  filter: blur(0.05em) brightness(1.04);
+}
+[data-face='focused'] .emo-orb {
+  filter: blur(0.04em) brightness(1.14) saturate(1.06);
+}
+[data-face='surprised'] .emo-orb {
+  --emo-face-sx: 0.14;
+  --emo-face-sy: 0.08;
+  filter: blur(0.05em) brightness(1.16);
+}
+[data-face='wake'] .emo-orb {
+  --emo-face-sx: 0.06;
+  --emo-face-sy: 0.16;
+  filter: blur(0.05em) brightness(1.18);
+}
 /* Squinted from the middle down: two arcs, from the squash and the anchor alone. */
-[data-face='happy'] .emo-orb { --emo-face-sy: -0.3; --emo-face-y: 0.08em; --emo-face-anchor: 0.5em; filter: blur(0.08em) brightness(1.12); }
-[data-face='worried'] .emo-a .emo-orb { --emo-face-y: -0.12em; --emo-face-sy: -0.14; }
-[data-face='worried'] .emo-b .emo-orb { --emo-face-sx: -0.08; --emo-face-sy: 0.06; }
+[data-face='happy'] .emo-orb {
+  --emo-face-sy: -0.3;
+  --emo-face-y: 0.08em;
+  --emo-face-anchor: 0.5em;
+  filter: blur(0.08em) brightness(1.12);
+}
+[data-face='worried'] .emo-a .emo-orb {
+  --emo-face-y: -0.12em;
+  --emo-face-sy: -0.14;
+}
+[data-face='worried'] .emo-b .emo-orb {
+  --emo-face-sx: -0.08;
+  --emo-face-sy: 0.06;
+}
 /* Asleep: closed lids, not erased eyes. The lid line keeps his mid tone, dimmed, sitting
    low in the socket, and the glass glow still breathes faintly under it — a slit squashed
    to a pixel with the light off reads as "his eyes are broken", not as "he is sleeping".
@@ -126,14 +179,30 @@
    waking are motion, and this face only chooses what a closed lid looks like. */
 [data-face='sleep'] .emo-orb {
   --emo-face-anchor: 0.34em;
-  background: radial-gradient(80% 94% at 50% 44%, var(--emo-eye-mid) 0 36%, var(--emo-eye-glow) 74%, transparent 100%);
+  background: radial-gradient(
+    80% 94% at 50% 44%,
+    var(--emo-eye-mid) 0 36%,
+    var(--emo-eye-glow) 74%,
+    transparent 100%
+  );
   filter: blur(0.07em) brightness(0.74);
 }
-[data-face='peek'] .emo-a .emo-orb { --emo-face-sy: -0.76; }
-[data-face='peek'] .emo-b .emo-orb { --emo-face-sy: -0.56; filter: blur(0.06em) brightness(1.08); }
-[data-face='dizzy'] .emo-orb { animation: emo-sway 1.5s ease-in-out infinite; }
-[data-face='listening'] .emo-orb { filter: blur(0.05em) brightness(calc(1 + var(--emo-voice) * 0.5)); }
-[data-face='lowbat'] .emo-orb { opacity: 0.72; }
+[data-face='peek'] .emo-a .emo-orb {
+  --emo-face-sy: -0.76;
+}
+[data-face='peek'] .emo-b .emo-orb {
+  --emo-face-sy: -0.56;
+  filter: blur(0.06em) brightness(1.08);
+}
+[data-face='dizzy'] .emo-orb {
+  animation: emo-sway 1.5s ease-in-out infinite;
+}
+[data-face='listening'] .emo-orb {
+  filter: blur(0.05em) brightness(calc(1 + var(--emo-voice) * 0.5));
+}
+[data-face='lowbat'] .emo-orb {
+  opacity: 0.72;
+}
 /* Roughly rapid tapping. Not a bigger version of surprised — a different muscle: the
    eyes squeeze shut *inward*, both toward the nose and down, brightest at the pinch,
    while the halo blooms up from behind the lids. */
@@ -174,26 +243,45 @@
   --emo-eye-glow: rgb(60, 30, 8);
   animation: emo-led 1.6s steps(2, end) infinite;
 }
-[data-face='offline'] .emo-glow { background: radial-gradient(closest-side, rgb(90, 46, 10), transparent 74%); }
+[data-face='offline'] .emo-glow {
+  background: radial-gradient(closest-side, rgb(90, 46, 10), transparent 74%);
+}
 /* Charging, on the eye itself: a bolt of light, not a badge. */
 .emo-orb-b::after {
   content: '';
   position: absolute;
-  left: 26%; top: 16%;
-  width: 48%; height: 68%;
+  left: 26%;
+  top: 16%;
+  width: 48%;
+  height: 68%;
   background: rgb(226 255 250 / 0.5);
   clip-path: polygon(56% 0, 18% 54%, 44% 54%, 36% 100%, 82% 40%, 52% 40%);
 }
-[data-power='charging'] .emo-orb-b { --emo-bolt: 1; }
-.emo-orb-b::after { opacity: var(--emo-bolt, 0); transition: opacity 0.4s ease; }
+[data-power='charging'] .emo-orb-b {
+  --emo-bolt: 1;
+}
+.emo-orb-b::after {
+  opacity: var(--emo-bolt, 0);
+  transition: opacity 0.4s ease;
+}
 
 @keyframes emo-sway {
-  0%, 100% { rotate: -5deg; }
-  50% { rotate: 5deg; }
+  0%,
+  100% {
+    rotate: -5deg;
+  }
+  50% {
+    rotate: 5deg;
+  }
 }
 @keyframes emo-led {
-  0%, 100% { filter: blur(0.05em) brightness(1); }
-  50% { filter: blur(0.05em) brightness(0.62); }
+  0%,
+  100% {
+    filter: blur(0.05em) brightness(1);
+  }
+  50% {
+    filter: blur(0.05em) brightness(0.62);
+  }
 }
 
 /* One tap target over his shell — he answers to a poke, and to Enter when the tab order
@@ -212,7 +300,10 @@
   border-radius: 42% 46% 38% 40%;
   cursor: pointer;
 }
-.emo-hit:focus-visible { outline: 1px solid rgb(120 255 240 / 0.5); outline-offset: 0.3em; }
+.emo-hit:focus-visible {
+  outline: 1px solid rgb(120 255 240 / 0.5);
+  outline-offset: 0.3em;
+}
 
 /* What he says, out loud. The sentence is in the DOM whatever the device can do, because
    a live region is the accessible name of the moment — but it is 1px and clipped, since a
@@ -248,14 +339,31 @@
   border-radius: 3px;
   opacity: 0;
   translate: 0 0.3em;
-  transition: opacity 0.3s ease, translate 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    translate 0.3s ease;
 }
 /* An empty chip is an empty box, and an empty box on somebody's desk is a bug. */
-.emo-line:empty { display: none; }
-.emo[data-said] .emo-line { opacity: 1; translate: 0 0; }
-.emo[data-talk='off'] .emo-line { color: #cfe9e4; border-color: rgb(120 255 240 / 0.12); }
+.emo-line:empty {
+  display: none;
+}
+.emo[data-said] .emo-line {
+  opacity: 1;
+  translate: 0 0;
+}
+.emo[data-talk='off'] .emo-line {
+  color: #cfe9e4;
+  border-color: rgb(120 255 240 / 0.12);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .emo-orb, .emo-glow, .emo-line { transition: none; }
-  [data-face='dizzy'] .emo-orb, [data-face='offline'] .emo-orb { animation: none; }
+  .emo-orb,
+  .emo-glow,
+  .emo-line {
+    transition: none;
+  }
+  [data-face='dizzy'] .emo-orb,
+  [data-face='offline'] .emo-orb {
+    animation: none;
+  }
 }

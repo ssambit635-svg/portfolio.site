@@ -114,7 +114,9 @@
   letter-spacing: 0.14em;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
 }
 .ww-card:hover .ww-cta,
@@ -167,11 +169,7 @@
   position: absolute;
   left: max(20px, 5vw);
   top: 50%;
-  width: clamp(
-    180px,
-    calc(50% - var(--ww-cardw, 34vmin) / 2 - max(20px, 5vw) - 30px),
-    360px
-  );
+  width: clamp(180px, calc(50% - var(--ww-cardw, 34vmin) / 2 - max(20px, 5vw) - 30px), 360px);
   transform: translateY(-50%);
   opacity: 0;
   visibility: hidden;

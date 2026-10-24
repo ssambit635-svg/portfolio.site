@@ -63,16 +63,37 @@
 }
 
 @keyframes hero-key-socket {
-  0%, 12% { opacity: 0; }
-  28%, 68% { opacity: 0.94; }
-  100% { opacity: 0; }
+  0%,
+  12% {
+    opacity: 0;
+  }
+  28%,
+  68% {
+    opacity: 0.94;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes hero-key-down {
-  0% { opacity: 0; transform: translateY(0) scaleY(1); }
-  14% { opacity: 1; transform: translateY(0) scaleY(1); }
-  42%, 66% { opacity: 1; transform: translateY(2px) scaleY(0.7); }
-  100% { opacity: 0; transform: translateY(0) scaleY(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(0) scaleY(1);
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  42%,
+  66% {
+    opacity: 1;
+    transform: translateY(2px) scaleY(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

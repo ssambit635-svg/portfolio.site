@@ -26,7 +26,11 @@
   bottom: -7%;
   height: 23%;
   pointer-events: none;
-  background: radial-gradient(ellipse 66% 76% at 58% 0%, rgba(255, 190, 128, 0.26), transparent 74%);
+  background: radial-gradient(
+    ellipse 66% 76% at 58% 0%,
+    rgba(255, 190, 128, 0.26),
+    transparent 74%
+  );
   filter: blur(24px);
   opacity: 0.85;
 }
@@ -76,13 +80,22 @@
   inset: 0;
   border-radius: 8px;
   pointer-events: none;
-  background: radial-gradient(ellipse 70% 18% at 58% 103%, rgba(255, 190, 128, 0.2), transparent 74%);
+  background: radial-gradient(
+    ellipse 70% 18% at 58% 103%,
+    rgba(255, 190, 128, 0.2),
+    transparent 74%
+  );
   mix-blend-mode: screen;
   animation: boardBreathe 11s ease-in-out infinite;
 }
 @keyframes boardBreathe {
-  0%, 100% { opacity: 0.78; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* The dot-matrix module bleeds a little green onto the pegboard it is bolted to.
@@ -96,27 +109,46 @@
   width: 42%;
   height: 56%;
   pointer-events: none;
-  background: radial-gradient(ellipse 46% 50% at 50% 50%, rgba(96, 255, 164, 0.14), rgba(80, 240, 150, 0.04) 48%, transparent 74%);
+  background: radial-gradient(
+    ellipse 46% 50% at 50% 50%,
+    rgba(96, 255, 164, 0.14),
+    rgba(80, 240, 150, 0.04) 48%,
+    transparent 74%
+  );
   mix-blend-mode: screen;
   filter: blur(6px);
   animation: spillFlicker 7.3s steps(1, end) infinite;
 }
 @keyframes spillFlicker {
-  0%, 100% { opacity: 0.9; }
-  33% { opacity: 1; }
-  62% { opacity: 0.76; }
-  79% { opacity: 0.96; }
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  33% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.76;
+  }
+  79% {
+    opacity: 0.96;
+  }
 }
 
 /* The board hangs on a wall, so it answers the pointer by a degree or two. A
    softer tilt than before — the board is bolted on, not a card in a carousel. */
 .board {
-  transform: perspective(1400px) rotateX(calc(var(--tilt-x, 0) * 1deg)) rotateY(calc(var(--tilt-y, 0) * 1deg));
+  transform: perspective(1400px) rotateX(calc(var(--tilt-x, 0) * 1deg))
+    rotateY(calc(var(--tilt-y, 0) * 1deg));
   transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.led-module { z-index: 3; }
+.led-module {
+  z-index: 3;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .board-underlight,
-  .board-ledspill { animation: none; }
+  .board-ledspill {
+    animation: none;
+  }
 }

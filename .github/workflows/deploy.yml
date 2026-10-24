@@ -35,6 +35,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
       - name: Build site
         env:
           VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}

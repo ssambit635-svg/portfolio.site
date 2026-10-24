@@ -55,6 +55,7 @@ npm run dev
 | --- | --- |
 | `npm run dev` | Vite development server; React 19 renders metadata in development. |
 | `npm run typecheck` | Strict TypeScript checks. |
+| `npm run lint` | ESLint (typescript-eslint recommended + React hooks rules) over the sources and scripts. |
 | `npm run build` | Type-check, bundle, prerender HTML, generate crawl files, then run the SEO and voice assertions. |
 | `npm run test` | Run the SEO and voice assertions on their own. |
 | `npm run test:seo` | Check the existing `dist/` output; build first. |
@@ -62,7 +63,7 @@ npm run dev
 | `npm run test:a11y` | Run axe-core (WCAG 2.x A/AA) against the built `/` and `/dashboard/` pages at desktop and phone widths. Needs a browser: set `CHROME_PATH` to a Chrome/Chromium binary, or run `npx playwright install chromium` once. CI installs Chromium and runs this after the build. |
 | `npm run preview -- --host 0.0.0.0` | Serve the actual production output locally. |
 
-There is **no lint script/configuration** in this repository. Type checking, SEO assertions and the accessibility audit are not a substitute for a dedicated linter.
+Linting is ESLint with `eslint.config.js`. It is part of CI, alongside the type check, the SEO and voice assertions, and the accessibility audit.
 
 ## Architecture
 
