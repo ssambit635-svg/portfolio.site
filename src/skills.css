@@ -1,50 +1,41 @@
-/* The skills object: real brand stickers on the back of a laptop lid. */
-.skills .lid {
+/* The skills object: a mechanical keyboard whose keycaps carry the real brand logos. */
+.skills .keyboard {
   position: relative;
   margin: 0 auto;
   width: min(100%, 980px);
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 1360 / 768;
 }
-.skills .lid > img {
+.skills .keyboard > img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 10px;
 }
-.lid-stickers {
+.keycaps {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
-/* Die-cut vinyl: a white edge, a brand tile, a glossy sheen and a soft lift shadow. */
-.sticker {
+/* A keycap: a dark cap with a top highlight and a logo printed on it. It is set into the
+   keyboard's perspective with the same tilt as the top row. */
+.keycap {
   position: absolute;
+  width: 4.4%;
   aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotate(-15deg) scaleY(0.82);
   display: grid;
   place-items: center;
-  border-radius: 14%;
-  background: var(--tile);
+  border-radius: 18%;
+  background: linear-gradient(170deg, #2b2b2b, #131313);
   box-shadow:
-    0 0 0 2.5px #f4f2ed,
-    0 1px 0 2.5px rgba(0, 0, 0, 0.3),
-    0 8px 14px -4px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 3px 0 #050505,
+    0 6px 10px rgba(0, 0, 0, 0.5);
 }
-.sticker::before {
+.keycap::after {
   content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    125deg,
-    rgba(255, 255, 255, 0.35),
-    rgba(255, 255, 255, 0.04) 45%,
-    rgba(0, 0, 0, 0.12)
-  );
-}
-.sticker::after {
-  content: '';
-  width: 56%;
+  width: 52%;
   aspect-ratio: 1;
   background: var(--ink);
   -webkit-mask: var(--logo) center / contain no-repeat;

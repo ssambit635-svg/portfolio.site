@@ -8,7 +8,7 @@ import WorksWheel from './components/WorksWheel'
 import Preloader from './components/Preloader'
 import UptimeDot from './components/UptimeDot'
 import AskEmo from './components/AskEmo'
-import SkillsLid from './components/SkillsLid'
+import SkillsKeyboard from './components/SkillsKeyboard'
 import { credentials, experience, profile, projects } from './lib/site'
 import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
@@ -269,7 +269,7 @@ export default function App() {
         <Hero />
         <Works />
         <Certified />
-        <SkillsLid />
+        <SkillsKeyboard />
         <AskEmo />
         <About />
       </main>
