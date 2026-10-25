@@ -10,10 +10,9 @@ import { createEmoAudio, createEmoVoice } from '../lib/emoVoice'
  * window being resized, the network dropping, the tab going away, the battery,
  * and (hold Space) the microphone.
  *
- * He speaks now instead of captioning, in a voice of his own: a small formant-babble
- * synthesiser on WebAudio (`src/lib/emoVoice.ts`) — no audio asset, and no dependence
- * on the operating system's speech engine, which was never him and is switched off
- * entirely in some embedded browsers. Every line is still written into a live region,
+ * He speaks now instead of captioning: the browser's own speech engine reads each line
+ * with his pitch lifted (`src/lib/emoVoice.ts`), and a formant-babble synthesiser on
+ * WebAudio takes over only where no speech engine is available. Every line is still written into a live region,
  * because a device with no WebAudio at all — or a visitor who has hushed him with
  * Escape, or a browser that has not unlocked sound behind a real gesture yet — is
  * a device that needs the words on screen instead. See `data-talk`.
@@ -29,9 +28,22 @@ import { createEmoAudio, createEmoVoice } from '../lib/emoVoice'
  */
 
 type Face =
-  | 'idle' | 'curious' | 'focused' | 'worried' | 'happy' | 'surprised'
-  | 'peek' | 'dizzy' | 'sleep' | 'wake' | 'offline' | 'lowbat' | 'listening' | 'pain'
-  | 'purr' | 'grumpy'
+  | 'idle'
+  | 'curious'
+  | 'focused'
+  | 'worried'
+  | 'happy'
+  | 'surprised'
+  | 'peek'
+  | 'dizzy'
+  | 'sleep'
+  | 'wake'
+  | 'offline'
+  | 'lowbat'
+  | 'listening'
+  | 'pain'
+  | 'purr'
+  | 'grumpy'
 
 type Reaction = { face: Face; ms: number; priority: number; say?: string }
 
@@ -92,7 +104,8 @@ type BatteryLike = {
 }
 
 const clamp = (v: number, lo = -1, hi = 1) => (v < lo ? lo : v > hi ? hi : v)
-const ease = (cur: number, to: number, k: number, dt: number) => cur + (to - cur) * (1 - Math.exp(-k * dt))
+const ease = (cur: number, to: number, k: number, dt: number) =>
+  cur + (to - cur) * (1 - Math.exp(-k * dt))
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo)
 
 export function useEmo() {
@@ -109,30 +122,63 @@ export function useEmo() {
     const set = (name: string, value: number) => root.style.setProperty(name, value.toFixed(4))
 
     /* --- what the loop owns ------------------------------------------------ */
-    let gx = 0, gy = 0, tx = 0, ty = 0            // gaze: smoothed, target
-    let pop = 0, squint = 0, converge = 0, lean = 0, tilt = 0, drift = 0
-    let shut = 0                                  // how far the lids are closed, eased
-    let blink = -1, nextBlink = performance.now() + rand(1600, 4000), lidHold = 0
-    let wobble = 0, shake = 0, voice = 0
+    let gx = 0,
+      gy = 0,
+      tx = 0,
+      ty = 0 // gaze: smoothed, target
+    let pop = 0,
+      squint = 0,
+      converge = 0,
+      lean = 0,
+      tilt = 0,
+      drift = 0
+    let shut = 0 // how far the lids are closed, eased
+    let blink = -1,
+      nextBlink = performance.now() + rand(1600, 4000),
+      lidHold = 0
+    let wobble = 0,
+      shake = 0,
+      voice = 0
     /* Petting, loop side: `petFor` is how long the current session has been going,
        `petCool` the sulk after being over-petted, `nuzzle` the lift into the hand. */
-    let petFor = 0, petOn = 0, petEnd = 0, petCool = 0, petSessions = 0
-    let nuzzle = 0, petWas = false, petSpoke = false
+    let petFor = 0,
+      petOn = 0,
+      petEnd = 0,
+      petCool = 0,
+      petSessions = 0
+    let nuzzle = 0,
+      petWas = false,
+      petSpoke = false
     let box = hit.getBoundingClientRect()
-    let raf = 0, last = performance.now(), restFrames = 0
-    let onScreen = true, hiddenAt = 0, lastInput = performance.now(), scrollY = window.scrollY
+    let raf = 0,
+      last = performance.now(),
+      restFrames = 0
+    let onScreen = true,
+      hiddenAt = 0,
+      lastInput = performance.now(),
+      scrollY = window.scrollY
     let breath = 0
-    let face: Face | '' = '', spoke: Face | '' = ''
+    let face: Face | '' = '',
+      spoke: Face | '' = ''
     let active: { face: Face; until: number; priority: number } | null = null
     let mic: MicState = 'off'
     let motion: MotionState = 'off'
-    let watching = false, tiltAsked = false, micHeld = 0
+    let watching = false,
+      tiltAsked = false,
+      micHeld = 0
 
     /* --- what the handlers record ----------------------------------------- */
-    let pointerDist = 3, pointerTilt = 0, orientX = 0, orientY = 0
+    let pointerDist = 3,
+      pointerTilt = 0,
+      orientX = 0,
+      orientY = 0
     /* A hand over the top of his head: strokes accumulate as heat (the loop lets it
        cool), and `petX` is where on his head the hand is, -1 left to 1 right. */
-    let handOnHead = false, handWas = false, petHeat = 0, petX = 0, petLastX = NaN
+    let handOnHead = false,
+      handWas = false,
+      petHeat = 0,
+      petX = 0,
+      petLastX = NaN
     const keys: number[] = []
     const backs: number[] = []
     let typed = ''
@@ -155,7 +201,11 @@ export function useEmo() {
     let muted = sessionStorage.getItem('emo-muted') === '1'
     // He is mute until the page has a real interaction behind it, which is also the only
     // moment a browser would let him make a sound at all.
-    let activated = false, talking = false, lastLine = '', lastLineAt = 0, talkTimer = 0
+    let activated = false,
+      talking = false,
+      lastLine = '',
+      lastLineAt = 0,
+      talkTimer = 0
     /* One context for all of his sounds: the voice, the purr and the mic's analyser. He
      * cannot be given a context before a gesture, so it is made on demand, not on mount.
      *
@@ -167,13 +217,10 @@ export function useEmo() {
     const audio = createEmoAudio()
     const ensureAc = (): AudioContext | null => audio.context()
     /* --- his voice ----------------------------------------------------------
-     * A voice of his own: a small formant-babble synthesiser on WebAudio
-     * (src/lib/emoVoice.ts), not the operating system's speech engine. The OS
-     * voice was never him — a calm adult reading sentences — and in embedded
-     * previews and stripped-down browsers it is switched off entirely, which is
-     * exactly how he once lost his voice mid-visit and had to caption himself.
-     * `emoVoice` is null only on a device with no WebAudio at all; then, and only
-     * then, his lines are read instead of heard. */
+     * Real speech first (the browser's speech engine, pitch lifted), with a
+     * formant-babble fallback on WebAudio (src/lib/emoVoice.ts) where no speech
+     * engine exists. `emoVoice` is null only when the device has neither; then, and
+     * only then, his lines are read instead of heard. */
     const emoVoice = createEmoVoice(ensureAc)
     const canTalk = () => !!emoVoice && !muted && activated && !document.hidden && mic !== 'hot'
     /* Sound is a promise the browser keeps only after a real gesture — and in some
@@ -185,7 +232,9 @@ export function useEmo() {
     let soundOk = false
     let soundHinted = false
     /** `voice` means the line is only for a screen reader; anything else shows it. */
-    const paintTalk = () => { root.dataset.talk = muted ? 'off' : soundOk ? 'voice' : 'text' }
+    const paintTalk = () => {
+      root.dataset.talk = muted ? 'off' : soundOk ? 'voice' : 'text'
+    }
     paintTalk()
     /* The bus is metered, so "a line came out of a speaker" is a measurement and
        not a guess. A context that happens to be running is not the same thing as
@@ -195,12 +244,18 @@ export function useEmo() {
     const checkSound = () => {
       if (soundOk) return
       const level = emoVoice?.output() ?? 0
-      if (level > 0.002) { soundOk = true; paintTalk() }
+      if (level > 0.002) {
+        soundOk = true
+        paintTalk()
+      }
     }
     const setMuted = (next: boolean) => {
       muted = next
       sessionStorage.setItem('emo-muted', next ? '1' : '0')
-      if (next) { emoVoice?.stop(); stopPurr() }
+      if (next) {
+        emoVoice?.stop()
+        stopPurr()
+      }
       paintTalk()
       say(next ? 'i will write it down instead' : 'good — i can talk again', 2400)
     }
@@ -247,7 +302,9 @@ export function useEmo() {
         gain.gain.setTargetAtTime(0.0001, t, 0.12)
         osc.stop(t + 0.6)
         lfo.stop(t + 0.6)
-      } catch { /* already stopped: nothing to silence */ }
+      } catch {
+        /* already stopped: nothing to silence */
+      }
     }
 
     const speak = (text: string) => {
@@ -258,9 +315,9 @@ export function useEmo() {
       lastLineAt = now
       let ms = 0
       try {
-        emoVoice.stop()                      // he says one thing at a time
-        emoVoice.clear()                     // the two-note throat-clear first
-        ms = emoVoice.say(text, 0.19)        // ...and the sentence after it, not over it
+        emoVoice.stop() // he says one thing at a time
+        emoVoice.clear() // the two-note throat-clear first
+        ms = emoVoice.say(text, 0.19) // ...and the sentence after it, not over it
         talking = ms > 0
       } catch {
         // A WebAudio refusal must never take the page down with it: he loses his
@@ -272,7 +329,10 @@ export function useEmo() {
       // embed that blocks audio entirely) keeps the words on screen instead.
       if (ms > 0) checkSound()
       window.clearTimeout(talkTimer)
-      talkTimer = window.setTimeout(() => { talking = false; checkSound() }, ms + 120)
+      talkTimer = window.setTimeout(() => {
+        talking = false
+        checkSound()
+      }, ms + 120)
     }
 
     let hintTimer = 0
@@ -285,10 +345,16 @@ export function useEmo() {
       // Timed on the clock, not on frames: the loop may well stop before the line is
       // due to leave, and a caption that outlives its own joke is worse than none.
       window.clearTimeout(hintTimer)
-      hintTimer = window.setTimeout(() => { delete root.dataset.said; line.textContent = '' }, ms)
+      hintTimer = window.setTimeout(() => {
+        delete root.dataset.said
+        line.textContent = ''
+      }, ms)
       start()
     }
-    const look = (x: number, y: number) => { tx = clamp(x); ty = clamp(y) }
+    const look = (x: number, y: number) => {
+      tx = clamp(x)
+      ty = clamp(y)
+    }
     /** Where he is when nothing is asking for his attention. */
     const mood = (): Face => {
       if (navigator.onLine === false) return 'offline'
@@ -315,7 +381,11 @@ export function useEmo() {
       if (key === 'earthquake') shake = 1
       if (key === 'fling') wobble = 1
       // A flinch from the shoulders, not a jump: the tremor decays in the loop.
-      if (key === 'ouch') { wobble = 1.35; shake = 0.75; lidHold = performance.now() }
+      if (key === 'ouch') {
+        wobble = 1.35
+        shake = 0.75
+        lidHold = performance.now()
+      }
       if (reaction.say) say(reaction.say)
       start()
     }
@@ -344,11 +414,16 @@ export function useEmo() {
          on the way to a link is one stroke's worth of heat, which cools again in the
          loop, so crossing him is not petting him. */
       const overHead =
-        event.clientX > box.left && event.clientX < box.right &&
-        event.clientY > box.top && event.clientY < box.top + box.height * 0.72
+        event.clientX > box.left &&
+        event.clientX < box.right &&
+        event.clientY > box.top &&
+        event.clientY < box.top + box.height * 0.72
       handOnHead = overHead
       if (overHead && handWas && Number.isFinite(petLastX) && performance.now() > petCool) {
-        petHeat = Math.min(1.6, petHeat + (Math.abs(event.clientX - petLastX) / (box.width || 1)) * 1.35)
+        petHeat = Math.min(
+          1.6,
+          petHeat + (Math.abs(event.clientX - petLastX) / (box.width || 1)) * 1.35,
+        )
         petX = clamp(((event.clientX - box.left) / (box.width || 1) - 0.5) * 2)
       }
       handWas = overHead
@@ -362,7 +437,10 @@ export function useEmo() {
       if (!r.width) return
       const cx = box.left + box.width / 2
       const cy = box.top + box.height * 0.44
-      look(((r.left + r.width / 2 - cx) / box.width) * 2.2, ((r.top + r.height / 2 - cy) / box.height) * 1.5)
+      look(
+        ((r.left + r.width / 2 - cx) / box.width) * 2.2,
+        ((r.top + r.height / 2 - cy) / box.height) * 1.5,
+      )
       lastInput = performance.now()
       pointerDist = 0.4 // leaning on a link counts as standing close
       start()
@@ -409,11 +487,17 @@ export function useEmo() {
       }
       if (event.key === ' ') {
         // Space is his only switch: nothing is visible, so nothing has to be clicked.
-        if (!field && mic !== 'blocked') { event.preventDefault(); tapMic(true) }
+        if (!field && mic !== 'blocked') {
+          event.preventDefault()
+          tapMic(true)
+        }
         return
       }
       if (event.key === 'Escape') {
-        if (!field && mic !== 'hot') { event.preventDefault(); setMuted(!muted) }
+        if (!field && mic !== 'hot') {
+          event.preventDefault()
+          setMuted(!muted)
+        }
         return
       }
       if (event.key.length !== 1 || field) return
@@ -425,22 +509,35 @@ export function useEmo() {
       start()
     }
     const onKeyUp = (event: KeyboardEvent) => {
-      if (event.key === ' ' && mic === 'hot') { event.preventDefault(); tapMic(false) }
+      if (event.key === ' ' && mic === 'hot') {
+        event.preventDefault()
+        tapMic(false)
+      }
     }
 
     /* --- the rest of the room -------------------------------------------- */
-    const onCopy = (event: Event) => { lastInput = performance.now(); fire(event.type === 'cut' ? 'cut' : 'copy') }
-    let width = window.innerWidth, height = window.innerHeight, resizeAt = 0
+    const onCopy = (event: Event) => {
+      lastInput = performance.now()
+      fire(event.type === 'cut' ? 'cut' : 'copy')
+    }
+    let width = window.innerWidth,
+      height = window.innerHeight,
+      resizeAt = 0
     const onResize = () => {
       if (window.innerWidth === width && window.innerHeight === height) return
-      width = window.innerWidth; height = window.innerHeight
+      width = window.innerWidth
+      height = window.innerHeight
       measuredY = NaN
       window.clearTimeout(resizeAt)
       resizeAt = window.setTimeout(() => fire('earthquake'), 120)
     }
     const onVisibility = () => {
-      if (document.hidden) { hiddenAt = performance.now(); onScreen = false; stop(); closeMic() }
-      else {
+      if (document.hidden) {
+        hiddenAt = performance.now()
+        onScreen = false
+        stop()
+        closeMic()
+      } else {
         onScreen = true
         // Browsers suspend a context in a background tab, and not all of them
         // bring it back on their own: without this he is mute after a tab switch.
@@ -449,18 +546,29 @@ export function useEmo() {
         start()
       }
     }
-    const onScroll = () => { lastInput = performance.now(); start() }
+    const onScroll = () => {
+      lastInput = performance.now()
+      start()
+    }
     const onNetwork = () => fire(navigator.onLine === false ? 'offline' : 'online')
     /** Devtools opening is his one rude joke. A heuristic, and deliberately only
      *  on the transition — a panel already open on load would accuse everyone. */
     let devTools = -1
     const devCheck = window.setInterval(() => {
       if (!onScreen || document.hidden) return
-      const gap = Math.max(window.outerWidth - window.innerWidth, (window.outerHeight - window.innerHeight) * 0.55)
+      const gap = Math.max(
+        window.outerWidth - window.innerWidth,
+        (window.outerHeight - window.innerHeight) * 0.55,
+      )
       const open = window.outerWidth > 0 && gap > 168
-      if (devTools === -1) { devTools = open ? 1 : 0; return }
-      if (open && devTools === 0) { devTools = 1; fire('devtools') }
-      else if (!open && devTools === 1) devTools = 0
+      if (devTools === -1) {
+        devTools = open ? 1 : 0
+        return
+      }
+      if (open && devTools === 0) {
+        devTools = 1
+        fire('devtools')
+      } else if (!open && devTools === 1) devTools = 0
     }, 1500)
 
     /* --- device: battery, tilt, microphone -------------------------------- */
@@ -468,7 +576,11 @@ export function useEmo() {
     let power = ''
     const paintPower = () => {
       if (!battery) return
-      const next: 'charging' | 'low' | 'on' = battery.charging ? 'charging' : battery.level <= 0.2 ? 'low' : 'on'
+      const next: 'charging' | 'low' | 'on' = battery.charging
+        ? 'charging'
+        : battery.level <= 0.2
+          ? 'low'
+          : 'on'
       if (next === power) return
       // Only the transitions he can react to, and never the first one: arriving at a
       // dead battery should not buy you a comment about your battery.
@@ -477,14 +589,22 @@ export function useEmo() {
       power = next
       root.dataset.power = next
     }
-    const onPower = () => { paintPower() }
-    const getBattery = (navigator as Navigator & { getBattery?: () => Promise<BatteryLike> }).getBattery
-    void getBattery?.call(navigator).then(found => {
-      battery = found
-      found.addEventListener('levelchange', onPower)
-      found.addEventListener('chargingchange', onPower)
+    const onPower = () => {
       paintPower()
-    }).catch(() => { /* no Battery Status API: no charging bolt for him */ })
+    }
+    const getBattery = (navigator as Navigator & { getBattery?: () => Promise<BatteryLike> })
+      .getBattery
+    void getBattery
+      ?.call(navigator)
+      .then((found) => {
+        battery = found
+        found.addEventListener('levelchange', onPower)
+        found.addEventListener('chargingchange', onPower)
+        paintPower()
+      })
+      .catch(() => {
+        /* no Battery Status API: no charging bolt for him */
+      })
 
     /* --- the tilt of the device, when it has one --------------------------- */
     const stopTilt = () => {
@@ -516,7 +636,11 @@ export function useEmo() {
       start()
     }
     const armTilt = () => {
-      const sensor = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent
+      const sensor = (
+        window as unknown as {
+          DeviceOrientationEvent?: { requestPermission?: () => Promise<string> }
+        }
+      ).DeviceOrientationEvent
       const bind = () => {
         watching = true
         motion = 'on'
@@ -533,7 +657,7 @@ export function useEmo() {
       }
       void sensor
         .requestPermission()
-        .then(state => (state === 'granted' ? bind() : noSensor()))
+        .then((state) => (state === 'granted' ? bind() : noSensor()))
         .catch(noSensor)
     }
 
@@ -541,7 +665,7 @@ export function useEmo() {
     let analyser: AnalyserNode | null = null
     let samples = new Uint8Array(1024)
     const closeMic = () => {
-      stream?.getTracks().forEach(track => track.stop())
+      stream?.getTracks().forEach((track) => track.stop())
       stream = null
       analyser = null
       if (mic === 'hot') {
@@ -570,7 +694,10 @@ export function useEmo() {
         return
       }
       const ctx = ensureAc()
-      if (!ctx) { mic = 'blocked'; return }
+      if (!ctx) {
+        mic = 'blocked'
+        return
+      }
       analyser = ctx.createAnalyser()
       analyser.fftSize = 1024
       analyser.smoothingTimeConstant = 0.55
@@ -579,15 +706,21 @@ export function useEmo() {
       samples = new Uint8Array(analyser.fftSize)
       mic = 'hot'
       micHeld += 1
-      stopPurr()                    // he will not purr into his own microphone
-      emoVoice?.stop()              // ...or talk over it
+      stopPurr() // he will not purr into his own microphone
+      emoVoice?.stop() // ...or talk over it
       fire('micOn')
     }
     /* With no switch to press, holding Space is the entire feature: it asks, opens and
      * releases. A denied or absent mic is remembered for the visit, so he never nags. */
     const tapMic = (down: boolean) => {
-      if (down) { void openMic(); return }
-      if (mic === 'hot') { closeMic(); return }
+      if (down) {
+        void openMic()
+        return
+      }
+      if (mic === 'hot') {
+        closeMic()
+        return
+      }
       // A tap of Space with nothing held still means "i wanted the mic": say what is up.
       if (mic === 'ready') say('hold it down, do not tap', 2200)
     }
@@ -627,7 +760,10 @@ export function useEmo() {
         if (blink < 0 && now > nextBlink && now > lidHold + 1900) blink = 0
         if (blink >= 0) {
           blink += dt / (face === 'sleep' ? 0.46 : 0.16)
-          if (blink >= 1) { blink = -1; nextBlink = now + rand(2200, 6400) * (idle > 40_000 ? 0.35 : 1) }
+          if (blink >= 1) {
+            blink = -1
+            nextBlink = now + rand(2200, 6400) * (idle > 40_000 ? 0.35 : 1)
+          }
         }
         wobble *= Math.exp(-5.4 * dt)
         shake *= Math.exp(-4.2 * dt)
@@ -636,7 +772,10 @@ export function useEmo() {
       if (analyser) {
         analyser.getByteTimeDomainData(samples)
         let sum = 0
-        for (let i = 0; i < samples.length; i++) { const v = (samples[i] ?? 128) - 128; sum += v * v }
+        for (let i = 0; i < samples.length; i++) {
+          const v = (samples[i] ?? 128) - 128
+          sum += v * v
+        }
         voice = ease(voice, clamp(Math.sqrt(sum / samples.length) / 30), 13, dt)
       } else voice = ease(voice, 0, 7, dt)
 
@@ -676,13 +815,24 @@ export function useEmo() {
        * grump, which all outrank it. */
       petHeat = Math.max(0, petHeat - dt * 1.1)
       const petting = handOnHead && petHeat > 0.4 && now > petCool
-      if (petting && !petWas) { petOn = now; petFor = 0 }
+      if (petting && !petWas) {
+        petOn = now
+        petFor = 0
+      }
       if (petting) {
         petFor += dt
-        if (asleep) { fire('woken'); petHeat = 0; petFor = 0 }
-        else if (petFor > 7) { fire('overpet'); petCool = now + 6000; petHeat = 0; petFor = 0 }
-        else {
-          if (!active || active.priority < 7) active = { face: 'purr', until: now + 420, priority: 6 }
+        if (asleep) {
+          fire('woken')
+          petHeat = 0
+          petFor = 0
+        } else if (petFor > 7) {
+          fire('overpet')
+          petCool = now + 6000
+          petHeat = 0
+          petFor = 0
+        } else {
+          if (!active || active.priority < 7)
+            active = { face: 'purr', until: now + 420, priority: 6 }
           if (!petSpoke) {
             petSpoke = true
             if (!activated && !soundHinted) {
@@ -715,10 +865,14 @@ export function useEmo() {
         if (moodLine && !talking && idle < 60_000) say(moodLine, 2400)
       }
 
-      set('--emo-gx', clamp(gx + saccade * 0.3)); set('--emo-gy', clamp(gy + saccade * 0.12))
-      set('--emo-lid', lid); set('--emo-pop', pop)
-      set('--emo-squint', squint); set('--emo-converge', converge)
-      set('--emo-lean', reduce ? 0 : lean); set('--emo-tilt', reduce ? 0 : tilt)
+      set('--emo-gx', clamp(gx + saccade * 0.3))
+      set('--emo-gy', clamp(gy + saccade * 0.12))
+      set('--emo-lid', lid)
+      set('--emo-pop', pop)
+      set('--emo-squint', squint)
+      set('--emo-converge', converge)
+      set('--emo-lean', reduce ? 0 : lean)
+      set('--emo-tilt', reduce ? 0 : tilt)
       set('--emo-nuzzle', reduce ? 0 : nuzzle)
       // The rumble made visible: a slow brightness pulse on the lids while the hand
       // is on him, at nothing like the 21 Hz of the sound — light that fast would be
@@ -729,16 +883,33 @@ export function useEmo() {
       set('--emo-shake', reduce ? 0 : Math.sin(now / 19) * shake)
 
       const settled =
-        Math.abs(gx - tx) + Math.abs(gy - ty) + Math.abs(pop - 0.5 * near * near) + lid + nuzzle +
-        voice + wobble + shake < 0.014
+        Math.abs(gx - tx) +
+          Math.abs(gy - ty) +
+          Math.abs(pop - 0.5 * near * near) +
+          lid +
+          nuzzle +
+          voice +
+          wobble +
+          shake <
+        0.014
       // While he is talking the loop has to keep running, even if his face has
       // settled: the meter is read here, and the meter is what retires the caption.
       if (talking) checkSound()
       restFrames = settled && !active && !analyser && !talking ? restFrames + 1 : 0
-      if (restFrames > 110) { restFrames = 0; stop(); breathe(); return }
+      if (restFrames > 110) {
+        restFrames = 0
+        stop()
+        breathe()
+        return
+      }
       raf = onScreen && !document.hidden ? requestAnimationFrame(frame) : 0
     }
-    function start() { if (!raf && onScreen && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(frame) } }
+    function start() {
+      if (!raf && onScreen && !document.hidden) {
+        last = performance.now()
+        raf = requestAnimationFrame(frame)
+      }
+    }
     /**
      * Settled means stopped, not dead. While nobody is at the keyboard he wakes for a
      * couple of seconds every so often — that is where the blinking, the wandering off
@@ -748,16 +919,28 @@ export function useEmo() {
     const breathe = () => {
       window.clearTimeout(breath)
       if (performance.now() - lastInput < 10_000 || mic === 'hot') return
-      breath = window.setTimeout(() => { restFrames = 0; start() }, 4200)
+      breath = window.setTimeout(() => {
+        restFrames = 0
+        start()
+      }, 4200)
     }
-    const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0 }
+    const stop = () => {
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+    }
 
     /* --- only while he is on screen --------------------------------------- */
-    const seen = new IntersectionObserver(([entry]) => {
-      onScreen = entry?.isIntersecting ?? true
-      if (onScreen) start()
-      else { stop(); closeMic() }
-    }, { threshold: 0 })
+    const seen = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry?.isIntersecting ?? true
+        if (onScreen) start()
+        else {
+          stop()
+          closeMic()
+        }
+      },
+      { threshold: 0 },
+    )
     seen.observe(root.closest('.hero') ?? root)
 
     /* Nothing he says or asks for happens before a real interaction, and the tilt sensor
@@ -768,7 +951,10 @@ export function useEmo() {
       activated = true
       window.removeEventListener('pointerdown', onGesture, true)
       window.removeEventListener('keydown', onGesture, true)
-      if (!tiltAsked && motion !== 'on') { tiltAsked = true; armTilt() }
+      if (!tiltAsked && motion !== 'on') {
+        tiltAsked = true
+        armTilt()
+      }
       // Wake the audio hardware on the very first gesture. A context cannot be made
       // before one, and a context that is made and left asleep eats the first line —
       // so the hardware is woken here, and the robot's first word is never lost.
@@ -818,7 +1004,7 @@ export function useEmo() {
       battery?.removeEventListener('levelchange', onPower)
       battery?.removeEventListener('chargingchange', onPower)
       stopTilt()
-      stream?.getTracks().forEach(track => track.stop())
+      stream?.getTracks().forEach((track) => track.stop())
       // A queued sentence outliving the component is a voice with no body, and a
       // purr outliving it is a rumble with no robot.
       stopPurr()
