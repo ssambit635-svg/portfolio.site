@@ -1,0 +1,65 @@
+/* The skills object: real brand stickers on the back of a laptop lid. */
+.skills .lid {
+  position: relative;
+  margin: 0 auto;
+  width: min(100%, 980px);
+  aspect-ratio: 3 / 2;
+}
+.skills .lid > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.lid-stickers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* Die-cut vinyl: a white edge, a brand tile, a glossy sheen and a soft lift shadow. */
+.sticker {
+  position: absolute;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 14%;
+  background: var(--tile);
+  box-shadow:
+    0 0 0 2.5px #f4f2ed,
+    0 1px 0 2.5px rgba(0, 0, 0, 0.3),
+    0 8px 14px -4px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+.sticker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(0, 0, 0, 0.12)
+  );
+}
+.sticker::after {
+  content: '';
+  width: 56%;
+  aspect-ratio: 1;
+  background: var(--ink);
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+}
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 46px auto 0;
+  padding: 0;
+  list-style: none;
+  max-width: 980px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9b9b9b;
+}
