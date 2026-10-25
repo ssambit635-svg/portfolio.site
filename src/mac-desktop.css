@@ -44,6 +44,34 @@ footer#contact {
     radial-gradient(ellipse 88% 70% at 50% 100%, rgba(28, 120, 88, 0.3) 0, transparent 70%);
   filter: blur(24px);
 }
+/* The floor: a polished glass-marble surface under the laptop. Pale veins, a long gloss
+   streak and a faint green bounce from the screen. Screen-blended, so the photo's own
+   desk still shows through. */
+.lap-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  /* No hard top edge: the floor melts into the desk. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 45%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 45%);
+  background:
+    linear-gradient(
+      104deg,
+      transparent 36%,
+      rgba(255, 255, 255, 0.09) 37%,
+      transparent 39%,
+      transparent 58%,
+      rgba(255, 255, 255, 0.06) 59%,
+      transparent 61%
+    ),
+    linear-gradient(100deg, transparent 28%, rgba(255, 255, 255, 0.22) 44%, transparent 56%),
+    radial-gradient(ellipse 50% 60% at 50% 0%, rgba(0, 240, 131, 0.14), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 45%);
+}
 .lap-frame {
   position: absolute;
   left: 50%;
@@ -596,18 +624,14 @@ footer#contact {
   transition:
     transform 0.18s cubic-bezier(0.22, 0.9, 0.24, 1),
     box-shadow 0.18s;
-  background: linear-gradient(168deg, var(--from), var(--to));
-  box-shadow:
-    inset 0 calc(var(--u) * 0.14) calc(var(--u) * 0.2) rgba(255, 255, 255, 0.5),
-    inset 0 calc(var(--u) * -0.5) calc(var(--u) * 0.8) rgba(0, 0, 0, 0.24),
-    0 calc(var(--u) * 0.22) calc(var(--u) * 0.45) rgba(0, 0, 0, 0.42),
-    0 0 0 0.5px rgba(0, 0, 0, 0.3);
-  color: #fff;
+  background: none;
+  box-shadow: none;
+  color: var(--from);
 }
 .ms-dico svg {
-  width: 59%;
-  height: 59%;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28));
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 calc(var(--u) * 0.12) calc(var(--u) * 0.25) rgba(0, 0, 0, 0.55));
 }
 .ms-dlabel {
   display: block;

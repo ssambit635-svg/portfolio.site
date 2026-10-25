@@ -47,8 +47,14 @@ export default function SiteMenu() {
 
   return (
     <div className="site-menu">
-      <a className="nav-name" href="#home" aria-label="SS — home">
-        SS
+      <a className="nav-name" href="#home" aria-label="Sambit Swain — home">
+        <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <g fill="none" stroke="currentColor" strokeLinejoin="miter">
+            <path d="M16 3 L29 27 H3 Z" strokeWidth="2.6" />
+            <path d="M16 10.5 L24 24.5 H8 Z" strokeWidth="2" />
+          </g>
+          <path fill="currentColor" d="M16 16.5 L19.6 23.5 H12.4 Z" />
+        </svg>
       </a>
 
       <div className="site-menu-actions">
