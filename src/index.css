@@ -2014,3 +2014,14 @@ footer {
     max-height: min(78vh, 420px);
   }
 }
+
+/* Wide but short windows (a laptop with browser chrome, 1366×600 and similar): the
+   monitor is sized by its width, so it rises past the top of the hero and its light
+   bar sits under the name. The photo has to keep bleeding to the top edge, so the
+   name is set smaller and tucked above the bar instead of moving the monitor. */
+@media (min-width: 961px) and (max-height: 760px) {
+  .hero-tagline {
+    top: 0;
+    font-size: clamp(20px, 3.4vh, 28px);
+  }
+}
