@@ -47,6 +47,28 @@ footer#contact {
 /* The floor: a polished glass-marble surface under the laptop. Pale veins, a long gloss
    streak and a faint green bounce from the screen. Screen-blended, so the photo's own
    desk still shows through. */
+/* The laptop photo ends in a hard line on the page. Fade its bottom edge into the page,
+   and let a soft green glow carry the colour down under the laptop, so there is no seam. */
+.lap-stage::after {
+  content: '';
+  position: absolute;
+  left: -10vw;
+  right: -10vw;
+  bottom: -8%;
+  height: 26%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 100% at 50% 100%,
+    rgba(0, 240, 131, 0.26) 0,
+    rgba(0, 200, 115, 0.1) 45%,
+    transparent 75%
+  );
+  filter: blur(14px);
+}
+.lap-frame {
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+}
 .lap-floor {
   position: absolute;
   left: 0;
