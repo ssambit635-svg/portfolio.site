@@ -1,20 +1,19 @@
 /**
  * Emo's own voice.
  *
- * Not the operating system's speech engine, and not an audio file: a tiny formant
- * babble synthesiser, because a 9 cm desk robot does not pronounce English — he
- * chirps it. Every word becomes syllables, every syllable becomes one voiced blip:
+ * Real speech where the browser can give it, a formant babble where it cannot: a
+ * 9 cm desk robot should talk, and when it cannot, he chirps. Every word becomes
+ * syllables, every syllable becomes one voiced blip:
  * a sawtooth at a pentatonic note of his base pitch, shaped by three band-pass
  * "formants" picked from a vowel table so the blips go wa-we-oo instead of
  * beep-beep, with a noise burst at the start of most words for a consonant-ish
  * attack, a glide down into each note and a 6.5 Hz vibrato so no syllable sits
  * perfectly still. Questions climb at the end; statements fall.
  *
- * Why not `speechSynthesis`: it was never *him* — a calm adult OS voice reading
- * sentences — and in embedded previews and stripped-down browsers the API is
- * switched off entirely, which is exactly how he once lost his voice and had to
- * caption himself. WebAudio, once the page has any real gesture behind it, is
- * available everywhere this site is.
+ * Real speech comes first: the browser's own speech engine reads each line, with
+ * the pitch lifted so it still sounds like him. The babble above is the fallback for
+ * a device with no speech engine, or one that refuses to speak. Speech is not an
+ * audio file, so nothing ships with it.
  *
  * Nothing here is an asset and nothing is random per boot: the vowel and the note
  * of a syllable come from a hash of its word, so the same sentence always sounds
@@ -39,8 +38,8 @@ const VOWELS: ReadonlyArray<readonly [number, number, number]> = [
   [740, 1930, 2750], // a — "wa"
   [600, 2060, 3000], // e — "we"
   [300, 2560, 3300], // i — "wi"
-  [500, 900, 2600],  // o — "wo"
-  [340, 980, 2500],  // u — "woo"
+  [500, 900, 2600], // o — "wo"
+  [340, 980, 2500], // u — "woo"
 ]
 /** A pentatonic ladder over his base pitch: robot babble that still sounds tuned. */
 const STEPS = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3]
@@ -93,20 +92,29 @@ export interface EmoAudio {
 
 export function createEmoAudio(): EmoAudio {
   let ac: AudioContext | null = null
-  const Ctor = typeof window !== 'undefined'
-    ? window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    : null
+  const Ctor =
+    typeof window !== 'undefined'
+      ? (window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
+      : null
 
   const context = (): AudioContext | null => {
     if (!Ctor) return null
     if (!ac) {
-      try { ac = new Ctor() } catch { return null }
+      try {
+        ac = new Ctor()
+      } catch {
+        return null
+      }
     }
     if (ac.state === 'suspended') {
       // Older engines return nothing from resume(); a promise that never arrives
       // must not become an unhandled rejection either.
-      try { void ac.resume()?.catch(() => undefined) } catch { /* no resume to make */ }
+      try {
+        void ac.resume()?.catch(() => undefined)
+      } catch {
+        /* no resume to make */
+      }
     }
     return ac.state === 'closed' ? null : ac
   }
@@ -117,11 +125,17 @@ export function createEmoAudio(): EmoAudio {
       const ctx = context()
       return ctx && ctx.state === 'running' ? ctx : null
     },
-    wake: () => { void context() },
+    wake: () => {
+      void context()
+    },
     close: () => {
       const ctx = ac
       ac = null
-      try { void ctx?.close() } catch { /* already closed */ }
+      try {
+        void ctx?.close()
+      } catch {
+        /* already closed */
+      }
     },
   }
 }
@@ -138,7 +152,67 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
   const Ctor =
     window.AudioContext ??
     (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-  if (!Ctor) return null
+  const synth: SpeechSynthesis | null = 'speechSynthesis' in window ? window.speechSynthesis : null
+  if (!Ctor && !synth) return null
+
+  /* Real speech first: the browser's own voice reads the line, with his pitch raised
+     a little so it still sounds like a small robot. The babble below is only the
+     fallback for a device with no speech engine, or one that refuses to speak. */
+  let speaking = 0 // id of the utterance that is currently audible, 0 = none
+  let utteranceId = 0
+  // Hold references so the engine cannot drop a line mid-sentence.
+  const queued: SpeechSynthesisUtterance[] = []
+  const release = (u: SpeechSynthesisUtterance) => {
+    const at = queued.indexOf(u)
+    if (at >= 0) queued.splice(at, 1)
+  }
+  const pickVoice = (): SpeechSynthesisVoice | null => {
+    const list = synth?.getVoices() ?? []
+    const english = list.filter((v) => /^en/i.test(v.lang))
+    return (
+      english.find((v) =>
+        /female|samantha|zira|aria|jenny|google uk english female/i.test(v.name),
+      ) ??
+      english[0] ??
+      null
+    )
+  }
+  const speakAloud = (text: string, onFail: () => void): number => {
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return 0
+    const id = ++utteranceId
+    const u = new SpeechSynthesisUtterance(text)
+    const v = pickVoice()
+    if (v) u.voice = v
+    u.lang = v?.lang ?? 'en-US'
+    u.rate = 1.02
+    u.pitch = 1.35
+    u.volume = 1
+    let started = false
+    u.onstart = () => {
+      started = true
+      speaking = id
+    }
+    u.onend = () => {
+      if (speaking === id) speaking = 0
+      release(u)
+    }
+    u.onerror = (e) => {
+      if (speaking === id) speaking = 0
+      release(u)
+      // A line cut short on purpose is not a failure; anything else before it started is.
+      if (!started && e.error !== 'interrupted' && e.error !== 'canceled') onFail()
+    }
+    queued.push(u)
+    try {
+      synth.speak(u)
+    } catch {
+      release(u)
+      onFail()
+      return 0
+    }
+    const words = text.split(/\s+/).filter(Boolean).length
+    return 300 + words * 390
+  }
 
   let master: GainNode | null = null
   let utter: GainNode | null = null
@@ -166,7 +240,9 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
           comp.release.value = 0.14
           master.connect(comp)
           tail = comp
-        } catch { /* no compressor: the bus still works, just louder on peaks */ }
+        } catch {
+          /* no compressor: the bus still works, just louder on peaks */
+        }
       }
       if (typeof ctx.createAnalyser === 'function') {
         try {
@@ -176,7 +252,9 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
           meterData = new Uint8Array(meter.fftSize)
           tail.connect(meter)
           tail = meter
-        } catch { /* no meter: `output()` simply reports silence */ }
+        } catch {
+          /* no meter: `output()` simply reports silence */
+        }
       }
       tail.connect(ctx.destination)
     }
@@ -192,6 +270,7 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
   }
 
   const clear = () => {
+    if (synth) return // real speech: no throat-clear beep before the words
     const ctx = ac()
     const out = bus()
     if (!ctx || !out) return
@@ -212,7 +291,14 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
   }
 
   /** One voiced syllable: pitch glide + vibrato through three formants. */
-  const blip = (ctx: AudioContext, out: GainNode, t: number, dur: number, f0: number, v: readonly number[]) => {
+  const blip = (
+    ctx: AudioContext,
+    out: GainNode,
+    t: number,
+    dur: number,
+    f0: number,
+    v: readonly number[],
+  ) => {
     const osc = ctx.createOscillator()
     osc.type = 'sawtooth'
     osc.frequency.setValueAtTime(f0 * 1.08, t)
@@ -282,7 +368,7 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
     src.stop(t + 0.05)
   }
 
-  const say = (text: string, delaySec = 0.04) => {
+  const babble = (text: string, delaySec = 0.04) => {
     const ctx = ac()
     const out = bus()
     if (!ctx || !out || ctx.state === 'closed') return 0
@@ -306,7 +392,14 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
         const dur = 0.082 + Math.min(word.length, 7) * 0.006 + (lastSyl ? 0.055 : 0)
         const attack = s === 0 && h % 4 !== 0
         if (attack) tick(ctx, g, t, h)
-        blip(ctx, g, t + (attack ? 0.022 : 0), dur, f0, VOWELS[(h + s) % VOWELS.length] ?? VOWELS[0]!)
+        blip(
+          ctx,
+          g,
+          t + (attack ? 0.022 : 0),
+          dur,
+          f0,
+          VOWELS[(h + s) % VOWELS.length] ?? VOWELS[0]!,
+        )
         t += dur + 0.03
       }
       t += 0.055
@@ -314,7 +407,26 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
     return Math.max(0, (t - ctx.currentTime) * 1000)
   }
 
+  const say = (text: string, delaySec = 0.04) => {
+    if (synth) {
+      const ms = speakAloud(text, () => {
+        babble(text, delaySec)
+      })
+      if (ms > 0) return ms
+    }
+    return babble(text, delaySec)
+  }
+
   const stop = () => {
+    if (synth) {
+      speaking = 0
+      queued.length = 0
+      try {
+        synth.cancel()
+      } catch {
+        /* nothing to cancel */
+      }
+    }
     if (!utter) return
     const ctx = utter.context
     const u = utter
@@ -324,6 +436,7 @@ export function createEmoVoice(ac: () => AudioContext | null): EmoVoice | null {
 
   /** The loudest sample on the bus. The only honest "did he make a sound?" test. */
   const output = () => {
+    if (speaking) return 0.4
     if (!meter) return 0
     try {
       meter.getByteTimeDomainData(meterData)
