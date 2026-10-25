@@ -1,56 +1,80 @@
-/* The skills object: a mechanical keyboard whose keycaps carry the real brand logos. */
-.skills .keyboard {
+/* Skills: raised, tactile 3D buttons. Each one has a lip of depth under it, a top
+   highlight, lifts on hover and presses down when clicked. */
+.skills-note {
+  margin: -34px 0 40px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #9b9b9b;
+}
+.skill-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.skill-btn {
   position: relative;
-  margin: 0 auto;
-  width: min(100%, 980px);
-  aspect-ratio: 1360 / 768;
-}
-.skills .keyboard > img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-}
-.keycaps {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-/* A keycap: a dark cap with a top highlight and a logo printed on it. It is set into the
-   keyboard's perspective with the same tilt as the top row. */
-.keycap {
-  position: absolute;
-  width: 4.4%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%) rotate(-15deg) scaleY(0.82);
-  display: grid;
-  place-items: center;
-  border-radius: 18%;
-  background: linear-gradient(170deg, #2b2b2b, #131313);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 18px 0 14px;
+  border: 1px solid #2a2a2a;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #232323 0%, #121212 100%);
+  color: #ededed;
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 3px 0 #050505,
-    0 6px 10px rgba(0, 0, 0, 0.5);
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 5px 0 #000,
+    0 12px 22px -6px rgba(0, 0, 0, 0.8);
+  transform: translateY(0);
+  transition:
+    transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 200ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.keycap::after {
-  content: '';
-  width: 52%;
-  aspect-ratio: 1;
+.skill-btn:hover {
+  transform: translateY(-2px);
+  border-color: #3a3a3a;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 7px 0 #000,
+    0 18px 28px -8px rgba(0, 0, 0, 0.85);
+}
+.skill-btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.6),
+    0 1px 0 #000,
+    0 3px 6px -2px rgba(0, 0, 0, 0.7);
+  transition-duration: 60ms;
+}
+.skill-btn:focus-visible {
+  outline: 1px solid var(--green);
+  outline-offset: 5px;
+}
+.skill-logo {
+  width: 18px;
+  height: 18px;
+  flex: none;
   background: var(--ink);
   -webkit-mask: var(--logo) center / contain no-repeat;
   mask: var(--logo) center / contain no-repeat;
 }
-.skills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 22px;
-  margin: 46px auto 0;
-  padding: 0;
-  list-style: none;
-  max-width: 980px;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: #9b9b9b;
+.skill-name {
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skill-btn {
+    transition: none;
+  }
 }

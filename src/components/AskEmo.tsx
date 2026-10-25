@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { answer, suggestions, type Answer } from '../lib/ask'
 import '../features.css'
 
@@ -16,6 +16,16 @@ export default function AskEmo() {
     setQuestion(trimmed)
     setResult({ asked: trimmed, answer: answer(trimmed) })
   }
+
+  // The Skills buttons send their question here, so a press answers it straight away.
+  useEffect(() => {
+    const onAsk = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail
+      if (typeof detail === 'string') ask(detail)
+    }
+    window.addEventListener('ask-emo', onAsk)
+    return () => window.removeEventListener('ask-emo', onAsk)
+  }, [])
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
