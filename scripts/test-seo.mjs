@@ -6,7 +6,11 @@ const home = await readFile('dist/index.html', 'utf8')
 const dashboard = await readFile('dist/dashboard/index.html', 'utf8')
 const cv = await readFile('dist/cv/index.html', 'utf8')
 
-for (const [name, html] of [['Homepage', home], ['Dashboard', dashboard], ['CV', cv]]) {
+for (const [name, html] of [
+  ['Homepage', home],
+  ['Dashboard', dashboard],
+  ['CV', cv],
+]) {
   assert.equal((html.match(/<h1\b/g) || []).length, 1, `${name} should have one H1`)
   assert.equal((html.match(/<title>/g) || []).length, 1, `${name} should have one title`)
   assert.match(html, /<html lang="en">/)
@@ -20,18 +24,43 @@ assert.match(home, /Sambit Swain \| Cloud &amp; Full-stack Developer/)
    flat: the panel's glass bends, the type does not. Pin the text of the two
    elements instead of their raw adjacency, so the copy is checked and not the
    markup around it. */
-const visible = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+const visible = (html) =>
+  html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 const heroLabel = home.match(/<p class="hero-screen-label">([\s\S]*?)<\/p>/)?.[1] ?? ''
 const heroTitle = home.match(/<h1 class="hero-screen-title">([\s\S]*?)<\/h1>/)?.[1] ?? ''
 assert.equal(visible(heroLabel), 'CLOUD · FULL-STACK · CSE ’29')
 assert.equal(visible(heroTitle), 'From code to cloud. From pixels to production.')
-assert.equal((heroTitle.match(/class="hero-line"/g) || []).length, 2, 'the hero title should stay two lines')
-assert.doesNotMatch(heroTitle, /class="hero-word"/, 'the headline should be set flat, not bent word by word')
+assert.equal(
+  (heroTitle.match(/class="hero-line"/g) || []).length,
+  2,
+  'the hero title should stay two lines',
+)
+assert.doesNotMatch(
+  heroTitle,
+  /class="hero-word"/,
+  'the headline should be set flat, not bent word by word',
+)
 // The discarded clock should not return in the rendered hero.
 assert.doesNotMatch(home, /desk-clock|dc-physical/)
-assert.match(home, /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/)
+assert.match(
+  home,
+  /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/,
+)
 assert.match(home, /name="twitter:card" content="summary_large_image"/)
-for (const id of ['home', 'works', 'certified', 'ask', 'about', 'stack', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
+for (const id of [
+  'home',
+  'works',
+  'certified',
+  'skills',
+  'ask',
+  'about',
+  'contact',
+  'project-annadata-connect',
+  'project-shadow-quest',
+]) {
   assert.ok(home.includes(`id="${id}"`), `Missing page target #${id}`)
 }
 for (const match of home.matchAll(/href="#([^"]+)"/g)) {
@@ -45,11 +74,17 @@ assert.match(home, /procurement centres with live queue tokens/)
 assert.match(home, /samurai-inspired focus app/)
 assert.match(home, /href="dashboard\/"/)
 // The landing page's Certified grid shows the same credentials with live links.
-assert.equal((home.match(/class="cert-link"/g) || []).length, 7, 'each credential should link to its issuer page')
+assert.equal(
+  (home.match(/class="cert-link"/g) || []).length,
+  7,
+  'each credential should link to its issuer page',
+)
 assert.match(home, /cert-link" href="https:\/\/www\.netacad\.com\/courses\/python-essentials-1"/)
 
 const canonical = home.match(/rel="canonical" href="([^"]+)"/)?.[1]
-const data = JSON.parse(home.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null')
+const data = JSON.parse(
+  home.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null',
+)
 assert.equal(data['@graph'][0].name, 'Sambit Swain')
 assert.equal(data['@graph'][0].url, canonical)
 assert.match(home, /rel="apple-touch-icon"[^>]*logo\.png/)
@@ -59,7 +94,11 @@ assert.match(dashboard, /Docker Basics/)
 assert.match(dashboard, /Smart India Hackathon 2026/)
 assert.equal((dashboard.match(/class="group /g) || []).length, 7)
 assert.doesNotMatch(dashboard, /Scan not added yet/, 'every certificate tile should carry its scan')
-assert.match(dashboard, /assets\/docker-basics-[\w-]+\.jpg/, 'the Docker certificate scan should ship')
+assert.match(
+  dashboard,
+  /assets\/docker-basics-[\w-]+\.jpg/,
+  'the Docker certificate scan should ship',
+)
 
 // Every certificate tile links out to its issuer page, and no placeholder hrefs.
 const certLinks = [...dashboard.matchAll(/<a href="(https:\/\/[^"]+)"[^>]*aria-label="([^"]+)"/g)]
@@ -73,35 +112,58 @@ for (const href of [
   'https://www.simplilearn.com/learn-docker-basics-free-course-skillup',
   'https://www.simplilearn.com/introduction-to-cloud-computing-basics-skillup',
   'https://www.netacad.com/courses/linux-unhatched',
-  'https://edl.excelr.com/'
+  'https://edl.excelr.com/',
 ]) {
   assert.ok(dashboard.includes(href), `Missing certificate link: ${href}`)
 }
 // The landing grid prints each credential's detail, including the SkillUp code.
 assert.match(home, /Credential ID 10821711/i)
 
-// Ask Emo and the stack builder are real, labelled controls in the prerendered page.
-assert.match(home, /<section id="ask"[\s\S]*?<input id="ask-input" type="text"/, 'Ask Emo should have a labelled text input')
+// Ask Emo is a real, labelled control in the prerendered page.
+assert.match(
+  home,
+  /<section id="ask"[\s\S]*?<input id="ask-input" type="text"/,
+  'Ask Emo should have a labelled text input',
+)
 assert.match(home, /<label for="ask-input"/, 'the Ask Emo input needs its label')
-assert.match(home, /<section id="stack"[\s\S]*?aria-pressed="false"/, 'the stack builder pegs should be toggle buttons')
-assert.ok(home.indexOf('id="ask"') > home.indexOf('id="certified"') && home.indexOf('id="ask"') < home.indexOf('id="about"'), 'Ask Emo sits between Certified and About')
+assert.ok(
+  home.indexOf('id="ask"') > home.indexOf('id="certified"') &&
+    home.indexOf('id="ask"') < home.indexOf('id="about"'),
+  'Ask Emo sits between Certified and About',
+)
 // Each live project shows its status dot, with the time of the last check.
-assert.ok((home.match(/class="uptime uptime-/g) || []).length >= 1, 'live projects should show an uptime status')
+assert.ok(
+  (home.match(/class="uptime uptime-/g) || []).length >= 1,
+  'live projects should show an uptime status',
+)
 assert.match(home, /Status dots were checked/, 'the status should say when it was checked')
 
 // The CV is its own page with its own structured data, not the homepage's or the dashboard's.
 assert.match(cv, /<title>CV \| Sambit Swain<\/title>/)
 assert.match(cv, /<h1 id="cv-name">Sambit Swain<\/h1>/)
-assert.match(cv, /rel="canonical" href="https:\/\/[^"]+\/cv\/"/, 'the CV canonical should end in /cv/')
-const cvData = JSON.parse(cv.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null')
-assert.ok(cvData?.['@graph']?.some(node => node['@type'] === 'ProfilePage'), 'the CV should declare a ProfilePage')
+assert.match(
+  cv,
+  /rel="canonical" href="https:\/\/[^"]+\/cv\/"/,
+  'the CV canonical should end in /cv/',
+)
+const cvData = JSON.parse(
+  cv.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null',
+)
+assert.ok(
+  cvData?.['@graph']?.some((node) => node['@type'] === 'ProfilePage'),
+  'the CV should declare a ProfilePage',
+)
 assert.doesNotMatch(cv, /CollectionPage/, 'the CV should not carry the dashboard structured data')
 assert.match(cv, /ssambit635@gmail\.com/, 'the CV should carry a way to reach him')
 assert.match(cv, /Docker Basics/, 'the CV should list the certifications')
 assert.match(cv, /href="\.\.\/"/, 'the CV should link back to the portfolio')
 
 const sitemap = await readFile('dist/sitemap.xml', 'utf8')
-assert.equal((sitemap.match(/<loc>/g) || []).length, 3, 'sitemap should list home, dashboard and cv')
+assert.equal(
+  (sitemap.match(/<loc>/g) || []).length,
+  3,
+  'sitemap should list home, dashboard and cv',
+)
 assert.ok(sitemap.includes(`<loc>${canonical}</loc>`))
 assert.ok(sitemap.includes(`<loc>${canonical}cv/</loc>`), 'the CV should be in the sitemap')
 assert.ok((await readFile('dist/robots.txt', 'utf8')).includes(`Sitemap: ${canonical}sitemap.xml`))
@@ -110,7 +172,9 @@ const assetFiles = await readdir('dist/assets')
 const cssFiles = assetFiles.filter((file) => file.endsWith('.css'))
 assert.ok(cssFiles.length)
 const bundle = (glob) =>
-  Promise.all(assetFiles.filter(glob).map((file) => readFile(`dist/assets/${file}`, 'utf8'))).then(parts => parts.join('\n'))
+  Promise.all(assetFiles.filter(glob).map((file) => readFile(`dist/assets/${file}`, 'utf8'))).then(
+    (parts) => parts.join('\n'),
+  )
 const bundledCss = await bundle((file) => file.endsWith('.css'))
 const bundledJs = await bundle((file) => file.endsWith('.js') && !file.startsWith('entry-server'))
 assert.match(bundledCss, /prefers-reduced-motion:reduce/)
@@ -123,25 +187,68 @@ assert.match(heroFrame, /--hero-h:\s*max\(/, 'hero scene should cover the viewpo
 assert.match(heroFrame, /100vw/, 'hero scene should always be at least viewport-wide')
 assert.match(heroFrame, /100vh/, 'hero scene should always be at least viewport-tall')
 // The surplus is cropped above the monitor, so the desk stays on screen.
-assert.match(heroFrame, /top:\s*calc\(\(100vh\s*-\s*var\(--hero-h\)\)\s*\*\s*\.65\)/, 'hero scene should crop mostly above the monitor')
+assert.match(
+  heroFrame,
+  /top:\s*calc\(\(100vh\s*-\s*var\(--hero-h\)\)\s*\*\s*\.65\)/,
+  'hero scene should crop mostly above the monitor',
+)
 
 /* Emo — the little robot painted into the hero photo, on the desk left of the
    keyboard. He is a live layer, so the checks are about alignment and honesty: he has
    to be in the rendered HTML at the measured spot, clickable only where he is, and
    drawn with blend modes rather than a plate over his face. */
-assert.match(home, /class="emo"[^>]*data-face="curious"/, 'Emo should be in the rendered hero, not only after hydration')
-assert.ok(home.indexOf('class="emo"') > home.indexOf('class="hero-screen"'), 'Emo should be layered after the monitor screen')
-assert.match(home, /--emo-box-x:\s*\d+(?:\.\d+)?%/, 'Emo should sit on geometry measured from the photo')
-assert.match(home, /--emo-eye-peak:\s*rgb\(/, 'his eyes should be his own measured colours, not a palette guess')
-assert.match(home, /<span class="emo-clip emo-a"[^>]*aria-hidden="true"/, 'the erase layer is decoration, not content')
-assert.match(home, /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/, 'his tap target should say who it is')
+assert.match(
+  home,
+  /class="emo"[^>]*data-face="curious"/,
+  'Emo should be in the rendered hero, not only after hydration',
+)
+assert.ok(
+  home.indexOf('class="emo"') > home.indexOf('class="hero-screen"'),
+  'Emo should be layered after the monitor screen',
+)
+assert.match(
+  home,
+  /--emo-box-x:\s*\d+(?:\.\d+)?%/,
+  'Emo should sit on geometry measured from the photo',
+)
+assert.match(
+  home,
+  /--emo-eye-peak:\s*rgb\(/,
+  'his eyes should be his own measured colours, not a palette guess',
+)
+assert.match(
+  home,
+  /<span class="emo-clip emo-a"[^>]*aria-hidden="true"/,
+  'the erase layer is decoration, not content',
+)
+assert.match(
+  home,
+  /class="emo-hit"[^>]*aria-label="[^"]*Emo[^"]*"/,
+  'his tap target should say who it is',
+)
 // He is spoken, not captioned: the two pill switches and the caption chip are gone, and
 // the one line he keeps is a live region that only becomes visible text when the browser
 // cannot talk. Nothing here may put a box of UI over the photograph by default.
-assert.doesNotMatch(bundledCss, /\.emo-senses|\.emo-chip|\.emo-hint|emo-chip\[/, 'the mic and tilt switches were removed — no chip should come back')
-assert.match(bundledCss, /\.emo-line\{[^}]*clip-path:inset\(50%\)/, 'his line should be said, not stuck on the photo')
-assert.match(bundledCss, /\.emo-line:empty\{display:none\}/, 'an empty caption chip is an empty box on the desk')
-assert.match(bundledCss, /\[data-talk=text\] \.emo-line|\[data-talk=.text.\] \.emo-line/, 'with no speech engine the words have to be readable')
+assert.doesNotMatch(
+  bundledCss,
+  /\.emo-senses|\.emo-chip|\.emo-hint|emo-chip\[/,
+  'the mic and tilt switches were removed — no chip should come back',
+)
+assert.match(
+  bundledCss,
+  /\.emo-line\{[^}]*clip-path:inset\(50%\)/,
+  'his line should be said, not stuck on the photo',
+)
+assert.match(
+  bundledCss,
+  /\.emo-line:empty\{display:none\}/,
+  'an empty caption chip is an empty box on the desk',
+)
+assert.match(
+  bundledCss,
+  /\[data-talk=text\] \.emo-line|\[data-talk=.text.\] \.emo-line/,
+  'with no speech engine the words have to be readable',
+)
 // His voice is a formant-babble synthesiser on WebAudio (src/lib/emoVoice.ts): the OS
 // speech engine is deliberately gone — it was never him, and embedded browsers ship
 // without it — but the rule the old checks guarded still stands: every sound he makes
@@ -149,32 +256,96 @@ assert.match(bundledCss, /\[data-talk=text\] \.emo-line|\[data-talk=.text.\] \.e
 assert.match(bundledJs, /AudioContext/, 'his voice should be synthesised live, not an audio file')
 assert.match(bundledJs, /bandpass/, 'his voice should be his own formant babble, not a sample')
 assert.match(bundledJs, /emo-muted/, 'escape has to hush him for the rest of the visit')
-assert.doesNotMatch(bundledJs, /new Audio\(|\.mp3|data:audio/, 'nothing should be fetched or decoded to hear him')
-assert.match(home, /role="status"[^>]*aria-live="polite"/, 'only his functional states should be announced')
-assert.match(bundledCss, /\.emo\{[^}]*pointer-events:none/, 'Emo must not swallow clicks meant for the hero')
-assert.match(bundledCss, /\.emo\{[^}]*font-size:1cqw/, 'Emo should scale with the photo he is painted on, not the viewport')
-assert.match(bundledCss, /\.emo-hit\{[^}]*pointer-events:auto/, 'his tap target should be the one clickable thing in the hero')
+assert.doesNotMatch(
+  bundledJs,
+  /new Audio\(|\.mp3|data:audio/,
+  'nothing should be fetched or decoded to hear him',
+)
+assert.match(
+  home,
+  /role="status"[^>]*aria-live="polite"/,
+  'only his functional states should be announced',
+)
+assert.match(
+  bundledCss,
+  /\.emo\{[^}]*pointer-events:none/,
+  'Emo must not swallow clicks meant for the hero',
+)
+assert.match(
+  bundledCss,
+  /\.emo\{[^}]*font-size:1cqw/,
+  'Emo should scale with the photo he is painted on, not the viewport',
+)
+assert.match(
+  bundledCss,
+  /\.emo-hit\{[^}]*pointer-events:auto/,
+  'his tap target should be the one clickable thing in the hero',
+)
 // His face is two blend layers, and nothing else. A plate, a patch or a rectangle of
 // "matching" dark glass is how he ends up looking like a second display on his head.
-assert.match(bundledCss, /\.emo-clip\{[^}]*mix-blend-mode:darken/, 'his paint should be erased by clipping light, not by covering it')
-assert.match(bundledCss, /\.emo-glow\{[^}]*mix-blend-mode:screen/, 'his glow should be added as light')
-assert.match(bundledCss, /\.emo-orb\{[^}]*mix-blend-mode:screen/, 'his eyes should be added as light')
+assert.match(
+  bundledCss,
+  /\.emo-clip\{[^}]*mix-blend-mode:darken/,
+  'his paint should be erased by clipping light, not by covering it',
+)
+assert.match(
+  bundledCss,
+  /\.emo-glow\{[^}]*mix-blend-mode:screen/,
+  'his glow should be added as light',
+)
+assert.match(
+  bundledCss,
+  /\.emo-orb\{[^}]*mix-blend-mode:screen/,
+  'his eyes should be added as light',
+)
 // Being poked roughly is a wince — not a wider surprise: the eyes squeeze flat and pinch
 // toward the nose, using the same three measured layers (no chip, no pin).
-assert.match(bundledCss, /\[data-face=pain\] \.emo-orb\{[^}]*--emo-face-sy: -\.6\d/, 'rapid tapping should squeeze his eyes shut, not just widen them')
-assert.match(bundledCss, /\.emo-orb\{[^}]*var\(--emo-face-x[,)]/, 'the squeeze has to pull both eyes inward, toward the nose')
+assert.match(
+  bundledCss,
+  /\[data-face=pain\] \.emo-orb\{[^}]*--emo-face-sy: -\.6\d/,
+  'rapid tapping should squeeze his eyes shut, not just widen them',
+)
+assert.match(
+  bundledCss,
+  /\.emo-orb\{[^}]*var\(--emo-face-x[,)]/,
+  'the squeeze has to pull both eyes inward, toward the nose',
+)
 // And the wince says it out loud like everything else does: the line is written, then read.
 assert.match(bundledJs, /that hurts/, 'the wince needs its line')
 // The whole reason he looked like an overlay: any ancestor that forms a stacking context
 // turns into a blend container, and the blending stops reaching the photograph.
 const emoBlock = bundledCss.slice(bundledCss.indexOf('.emo{'), bundledCss.indexOf('.emo[data-off'))
-assert.doesNotMatch(emoBlock, /z-index|opacity|filter|transform|animation|will-change|contain|isolation|perspective|backdrop-filter|mix-blend-mode/, 'nothing between his blend layers and the photo may form a blend container, or the blending stops reaching the photograph')
+assert.doesNotMatch(
+  emoBlock,
+  /z-index|opacity|filter|transform|animation|will-change|contain|isolation|perspective|backdrop-filter|mix-blend-mode/,
+  'nothing between his blend layers and the photo may form a blend container, or the blending stops reaching the photograph',
+)
 const emoHome = home.slice(home.indexOf('class="emo"'), home.indexOf('class="emo-hit"'))
-assert.match(emoHome, /emo-clip emo-a[\s\S]*emo-clip emo-b[\s\S]*emo-glow emo-a[\s\S]*emo-glow emo-b[\s\S]*emo-orb emo-orb-a[\s\S]*emo-orb emo-orb-b/, 'paint order is blend order: both clips, then both halos, then both eyes')
-assert.doesNotMatch(bundledCss, /emo-visor|\.emo-plate/, 'there should be no plate, and no overlay image, on his face')
+assert.match(
+  emoHome,
+  /emo-clip emo-a[\s\S]*emo-clip emo-b[\s\S]*emo-glow emo-a[\s\S]*emo-glow emo-b[\s\S]*emo-orb emo-orb-a[\s\S]*emo-orb emo-orb-b/,
+  'paint order is blend order: both clips, then both halos, then both eyes',
+)
+assert.doesNotMatch(
+  bundledCss,
+  /emo-visor|\.emo-plate/,
+  'there should be no plate, and no overlay image, on his face',
+)
 // And nothing about him is drawn on hover: no ring, no box, no highlight.
-assert.doesNotMatch(bundledCss, /\.emo-hit:hover|\.emo-hit:after/, 'hovering him should not draw a box around his head')
-assert.match(bundledCss, /\.emo-hit:focus-visible\{outline/, 'the keyboard path to him still needs a focus ring')
-assert.match(bundledCss, /@media\(prefers-reduced-motion:reduce\)\{[^@]*\.emo-glow/, 'reduced motion should still leave Emo his face, minus the twitching')
+assert.doesNotMatch(
+  bundledCss,
+  /\.emo-hit:hover|\.emo-hit:after/,
+  'hovering him should not draw a box around his head',
+)
+assert.match(
+  bundledCss,
+  /\.emo-hit:focus-visible\{outline/,
+  'the keyboard path to him still needs a focus ring',
+)
+assert.match(
+  bundledCss,
+  /@media\(prefers-reduced-motion:reduce\)\{[^@]*\.emo-glow/,
+  'reduced motion should still leave Emo his face, minus the twitching',
+)
 // And the geometry in the bundle must still be what the photo says it is.
 execFileSync(process.execPath, ['scripts/emo-geometry.mjs', '--check'], { stdio: 'inherit' })

@@ -15,7 +15,12 @@ export default function MacLaptop() {
       <div className="lap-glow" aria-hidden="true" />
       <div className="lap-frame">
         <img className="lap-photo" src={macbook} alt="" aria-hidden="true" decoding="async" />
-        <div className="lap-screen" role="group" aria-label="Sambit’s MacBook Pro — an interactive desktop where every app is a way to reach him">
+        <div className="lap-floor" aria-hidden="true" />
+        <div
+          className="lap-screen"
+          role="group"
+          aria-label="Sambit’s MacBook Pro — an interactive desktop where every app is a way to reach him"
+        >
           <MacDesktop />
         </div>
         <div className="lap-glare" aria-hidden="true" />

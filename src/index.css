@@ -103,6 +103,14 @@ button {
 .nav-name:hover {
   color: var(--green);
 }
+.nav-name {
+  color: var(--green);
+}
+.nav-name svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
 .site-menu-actions {
   position: absolute;
   right: 28px;
@@ -935,6 +943,9 @@ button {
 }
 .white-button:hover {
   background: var(--green);
+}
+.cert > div > span {
+  display: block;
 }
 .cert-link {
   display: inline-flex;

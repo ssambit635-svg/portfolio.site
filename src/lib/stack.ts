@@ -1,5 +1,5 @@
 /**
- * The pegboard stack builder: pick technologies, see which projects use all of them.
+ * Technology matching: which projects use a given set of technologies. Used by Ask Emo and the CV.
  * Pure functions over the project data, so the rules are tested and not just drawn.
  */
 import { projects, type Project } from './site'

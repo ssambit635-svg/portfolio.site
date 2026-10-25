@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { answer, suggestions, type Answer } from '../lib/ask'
 import '../features.css'
 
@@ -16,6 +16,16 @@ export default function AskEmo() {
     setQuestion(trimmed)
     setResult({ asked: trimmed, answer: answer(trimmed) })
   }
+
+  // The Skills buttons send their question here, so a press answers it straight away.
+  useEffect(() => {
+    const onAsk = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail
+      if (typeof detail === 'string') ask(detail)
+    }
+    window.addEventListener('ask-emo', onAsk)
+    return () => window.removeEventListener('ask-emo', onAsk)
+  }, [])
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -40,19 +50,23 @@ export default function AskEmo() {
                 id="ask-input"
                 type="text"
                 value={question}
-                onChange={e => setQuestion(e.target.value)}
+                onChange={(e) => setQuestion(e.target.value)}
                 placeholder="e.g. Which projects use Docker?"
                 autoComplete="off"
                 maxLength={160}
               />
-              <button type="submit" className="ask-submit">Ask</button>
+              <button type="submit" className="ask-submit">
+                Ask
+              </button>
             </div>
           </form>
 
           <ul className="ask-suggestions" aria-label="Example questions">
-            {suggestions.map(s => (
+            {suggestions.map((s) => (
               <li key={s}>
-                <button type="button" onClick={() => ask(s)}>{s}</button>
+                <button type="button" onClick={() => ask(s)}>
+                  {s}
+                </button>
               </li>
             ))}
           </ul>
@@ -65,9 +79,13 @@ export default function AskEmo() {
               <p className="ask-text">{result.answer.text}</p>
               {result.answer.links.length > 0 && (
                 <ul className="ask-links">
-                  {result.answer.links.map(link => (
+                  {result.answer.links.map((link) => (
                     <li key={`${link.label}-${link.href}`}>
-                      <a href={link.href} target={link.href.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer">
+                      <a
+                        href={link.href}
+                        target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+                        rel="noreferrer"
+                      >
                         {link.label} ↗
                       </a>
                     </li>
@@ -77,8 +95,8 @@ export default function AskEmo() {
             </>
           ) : (
             <p className="ask-text ask-idle">
-              Emo answers from the notes on this site: the projects, the stack, certificates, hackathons and
-              contact details. Nothing is sent anywhere.
+              Emo answers from the notes on this site: the projects, the technologies, certificates,
+              hackathons and contact details. Nothing is sent anywhere.
             </p>
           )}
         </div>
