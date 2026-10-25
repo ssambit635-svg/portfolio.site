@@ -1,76 +1,94 @@
-/* Skills: raised 3D buttons seen from the right. Each button is turned so its right edge
-   comes toward you; that edge is drawn as a lit slab of thickness. Hover lifts it, and a
-   click presses it down into the slab. */
+/* Skills: physical 3D buttons seen from the right. Each button has a face, a metal slab
+   behind it that forms its body, and a dark socket it sits in. Hover sinks it slightly;
+   a click pushes it all the way into the socket. Nothing rises on hover. */
 .skills-note {
   margin: -34px 0 40px;
   font-size: 12px;
   letter-spacing: 0.04em;
   color: #9b9b9b;
 }
+.skill-group {
+  margin-bottom: 56px;
+}
+.skill-label {
+  margin: 0 0 22px;
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #7d7d7d;
+}
 .skill-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px 24px;
+  gap: 28px 28px;
   margin: 0;
-  padding: 0;
+  padding: 14px 18px 24px;
   list-style: none;
-  perspective: 900px;
+  perspective: 1000px;
 }
 .skill-btn {
-  --tilt: -16deg;
-  /* The right-hand slab: ten steps from a lit edge down to a shadowed one. */
-  --slab:
-    1px 0 0 #4a4a4a, 2px 0 0 #434343, 3px 0 0 #3c3c3c, 4px 0 0 #353535, 5px 0 0 #2f2f2f,
-    6px 0 0 #292929, 7px 0 0 #232323, 8px 0 0 #1d1d1d, 9px 0 0 #181818, 10px 0 0 #131313;
+  --tilt: -20deg;
+  --tiltx: 9deg;
+  --pose: perspective(900px) rotateY(var(--tilt)) rotateX(var(--tiltx));
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  min-height: 46px;
-  margin-right: 10px;
-  padding: 0 18px 0 14px;
-  border: 1px solid #343434;
-  border-radius: 9px;
-  background: linear-gradient(160deg, #2e2e2e 0%, #1a1a1a 55%, #141414 100%);
-  color: #f0f0f0;
+  min-height: 48px;
+  margin-right: 12px;
+  padding: 0 20px 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 34%),
+    linear-gradient(175deg, #363636 0%, #232323 48%, #171717 100%);
+  color: #f2f2f2;
   font: inherit;
   font-size: 14px;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transform-origin: 50% 60%;
-  transform: perspective(700px) rotateY(var(--tilt)) rotateX(6deg);
+  transform-style: preserve-3d;
+  transform: var(--pose);
   box-shadow:
-    var(--slab),
-    0 6px 0 #000,
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 22px 30px -10px rgba(0, 0, 0, 0.95);
-  transition:
-    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 200ms ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 24px 30px -12px rgba(0, 0, 0, 0.95);
+  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
   -webkit-tap-highlight-color: transparent;
 }
-.skill-btn:hover {
-  border-color: #4a4a4a;
-  transform: perspective(700px) rotateY(var(--tilt)) rotateX(6deg) translateY(-5px);
-  box-shadow:
-    var(--slab),
-    0 11px 0 #000,
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 34px 40px -12px rgba(0, 0, 0, 0.95);
+/* The slab: the solid body of the button, 14px deep behind the face. It shows as a lit
+   edge on the right and underneath, because the button is turned in 3D. */
+.skill-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0b0b0b 0%, #3d3d3d 55%, #1c1c1c 100%);
+  transform: translateZ(-14px);
+  box-shadow: 0 6px 0 #050505;
 }
-/* Pressed: the face sinks into the slab, so the depth shrinks. */
+/* The socket: a dark recess the button sits in, deeper than the slab. */
+.skill-btn::after {
+  content: '';
+  position: absolute;
+  inset: -10px -10px -12px -10px;
+  border-radius: 16px;
+  background: #040404;
+  transform: translateZ(-24px);
+  box-shadow: inset 0 8px 14px rgba(0, 0, 0, 0.95);
+}
+.skill-btn:hover {
+  transform: var(--pose) translateZ(-5px);
+}
+/* Pressed: the face goes right into the socket. */
 .skill-btn:active {
-  transform: perspective(700px) rotateY(var(--tilt)) rotateX(6deg) translateY(5px);
-  box-shadow:
-    var(--slab),
-    0 1px 0 #000,
-    inset 0 2px 6px rgba(0, 0, 0, 0.6);
-  transition-duration: 60ms;
+  transform: var(--pose) translateZ(-16px);
+  transition-duration: 70ms;
 }
 .skill-btn:focus-visible {
   outline: 1px solid var(--green);
-  outline-offset: 6px;
+  outline-offset: 8px;
 }
 .skill-logo {
   width: 18px;
@@ -84,12 +102,10 @@
   white-space: nowrap;
 }
 @media (prefers-reduced-motion: reduce) {
-  .skill-btn {
-    transition: none;
-    transform: none;
-  }
+  .skill-btn,
   .skill-btn:hover,
   .skill-btn:active {
+    transition: none;
     transform: none;
   }
 }
