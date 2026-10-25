@@ -181,56 +181,75 @@
   border-bottom-color: var(--green);
 }
 
-/* ---- Stack builder: a case board across the full width ------------------- */
-.stack-board {
-  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+/* ---- Stack builder: a case wall, after a detective's cork board ----------- */
+/* The white brick wall the board hangs on. Built from mortar lines, not a photo. */
+.wall {
   position: relative;
-  min-height: 680px;
-  padding: 64px 64px 56px;
-  border-radius: 3px;
+  padding: 56px clamp(20px, 3.4vw, 56px);
+  /* One brick tile, 120 × 60: a row of two bricks with the joints staggered by half a brick. */
+  background-color: #ece9e2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Crect width='120' height='60' fill='%23ece9e2'/%3E%3Cpath d='M0 0H120M0 30H120M0 0V30M60 30V60' stroke='%23c9c4b8' stroke-width='3' fill='none'/%3E%3C/svg%3E");
   border: 1px solid #2b2b2b;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)),
-    var(--board) center / cover no-repeat,
-    #1b1c1d;
-  box-shadow:
-    inset 0 0 140px rgba(0, 0, 0, 0.8),
-    0 30px 50px -22px rgba(0, 0, 0, 0.9);
-  overflow: visible;
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.25);
 }
-/* Grime and fingerprints: a faint noise layer over the steel. */
-.stack-board::after {
-  content: '';
+/* Aluminium frame, then the cork inside it. */
+.board {
+  position: relative;
+  padding: 14px;
+  background: linear-gradient(135deg, #e6e9ec, #a9b0b6 45%, #d9dde1 60%, #8f969c);
+  box-shadow:
+    0 26px 40px -18px rgba(0, 0, 0, 0.6),
+    0 2px 0 rgba(255, 255, 255, 0.5) inset;
+}
+.cork {
+  position: relative;
+  min-height: 640px;
+  padding: 58px 58px 52px;
+  background-color: #b68652;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.42' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .26 0 0 0 0 .12 1.6 0 0 0 -.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='1' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .85 0 0 0 0 .7 1.2 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  box-shadow: inset 0 0 90px rgba(60, 30, 10, 0.55);
+  overflow: hidden;
+}
+/* Red string, drawn over the cards and under the notes. */
+.strings {
   position: absolute;
   inset: 0;
-  background-image: var(--noise);
-  opacity: 0.14;
-  mix-blend-mode: overlay;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
   pointer-events: none;
-  border-radius: inherit;
+  overflow: visible;
 }
-.stack-board::before {
-  content: '';
-  position: absolute;
-  inset: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.06);
-  pointer-events: none;
+.string {
+  fill: none;
+  stroke: #b3202a;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.string-shadow {
+  fill: none;
+  stroke: rgba(40, 10, 5, 0.45);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: translate(1.5px, 2.5px);
 }
 .case-label {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   display: inline-flex;
   align-items: baseline;
   gap: 18px;
   padding: 8px 14px;
-  background: #e9e3d3;
+  background: #ece6d6;
   color: #1d1b18;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transform: rotate(-0.8deg);
-  box-shadow: 2px 4px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 2px 4px 0 rgba(0, 0, 0, 0.3);
 }
 .case-label strong {
   font-weight: 600;
@@ -253,6 +272,7 @@
 .stack-cards > li {
   position: relative;
 }
+/* A paper index card with typed text, pinned to the cork. */
 .pin-card {
   --tilt: 0deg;
   position: relative;
@@ -268,13 +288,18 @@
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.02em;
-  background-color: #efe9dc;
+  background-color: #f1ecdf;
   background-image:
-    linear-gradient(to right, transparent 30px, rgba(192, 57, 43, 0.4) 30px 31px, transparent 31px),
-    repeating-linear-gradient(to bottom, transparent 0 19px, rgba(70, 105, 165, 0.22) 19px 20px);
+    linear-gradient(
+      to right,
+      transparent 30px,
+      rgba(192, 57, 43, 0.35) 30px 31px,
+      transparent 31px
+    ),
+    repeating-linear-gradient(to bottom, transparent 0 19px, rgba(70, 105, 165, 0.2) 19px 20px);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.5),
-    2px 5px 0 rgba(0, 0, 0, 0.3),
+    2px 5px 0 rgba(0, 0, 0, 0.28),
     0 14px 22px -10px rgba(0, 0, 0, 0.85);
   transform: rotate(var(--tilt));
   transition:
@@ -286,12 +311,13 @@
   transform: rotate(calc(var(--tilt) * 0.3)) translateY(-2px);
 }
 .pin-card:focus-visible {
-  outline: 2px solid var(--green);
+  outline: 2px solid #1d1b18;
   outline-offset: 5px;
 }
+/* A steel pushpin: a bright head, a shadow on the paper. */
 .pin-head {
   position: absolute;
-  top: 7px;
+  top: 6px;
   left: 50%;
   width: 15px;
   height: 15px;
@@ -324,7 +350,7 @@
   transform: translateY(-5px) rotate(0deg);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.5),
-    4px 10px 0 rgba(0, 0, 0, 0.3),
+    4px 10px 0 rgba(0, 0, 0, 0.28),
     0 22px 26px -12px rgba(0, 0, 0, 0.9);
 }
 /* A hand-drawn red marker ring round the evidence that is in the case. */
@@ -332,11 +358,12 @@
   content: '';
   position: absolute;
   inset: -11px -16px;
-  border: 2.5px solid rgba(192, 57, 43, 0.85);
+  border: 2.5px solid rgba(179, 32, 42, 0.85);
   border-radius: 46% 54% 50% 52% / 56% 44% 56% 44%;
   transform: rotate(-2deg);
   pointer-events: none;
 }
+/* A red pin for a card that is pinned in the case. */
 .pin-card-on .pin-head {
   background: radial-gradient(
     circle at 34% 30%,
@@ -353,7 +380,7 @@
   font-weight: 600;
   color: #0f0e0c;
 }
-/* Hover (or keyboard focus) writes the evidence onto the board, on a typed slip. */
+/* Hover (or keyboard focus) writes the evidence on a yellow sticky note. */
 .pin-note {
   display: none;
   position: absolute;
@@ -362,15 +389,15 @@
   left: 50%;
   width: 230px;
   transform: translateX(-50%) rotate(-0.8deg);
-  padding: 12px 14px;
-  background: #f7f4ea;
+  padding: 14px 16px 16px;
+  background: linear-gradient(170deg, #fff28a, #f7e35c);
   color: #1b1b1b;
   font-family: var(--mono);
   font-size: 11px;
   line-height: 1.5;
   box-shadow:
-    3px 8px 0 rgba(0, 0, 0, 0.35),
-    0 16px 26px -8px rgba(0, 0, 0, 0.9);
+    3px 8px 0 rgba(0, 0, 0, 0.3),
+    0 16px 26px -8px rgba(0, 0, 0, 0.85);
   pointer-events: none;
 }
 .pin-note::before {
@@ -381,7 +408,7 @@
   width: 56px;
   height: 16px;
   margin-left: -28px;
-  background: rgba(226, 214, 150, 0.75);
+  background: rgba(226, 214, 150, 0.7);
   transform: rotate(2deg);
 }
 .stack-cards > li:hover .pin-note,
@@ -394,24 +421,25 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 44px 48px;
-  margin-top: 70px;
+  gap: 44px 56px;
+  margin-top: 74px;
 }
-.case-note {
+/* The case note: a yellow sticky note with a red pin in its top. */
+.sticky {
   position: relative;
   flex: 1 1 340px;
-  max-width: 560px;
-  padding: 26px 28px 24px;
-  background: #f3eee0;
+  max-width: 540px;
+  padding: 28px 30px 26px;
+  background: linear-gradient(172deg, #fff28a 0%, #f6e35a 100%);
   color: #1c1b19;
   transform: rotate(0.6deg);
   box-shadow:
-    3px 6px 0 rgba(0, 0, 0, 0.35),
-    0 18px 28px -10px rgba(0, 0, 0, 0.9);
+    3px 8px 0 rgba(0, 0, 0, 0.3),
+    0 18px 28px -10px rgba(0, 0, 0, 0.85);
 }
-.case-pin {
+.tack {
   position: absolute;
-  top: 10px;
+  top: 9px;
   left: 50%;
   width: 15px;
   height: 15px;
@@ -426,15 +454,15 @@
   );
   box-shadow: 2px 4px 3px rgba(0, 0, 0, 0.55);
 }
-.case-note-head {
+.sticky-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 0 14px;
+  margin: 12px 0 14px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #c0392b;
+  border-bottom: 2px solid #b3202a;
 }
-.case-note-head p {
+.sticky-head p {
   margin: 0;
   font-family: var(--mono);
   font-size: 11px;
@@ -463,46 +491,46 @@
 .stack-clear:hover,
 .stack-clear:focus-visible {
   background: #1c1b19;
-  color: #f3eee0;
+  color: #fff28a;
 }
-/* Polaroids of the matching projects, pinned to the board. */
-.polaroid {
+/* A black-and-white print of a project, pinned to the cork. */
+.print {
   --tilt: 0deg;
   position: relative;
-  width: 200px;
+  width: 210px;
   margin: 0;
-  padding: 10px 10px 34px;
-  background: #f7f5ef;
+  padding: 8px 8px 30px;
+  background: #f4f2ec;
   box-shadow: 0 16px 22px -10px rgba(0, 0, 0, 0.9);
   transform: rotate(var(--tilt));
 }
-.polaroid .pin-head {
-  top: -4px;
+.print .tack {
+  top: 4px;
 }
-.polaroid img {
+.print img {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  filter: contrast(1.05) saturate(0.85);
+  filter: grayscale(1) contrast(1.12) brightness(0.98);
 }
-.polaroid figcaption {
+.print figcaption {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 9px;
+  bottom: 8px;
   text-align: center;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: #1c1b19;
 }
-.polaroid figcaption a {
+.print figcaption a {
   color: inherit;
   text-decoration: none;
 }
-.polaroid figcaption a:hover,
-.polaroid figcaption a:focus-visible {
+.print figcaption a:hover,
+.print figcaption a:focus-visible {
   text-decoration: underline;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -514,6 +542,13 @@
 
 /* ---- Narrow screens ------------------------------------------------------ */
 @media (max-width: 860px) {
+  .wall {
+    padding: 28px 14px;
+  }
+  .cork {
+    padding: 40px 22px 36px;
+    min-height: 0;
+  }
   .ask-grid {
     grid-template-columns: 1fr;
     gap: 36px;
