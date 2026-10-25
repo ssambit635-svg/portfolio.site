@@ -1,4 +1,4 @@
-// Checks the logic behind the Ask Emo answers and the stack builder against the
+// Checks the logic behind the Ask Emo answers and the technology matching against
 // real site data (bundled from src/, not copied).
 
 import assert from 'node:assert/strict'
@@ -51,7 +51,7 @@ for (const q of ask.suggestions) {
 assert.equal(ask.stem('projects'), ask.stem('project'))
 assert.equal(ask.stem('certificates'), 'certificate')
 
-// Stack builder
+// Technology matching
 const tools = stack.allTools()
 assert.equal(new Set(tools.map(t => t.toLowerCase())).size, tools.length, 'tools should be unique ignoring case')
 assert.ok(tools.some(t => t.toLowerCase() === 'docker'), 'Docker should be a tool')
@@ -65,4 +65,4 @@ const impossible = stack.matchStack(['Docker', 'Rust', 'COBOL'])
 assert.equal(impossible.exact.length, 0)
 assert.ok(impossible.closest && impossible.closest.count >= 1, 'a partial match should name the closest project')
 
-console.log('Features: Ask Emo and stack builder checks passed.')
+console.log('Features: Ask Emo and technology matching checks passed.')

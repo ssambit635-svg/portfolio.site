@@ -8,7 +8,6 @@ import WorksWheel from './components/WorksWheel'
 import Preloader from './components/Preloader'
 import UptimeDot from './components/UptimeDot'
 import AskEmo from './components/AskEmo'
-import StackBuilder from './components/StackBuilder'
 import { credentials, experience, profile, projects } from './lib/site'
 import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
@@ -163,5 +162,5 @@ function Footer() {
 
 export default function App() {
   useLenis()
-  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><AskEmo/><About/><StackBuilder/></main><Footer/></>
+  return <><Preloader /><a className="skip-link" href="#works">Skip to work</a><SiteMenu/><main><Hero/><Works/><Certified/><AskEmo/><About/></main><Footer/></>
 }

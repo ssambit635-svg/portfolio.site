@@ -31,7 +31,7 @@ assert.doesNotMatch(heroTitle, /class="hero-word"/, 'the headline should be set 
 assert.doesNotMatch(home, /desk-clock|dc-physical/)
 assert.match(home, /property="og:image" content="https:\/\/ssambit635-svg\.github\.io\/portfolio\.site\/sambit-swain\.jpg"/)
 assert.match(home, /name="twitter:card" content="summary_large_image"/)
-for (const id of ['home', 'works', 'certified', 'ask', 'about', 'stack', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
+for (const id of ['home', 'works', 'certified', 'ask', 'about', 'contact', 'project-annadata-connect', 'project-shadow-quest']) {
   assert.ok(home.includes(`id="${id}"`), `Missing page target #${id}`)
 }
 for (const match of home.matchAll(/href="#([^"]+)"/g)) {
@@ -80,10 +80,9 @@ for (const href of [
 // The landing grid prints each credential's detail, including the SkillUp code.
 assert.match(home, /Credential ID 10821711/i)
 
-// Ask Emo and the stack builder are real, labelled controls in the prerendered page.
+// Ask Emo is a real, labelled control in the prerendered page.
 assert.match(home, /<section id="ask"[\s\S]*?<input id="ask-input" type="text"/, 'Ask Emo should have a labelled text input')
 assert.match(home, /<label for="ask-input"/, 'the Ask Emo input needs its label')
-assert.match(home, /<section id="stack"[\s\S]*?aria-pressed="false"/, 'the stack builder pegs should be toggle buttons')
 assert.ok(home.indexOf('id="ask"') > home.indexOf('id="certified"') && home.indexOf('id="ask"') < home.indexOf('id="about"'), 'Ask Emo sits between Certified and About')
 // Each live project shows its status dot, with the time of the last check.
 assert.ok((home.match(/class="uptime uptime-/g) || []).length >= 1, 'live projects should show an uptime status')

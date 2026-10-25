@@ -4,7 +4,7 @@
 ### Cloud & Full-stack Developer
 
 A personal portfolio for the projects, experiments and hackathon builds I ship.
-A dark editorial landing page, a paper-toned certificates dashboard, a one-page printable CV, and four features on top: an offline Ask Emo, live status dots, a pegboard stack builder and the CV itself—all backed by crawlable HTML.
+A dark editorial landing page, a paper-toned certificates dashboard, a one-page printable CV, and three features on top: an offline Ask Emo, live status dots and the CV itself—all backed by crawlable HTML.
 
 [**Explore the portfolio ↗**](https://ssambit635-svg.github.io/portfolio.site/) · [GitHub](https://github.com/ssambit635-svg) · [LinkedIn](https://www.linkedin.com/in/sambit-swain-7032a8378) · [Email](mailto:ssambit635@gmail.com)
 
@@ -24,7 +24,6 @@ A dark editorial landing page, a paper-toned certificates dashboard, a one-page 
 - **Three pages:** the portfolio, `/dashboard/` for square certificate tiles and achievements (opened from the "All certificates & achievements" button under Certified), and `/cv/`, a one-page A4 CV that prints or saves as a single PDF page.
 - **Ask Emo:** a text panel that answers questions about the projects, stack, certificates, hackathons and contact details. It runs in the browser from the site's own data, with no model and no paid API.
 - **Live status dots:** each live project shows whether it is up, slow, asleep on free hosting, down or unreachable, as of the last build. A daily scheduled deploy refreshes it.
-- **Stack builder:** technologies are pegs on a pegboard. Hang the ones you want and see which projects use all of them.
 - **Calmer motion:** scroll reveals, depth parallax and a pixel dissolve between blocks. No glitch/scramble text, and no audio anywhere except the robot in the hero, who speaks only after you have touched something.
 - **A shutter, not a splash:** the site opens behind four vertical panels that lift off it from the bottom up, with a line of type arriving one blurred letter at a time. It is the loading sequence in `Recording 2026-10-16 194802.mp4`, rebuilt in code rather than filmed — so it is sharp at any resolution, readable by a screen reader, and weighs nothing.
 - **One menu everywhere:** a single **Menu** panel in the top-right corner holds the sections and the ways to reach the author, on desktop and phone alike. The monogram top-left links home.
@@ -62,7 +61,7 @@ npm run dev
 | `npm run lint` | ESLint (typescript-eslint recommended + React hooks rules) over the sources and scripts. |
 | `npm run build` | Refresh the status snapshot, type-check, bundle, prerender HTML, generate crawl files, then run the SEO, feature and voice assertions. |
 | `npm run test` | Run the SEO, feature and voice assertions on their own. |
-| `npm run test:features` | Check the Ask Emo answers and the stack builder against the real site data. |
+| `npm run test:features` | Check the Ask Emo answers and the technology matching against the real site data. |
 | `npm run test:seo` | Check the existing `dist/` output; build first. |
 | `npm run test:voice` | Check Emo's voice against a mock browser that behaves like a real one. |
 | `npm run test:a11y` | Run axe-core (WCAG 2.x A/AA) against the built `/`, `/dashboard/` and `/cv/` pages at desktop and phone widths, and print the CV to PDF to check it is one A4 page. Needs a browser: set `CHROME_PATH` to a Chrome/Chromium binary, or run `npx playwright install chromium` once. CI installs Chromium and runs this after the build. |
@@ -88,12 +87,12 @@ scripts/
   lib/load-module.mjs          Bundles a src/ module for Node scripts (site data, ask, stack)
   lib/uptime-status.mjs        Turns one HTTP check into up / slow / asleep / down / unreachable
   test-seo.mjs                 Production HTML, crawl-file and CV assertions
-  test-features.mjs            Ask Emo answers and stack builder rules, against the real data
+  test-features.mjs            Ask Emo answers and technology matching, against the real data
   test-voice.mjs               Emo's voice, against a mock browser
   test-a11y.mjs                axe-core WCAG 2.x A/AA audit, and the one-page CV PDF check
   emo-geometry.mjs, led-matrix.mjs   Generators for Emo's face and the LED logos
 src/
-  App.tsx                      Landing page: hero, works, certified, Ask Emo, about, stack builder, footer
+  App.tsx                      Landing page: hero, works, certified, Ask Emo, about, footer
   pages/Dashboard.tsx          Certificates and achievements page
   pages/Cv.tsx                 The one-page CV, built from the same site data
   components/
@@ -101,7 +100,6 @@ src/
     Menu.tsx                   Generic dropdown menu primitives
     WorksWheel.tsx             The works index as a wheel you turn (works-wheel.css)
     AskEmo.tsx                 Ask Emo: the question panel (features.css)
-    StackBuilder.tsx           Stack builder: tool pegs and matching projects (features.css)
     UptimeDot.tsx              A project's status dot in the works list (features.css)
     EmoRobot.tsx, HeroKeyboard.tsx, MacDesktop.tsx, MacLaptop.tsx, PegBoard.tsx
     Preloader.tsx, RevealText.tsx, Mark.tsx, Seo.tsx
@@ -110,12 +108,12 @@ src/
     site.ts                    Profile, projects, experience, credentials, achievements
     seo.ts                     Production URL, page metadata and Schema.org graphs
     ask.ts                     Ask Emo: indexes the site's facts and scores a question against them
-    stack.ts                   Stack builder: the tools in use and the projects that match them
+    stack.ts                   Technology matching: the tools in use and the projects that use them
     uptime.ts                  The status snapshot as the site reads it
     emoFace.ts, emoVoice.ts, ledLogos.ts, gsap.ts, utils.ts
   generated/                   Status snapshot written at build time (gitignored)
   assets/                      Project screenshots, certificate scans, wallpapers
-  features.css                 Styles for Ask Emo, the stack builder and the status dots
+  features.css                 Styles for Ask Emo and the status dots
   cv.css                       Styles for the CV page, screen and print
   entry-server.tsx             Render the landing page at build time
   entry-dashboard.tsx          Render the dashboard at build time
@@ -135,7 +133,7 @@ There are **three real pages**, all plain files in the build — there is no cli
 | Certificates & achievements | `dist/dashboard/index.html` | `/dashboard/` |
 | One-page CV | `dist/cv/index.html` | `/cv/` |
 
-On the landing page, Home, Works, Certified, Ask Emo, About me, Stack builder and Contact are section links (`#home`, `#works`, `#certified`, `#ask`, `#about`, `#stack`, `#contact`). The **Menu** panel links to the CV as well. Project cards have stable `#project-…` anchors and link to their existing external destinations; there are no invented detail pages. The Certified section ends with an **All certificates & achievements** button that opens `/dashboard/`.
+On the landing page, Home, Works, Certified, Ask Emo, About me and Contact are section links (`#home`, `#works`, `#certified`, `#ask`, `#about`, `#contact`). The **Menu** panel links to the CV as well. Project cards have stable `#project-…` anchors and link to their existing external destinations; there are no invented detail pages. The Certified section ends with an **All certificates & achievements** button that opens `/dashboard/`.
 
 The build renders the actual React component tree into each HTML file. The client mounts the interactive version over that static content rather than hydrating it. With JavaScript disabled, a small fallback stylesheet keeps the static content readable. This is not a crawler-only or hidden-text version.
 
@@ -351,10 +349,6 @@ Each live project in the works list shows a status dot and word, as of the last 
 
 The check (`scripts/check-uptime.mjs`) runs before the type check and build, and writes `src/generated/uptime.json` (gitignored). It never fails the build; if it cannot run, every project shows "Not checked". `npm run dev` and `npm run typecheck` create the file only when it is missing. The deploy workflow also runs on a daily schedule, so the status is rebuilt each day without a server. This is a snapshot, not live polling, and the Works footnote says when it was taken.
 
-### Stack builder (`#stack`)
-
-Each technology used across the projects is a peg on a pegboard. Click a peg (or press it with the keyboard) to hang it. The panel lists the projects that use every technology you have hung. If none use them all, it names the closest project and how many of your choices it uses. Each peg is a real toggle button with `aria-pressed`, so screen readers and keyboards get the same controls. Dragging is not supported.
-
 ### One-page CV (`/cv/`)
 
 A static page in the menu as **One-page CV**: an A4 sheet with the profile, education, projects, certificates, achievements and tools, all from `src/lib/site.ts`. The screen shows the sheet on a grey desk with a print button. The print stylesheet removes the controls and the browser's margins, so the browser's print or save-as-PDF produces one page. `npm run test:a11y` prints the page to PDF and fails unless the result is exactly one A4 page.
@@ -364,7 +358,7 @@ A static page in the menu as **One-page CV**: an A4 sheet with the profile, educ
 | Change | Edit |
 | --- | --- |
 | Name, contact, social profiles, project descriptions | `src/lib/site.ts` |
-| Technologies (used by the stack builder) | `stack` on each project in `src/lib/site.ts` |
+| Technologies (used by Ask Emo and the CV) | `stack` on each project in `src/lib/site.ts` |
 | Ask Emo's matching and answer wording | `src/lib/ask.ts` (facts come from `src/lib/site.ts`) |
 | CV layout | `src/pages/Cv.tsx` and `src/cv.css` |
 | Portrait | `public/sambit-swain.jpg` |

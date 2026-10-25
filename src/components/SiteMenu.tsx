@@ -1,4 +1,4 @@
-import { AtSign, BadgeCheck, Briefcase, FileText, FolderGit2, House, Layers, Link2, Mail, MessageCircle, ScrollText, User } from 'lucide-react'
+import { AtSign, BadgeCheck, Briefcase, FileText, FolderGit2, House, Link2, Mail, MessageCircle, ScrollText, User } from 'lucide-react'
 import { Menu, MenuItem } from './Menu'
 import { profile } from '../lib/site'
 import { useMediaQuery } from '../hooks/useMediaQuery'
@@ -10,7 +10,6 @@ const sections = [
   { label: 'Certified', href: '#certified', Icon: BadgeCheck },
   { label: 'Ask Emo', href: '#ask', Icon: MessageCircle },
   { label: 'About me', href: '#about', Icon: User },
-  { label: 'Stack builder', href: '#stack', Icon: Layers },
   { label: 'Contact', href: '#contact', Icon: Mail }
 ]
 
