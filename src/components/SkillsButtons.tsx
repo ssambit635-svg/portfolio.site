@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, PointerEvent } from 'react'
 import '../skills.css'
 
 /** Real brand logos (Simple Icons, CC0), keyed by file name. */
@@ -108,6 +108,23 @@ export default function SkillsButtons() {
     document.getElementById('ask')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  /** Turns the button toward the pointer and moves the light across its face. */
+  const tilt = (event: PointerEvent<HTMLButtonElement>) => {
+    const el = event.currentTarget
+    const r = el.getBoundingClientRect()
+    const x = (event.clientX - r.left) / r.width
+    const y = (event.clientY - r.top) / r.height
+    el.style.setProperty('--ry', `${((x - 0.5) * 16).toFixed(2)}deg`)
+    el.style.setProperty('--rx', `${((0.5 - y) * 12).toFixed(2)}deg`)
+    el.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`)
+    el.style.setProperty('--my', `${(y * 100).toFixed(1)}%`)
+  }
+  const untilt = (event: PointerEvent<HTMLButtonElement>) => {
+    const el = event.currentTarget
+    el.style.setProperty('--ry', '0deg')
+    el.style.setProperty('--rx', '0deg')
+  }
+
   return (
     <section id="skills" className="section skills" aria-labelledby="skills-heading">
       <div className="section-head">
@@ -129,9 +146,12 @@ export default function SkillsButtons() {
                     className="skill-btn"
                     aria-label={`Ask Emo which projects use ${name}`}
                     onClick={() => ask(name)}
+                    onPointerMove={tilt}
+                    onPointerLeave={untilt}
                     style={
                       {
                         '--ink': inkFor(b.hex),
+                        '--glow': inkFor(b.hex),
                         '--logo': url ? `url("${url}")` : 'none',
                       } as CSSProperties
                     }
