@@ -223,13 +223,11 @@ export const projects: Project[] = [
     year: '2025',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
     image: shotAws,
-    href: 'https://aws-dashboard-frontend.vercel.app/',
+    href: 'https://cloud-control-f8ez.onrender.com',
     action: 'Live demo',
     repo: 'https://github.com/ssambit635-svg/Aws-dashboard-frontend',
-    status: 'lab',
+    status: 'live',
     featured: true,
-    // The page is on Vercel, but its data comes from a free Render API that
-    // sleeps, so the dashboard sits on "Loading" until that wakes.
     plane: {
       Client: 'React / Recharts',
       API: 'FastAPI',
