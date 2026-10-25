@@ -9,38 +9,38 @@ const logos = import.meta.glob('../assets/skills/logos/*.svg', {
 }) as Record<string, string>
 
 /** The logo file and brand colour for each skill. No file means a text-only button. */
-const brand: Record<string, { file?: string; hex: string }> = {
+const brand: Record<string, { file?: string; hex: string; motion?: string }> = {
   AWS: { hex: '9B9B9B' },
-  Capacitor: { file: 'capacitor', hex: '119EFF' },
-  CSS: { file: 'css', hex: '663399' },
-  Docker: { file: 'docker', hex: '2496ED' },
-  Express: { file: 'express', hex: '0A0A0A' },
-  FastAPI: { file: 'fastapi', hex: '009688' },
-  Git: { file: 'git', hex: 'F03C2E' },
-  GitHub: { file: 'github', hex: '181717' },
-  'GitHub Actions': { file: 'githubactions', hex: '2088FF' },
-  'Gemini AI': { file: 'googlegemini', hex: '8E75B2' },
-  Grafana: { file: 'grafana', hex: 'F46800' },
-  HTML: { file: 'html5', hex: 'E34F26' },
-  JavaScript: { file: 'javascript', hex: 'F7DF1E' },
-  Kubernetes: { file: 'kubernetes', hex: '326CE5' },
-  Leaflet: { file: 'leaflet', hex: '199900' },
-  Linux: { file: 'linux', hex: 'FCC624' },
+  Capacitor: { file: 'capacitor', hex: '119EFF', motion: 'fly' },
+  CSS: { file: 'css', hex: '663399', motion: 'wiggle' },
+  Docker: { file: 'docker', hex: '2496ED', motion: 'bob' },
+  Express: { file: 'express', hex: '0A0A0A', motion: 'shake' },
+  FastAPI: { file: 'fastapi', hex: '009688', motion: 'fly' },
+  Git: { file: 'git', hex: 'F03C2E', motion: 'wiggle' },
+  GitHub: { file: 'github', hex: '181717', motion: 'flip' },
+  'GitHub Actions': { file: 'githubactions', hex: '2088FF', motion: 'spin' },
+  'Gemini AI': { file: 'googlegemini', hex: '8E75B2', motion: 'spin' },
+  Grafana: { file: 'grafana', hex: 'F46800', motion: 'pulse' },
+  HTML: { file: 'html5', hex: 'E34F26', motion: 'bob' },
+  JavaScript: { file: 'javascript', hex: 'F7DF1E', motion: 'pulse' },
+  Kubernetes: { file: 'kubernetes', hex: '326CE5', motion: 'spin' },
+  Leaflet: { file: 'leaflet', hex: '199900', motion: 'swing' },
+  Linux: { file: 'linux', hex: 'FCC624', motion: 'bob' },
   LocalStack: { hex: '9B9B9B' },
-  MongoDB: { file: 'mongodb', hex: '47A248' },
-  Nginx: { file: 'nginx', hex: '009639' },
+  MongoDB: { file: 'mongodb', hex: '47A248', motion: 'fly' },
+  Nginx: { file: 'nginx', hex: '009639', motion: 'shake' },
   'Open-Meteo API': { hex: '9B9B9B' },
-  PostgreSQL: { file: 'postgresql', hex: '4169E1' },
-  Prisma: { file: 'prisma', hex: '2D3748' },
-  Prometheus: { file: 'prometheus', hex: 'E6522C' },
-  Python: { file: 'python', hex: '3776AB' },
-  React: { file: 'react', hex: '61DAFB' },
-  SQLite: { file: 'sqlite', hex: '003B57' },
-  Streamlit: { file: 'streamlit', hex: 'FF4B4B' },
-  Tailwind: { file: 'tailwindcss', hex: '06B6D4' },
-  Terraform: { file: 'terraform', hex: '844FBA' },
-  TypeScript: { file: 'typescript', hex: '3178C6' },
-  Vite: { file: 'vite', hex: '9135FF' },
+  PostgreSQL: { file: 'postgresql', hex: '4169E1', motion: 'flip' },
+  Prisma: { file: 'prisma', hex: '2D3748', motion: 'wiggle' },
+  Prometheus: { file: 'prometheus', hex: 'E6522C', motion: 'pulse' },
+  Python: { file: 'python', hex: '3776AB', motion: 'swing' },
+  React: { file: 'react', hex: '61DAFB', motion: 'spin' },
+  SQLite: { file: 'sqlite', hex: '003B57', motion: 'wiggle' },
+  Streamlit: { file: 'streamlit', hex: 'FF4B4B', motion: 'bob' },
+  Tailwind: { file: 'tailwindcss', hex: '06B6D4', motion: 'swing' },
+  Terraform: { file: 'terraform', hex: '844FBA', motion: 'flip' },
+  TypeScript: { file: 'typescript', hex: '3178C6', motion: 'pulse' },
+  Vite: { file: 'vite', hex: '9135FF', motion: 'fly' },
   cryptography: { hex: '9B9B9B' },
 }
 
@@ -136,7 +136,12 @@ export default function SkillsButtons() {
                       } as CSSProperties
                     }
                   >
-                    {url && <span className="skill-logo" aria-hidden="true" />}
+                    {url && (
+                      <span
+                        className={`skill-logo motion-${b.motion ?? 'bob'}`}
+                        aria-hidden="true"
+                      />
+                    )}
                     <span className="skill-name">{name}</span>
                   </button>
                 </li>

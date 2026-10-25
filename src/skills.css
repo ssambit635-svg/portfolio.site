@@ -109,3 +109,98 @@
     transform: none;
   }
 }
+
+/* Each logo moves in its own way while its button is hovered: the motion of the Uiverse
+   "fly" button, plus spin, bob, wiggle, pulse, swing, shake and flip for the others. */
+.skill-btn:hover .motion-fly {
+  animation: m-fly 0.7s ease-in-out infinite alternate;
+}
+.skill-btn:hover .motion-spin {
+  animation: m-spin 1.6s linear infinite;
+}
+.skill-btn:hover .motion-bob {
+  animation: m-bob 0.6s ease-in-out infinite alternate;
+}
+.skill-btn:hover .motion-wiggle {
+  animation: m-wiggle 0.5s ease-in-out infinite alternate;
+}
+.skill-btn:hover .motion-pulse {
+  animation: m-pulse 0.7s ease-in-out infinite alternate;
+}
+.skill-btn:hover .motion-swing {
+  transform-origin: 50% 0;
+  animation: m-swing 0.8s ease-in-out infinite alternate;
+}
+.skill-btn:hover .motion-shake {
+  animation: m-shake 0.3s linear infinite;
+}
+.skill-btn:hover .motion-flip {
+  animation: m-flip 1.2s linear infinite;
+}
+@keyframes m-fly {
+  from {
+    transform: translate(0, 0.1em) rotate(-8deg);
+  }
+  to {
+    transform: translate(0.12em, -0.12em) rotate(12deg);
+  }
+}
+@keyframes m-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes m-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+@keyframes m-wiggle {
+  from {
+    transform: rotate(-12deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+@keyframes m-pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.18);
+  }
+}
+@keyframes m-swing {
+  from {
+    transform: rotate(-18deg);
+  }
+  to {
+    transform: rotate(18deg);
+  }
+}
+@keyframes m-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+@keyframes m-flip {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skill-btn:hover .skill-logo {
+    animation: none;
+  }
+}
