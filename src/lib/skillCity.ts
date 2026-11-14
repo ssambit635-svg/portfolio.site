@@ -715,17 +715,30 @@ export const AVENUE_X = 6.8
 export const RING = { halfX: AVENUE_X, halfZ: 13, radius: 2.4, width: 2.8 }
 
 /**
+ * The beltway: a road down each margin of the plate, ringing every block. The
+ * ring the traffic runs closes onto it at the front and back, so the city is
+ * streets all the way to its edge instead of a dark apron.
+ */
+export const BELT = { x: PLATE.width / 2 - 1.8, z: PLATE.depth / 2 - 1.8, width: 2.6 }
+
+export const beltRoads: Rect[] = [
+  { x: -BELT.x, z: 0, w: BELT.width, d: PLATE.depth - 1 },
+  { x: BELT.x, z: 0, w: BELT.width, d: PLATE.depth - 1 },
+  { x: 0, z: -BELT.z, w: PLATE.width - 1, d: BELT.width },
+  { x: 0, z: BELT.z, w: PLATE.width - 1, d: BELT.width },
+]
+
+/**
  * The road grid: two avenues running north-south, one running east-west, and
- * the two connectors that close the ring. Painted the same green as the site's
- * signal colour — broad bands, like the lit roads of a model city, not thin
- * outlines around each block.
+ * the beltway around the lot. Painted the same green as the site's signal
+ * colour — broad bands, like the lit roads of a model city, not thin outlines
+ * around each block.
  */
 export const greenRoads: Rect[] = [
   { x: -AVENUE_X, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
   { x: AVENUE_X, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
   { x: 0, z: 0, w: PLATE.width - 1.4, d: ROAD },
-  { x: 0, z: -RING.halfZ, w: AVENUE_X * 2 + ROAD, d: RING.width },
-  { x: 0, z: RING.halfZ, w: AVENUE_X * 2 + ROAD, d: RING.width },
+  ...beltRoads,
 ]
 
 /** A point on the ring, and the direction the road runs there. */
@@ -978,6 +991,18 @@ export const cityLamps: CityLamp[] = (() => {
       }
     }
   }
+  // The beltway, on its inner kerb only: the city side is the side anyone sees.
+  const beltKerb = BELT.width / 2 + 0.34
+  for (const side of [-1, 1]) {
+    for (let z = -12.4; z <= 12.4; z += step) {
+      if (Math.abs(z) < 3.4) continue
+      out.push({ x: side * (BELT.x - beltKerb), z, arm: side > 0 ? Math.PI / 2 : -Math.PI / 2 })
+    }
+    for (let x = -18.4; x <= 18.4; x += step) {
+      if (Math.abs(x) < 3.6 || Math.abs(Math.abs(x) - AVENUE_X) < 3) continue
+      out.push({ x, z: side * (BELT.z - beltKerb), arm: side > 0 ? 0 : Math.PI })
+    }
+  }
   return out
 })()
 
@@ -1020,6 +1045,19 @@ export const roadDashes: Rect[] = (() => {
     if (crossing(z, -6.8) || crossing(z, 6.8)) continue
     out.push({ x: -6.8, z, w: 0.1, d: length })
     out.push({ x: 6.8, z, w: 0.1, d: length })
+  }
+
+  // The beltway. Its front and back bands already carry the ring's centre line,
+  // so only the outer stretches of those, and the two side roads, are marked.
+  for (let z = -12.4; z <= 12.4; z += step) {
+    if (Math.abs(z) < 3.2 || Math.abs(Math.abs(z) - BELT.z) < 3.4) continue
+    out.push({ x: -BELT.x, z, w: 0.1, d: length })
+    out.push({ x: BELT.x, z, w: 0.1, d: length })
+  }
+  for (let x = -18; x <= 18; x += step) {
+    if (Math.abs(x) < 9.6 || Math.abs(Math.abs(x) - BELT.x) < 3.2) continue
+    out.push({ x, z: -BELT.z, w: length, d: 0.1 })
+    out.push({ x, z: BELT.z, w: length, d: 0.1 })
   }
   return out
 })()

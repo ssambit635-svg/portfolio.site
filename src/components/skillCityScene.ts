@@ -10,6 +10,7 @@
  * pre-render, and the whole scene is disposed when the section unmounts.
  */
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { techLogos, type TechLogo } from '../lib/techLogos'
 import { createTraffic } from './cityTraffic'
 import {
@@ -219,9 +220,11 @@ function pavingTexture(): THREE.CanvasTexture {
   canvas.height = 128
   const ctx = canvas.getContext('2d')
   if (ctx) {
-    ctx.fillStyle = '#2b2e29'
+    // Light stone, not asphalt: a block is a paved yard the towers stand on,
+    // so it has to read as ground rather than as a hole in the plate.
+    ctx.fillStyle = '#8b8574'
     ctx.fillRect(0, 0, 128, 128)
-    ctx.strokeStyle = 'rgba(196, 189, 166, 0.10)'
+    ctx.strokeStyle = 'rgba(38, 34, 28, 0.16)'
     ctx.lineWidth = 1
     for (let i = 0; i <= 128; i += 32) {
       ctx.beginPath()
@@ -231,7 +234,7 @@ function pavingTexture(): THREE.CanvasTexture {
       ctx.lineTo(128, i + 0.5)
       ctx.stroke()
     }
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.10)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.07)'
     for (let i = 0; i < 40; i += 1) {
       const x = (i * 47) % 124
       const y = (i * 71) % 124
@@ -370,7 +373,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   renderer.setClearColor(0x000000, 0)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lightDevice ? 1.5 : 1.9))
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.outputColorSpace = THREE.SRGBColorSpace
   const canvas = renderer.domElement
   canvas.className = 'city-webgl'
@@ -389,8 +392,10 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     fabric: track(new THREE.MeshLambertMaterial({ map: facadePlain, color: 0xe4d8bf })),
     plate: track(new THREE.MeshLambertMaterial({ color: 0x191c1a })),
     green: track(new THREE.MeshBasicMaterial({ color: HOT })),
-    lane: track(new THREE.MeshLambertMaterial({ color: 0x00944f })),
+    lane: track(new THREE.MeshLambertMaterial({ color: 0x03713f })),
     dash: track(new THREE.MeshBasicMaterial({ color: 0xd7ccb3 })),
+    // The footway between kerb and road: light stone, a shade under the dashes.
+    walk: track(new THREE.MeshLambertMaterial({ color: 0xa79d86 })),
     outlineHover: track(
       new THREE.LineBasicMaterial({ color: HOT, transparent: true, opacity: 0.9 }),
     ),
@@ -428,7 +433,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     const plotMaterial = track(
       new THREE.MeshLambertMaterial({
         map: paving,
-        color: ink.clone().lerp(new THREE.Color(0xffffff), 0.45),
+        color: ink.clone().lerp(new THREE.Color(0xffffff), 0.62),
       }),
     )
     const kerbMaterial = track(
@@ -525,6 +530,8 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   const plotMeshes = new Map<DistrictId, THREE.Mesh>()
   const districtRings = new Map<DistrictId, THREE.Line>()
+  const trees: Array<{ x: number; z: number }> = []
+  const placeDummy = new THREE.Object3D()
 
   for (const district of districts) {
     const rect = plotRect(district)
@@ -535,6 +542,31 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     platform.userData.districtId = district.id
     plotMeshes.set(district.id, platform)
     scene.add(platform)
+
+    // The footway: a pale band of pavement between the road and the block, so a
+    // street has two edges instead of green running straight into the kerb.
+    const walk = 0.5
+    const footway: Rect[] = [
+      { x: rect.x, z: rect.z - PLOT / 2 - walk / 2, w: PLOT + walk * 2, d: walk },
+      { x: rect.x, z: rect.z + PLOT / 2 + walk / 2, w: PLOT + walk * 2, d: walk },
+      { x: rect.x - PLOT / 2 - walk / 2, z: rect.z, w: walk, d: PLOT },
+      { x: rect.x + PLOT / 2 + walk / 2, z: rect.z, w: walk, d: PLOT },
+    ]
+    for (const strip of footway) {
+      const mesh = rectMesh(strip, 0.05, 0.012, assets.walk)
+      mesh.receiveShadow = true
+      scene.add(mesh)
+    }
+
+    // Street trees along the footway, so the pavement has something on it.
+    const walkLine = PLOT / 2 + walk / 2
+    const treeAt = (x: number, z: number) => trees.push({ x, z })
+    for (let t = -PLOT / 2 + 1.1; t <= PLOT / 2 - 1.1; t += 4.2) {
+      treeAt(rect.x + t, rect.z - walkLine)
+      treeAt(rect.x + t, rect.z + walkLine)
+      treeAt(rect.x - walkLine, rect.z + t)
+      treeAt(rect.x + walkLine, rect.z + t)
+    }
 
     // A thin cream kerb around the platform.
     const k = 0.14
@@ -566,6 +598,37 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     ring.renderOrder = 3
     districtRings.set(district.id, ring)
     scene.add(ring)
+  }
+
+  // Trees: one instanced trunk and one instanced crown for the whole city.
+  if (trees.length > 0) {
+    const trunkGeometry = track(
+      new THREE.CylinderGeometry(0.038, 0.055, 0.34, 5).translate(0, 0.17, 0),
+    )
+    const crownGeometry = track(
+      mergeGeometries([
+        new THREE.IcosahedronGeometry(0.3, 0).translate(0, 0.52, 0),
+        new THREE.IcosahedronGeometry(0.2, 0).translate(0.1, 0.7, -0.07),
+      ]),
+    )
+    const trunkMaterial = track(new THREE.MeshLambertMaterial({ color: 0x53412c }))
+    const crownMaterial = track(new THREE.MeshLambertMaterial({ color: 0x6c7f45 }))
+    const trunks = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, trees.length)
+    const crowns = new THREE.InstancedMesh(crownGeometry, crownMaterial, trees.length)
+    crowns.castShadow = true
+    trunks.castShadow = true
+    trees.forEach((tree, index) => {
+      placeDummy.position.set(tree.x, 0.06, tree.z)
+      placeDummy.rotation.set(0, (tree.x * 7.3 + tree.z * 3.1) % 6.283, 0)
+      placeDummy.scale.setScalar(1)
+      placeDummy.updateMatrix()
+      trunks.setMatrixAt(index, placeDummy.matrix)
+      crowns.setMatrixAt(index, placeDummy.matrix)
+    })
+    trunks.instanceMatrix.needsUpdate = true
+    crowns.instanceMatrix.needsUpdate = true
+    scene.add(trunks)
+    scene.add(crowns)
   }
 
   /* ——— the buildings ———————————————————————————————————————————————————— */
