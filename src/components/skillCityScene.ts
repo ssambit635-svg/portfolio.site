@@ -25,8 +25,7 @@ import {
   buildingParts,
   type CityBuilding,
   type DistrictId,
-  type PartKind,
-  type Rect
+  type Rect,
 } from '../lib/skillCity'
 
 export type HoverPoint = { x: number; y: number }
@@ -49,7 +48,6 @@ export type SkillCityController = {
   dispose: () => void
 }
 
-const CREAM = 0xe3d7be
 const HOT = 0x00f083
 const FIT_HEIGHT = 41
 const FIT_WIDTH = 55
@@ -61,8 +59,7 @@ const MAX_ELEVATION = THREE.MathUtils.degToRad(68)
 const MIN_ZOOM = 0.82
 const MAX_ZOOM = 2.9
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value))
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 /** Rounded rectangle shape for the diorama plate. */
 function plateShape(width: number, depth: number, radius: number) {
@@ -93,7 +90,7 @@ function scaleBoxUv(geo: THREE.BoxGeometry, w: number, h: number, d: number, uni
     [w, d],
     [w, d],
     [w, h],
-    [w, h]
+    [w, h],
   ]
   for (let face = 0; face < 6; face += 1) {
     const [fw, fh] = faces[face]
@@ -165,6 +162,59 @@ function pavingTexture(): THREE.CanvasTexture {
   return texture
 }
 
+/**
+ * A tower's rooftop sign: a cream plate with a district stripe, the tower code
+ * and a pointer tail that touches the roof. One small canvas per tower.
+ */
+function rooftopTexture(code: string, color: string): THREE.CanvasTexture {
+  const W = 256
+  const H = 160
+  const x = 10
+  const y = 8
+  const w = W - x * 2
+  const plateH = 122
+  const tail = 24
+  const r = 7
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.clearRect(0, 0, W, H)
+    ctx.beginPath()
+    ctx.moveTo(x + r, y)
+    ctx.lineTo(x + w - r, y)
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+    ctx.lineTo(x + w, y + plateH)
+    ctx.lineTo(W / 2 + 13, y + plateH)
+    ctx.lineTo(W / 2, y + plateH + tail)
+    ctx.lineTo(W / 2 - 13, y + plateH)
+    ctx.lineTo(x, y + plateH)
+    ctx.lineTo(x, y + r)
+    ctx.quadraticCurveTo(x, y, x + r, y)
+    ctx.closePath()
+    ctx.fillStyle = '#f2e8d2'
+    ctx.fill()
+    ctx.lineWidth = 5
+    ctx.strokeStyle = '#1b201a'
+    ctx.stroke()
+
+    ctx.fillStyle = color
+    ctx.fillRect(x + 6, y + 6, w - 12, 13)
+
+    const size = code.length > 2 ? 54 : code.length === 2 ? 66 : 82
+    ctx.font = `700 ${size}px "IBM Plex Mono", ui-monospace, monospace`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = '#171d18'
+    ctx.fillText(code, W / 2, y + 19 + (plateH - 19) / 2 + 2)
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+  return texture
+}
+
 type RectMesh = (rect: Rect, height: number, y: number, material: THREE.Material) => THREE.Mesh
 
 export function createSkillCity(host: HTMLElement, options: SceneOptions): SkillCityController {
@@ -173,13 +223,12 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   // Phones get a lighter renderer: fewer pixels, a smaller shadow map. The
   // geometry is the same, so nothing about the city changes except its cost.
-  const lightDevice =
-    window.matchMedia('(pointer: coarse)').matches || host.clientWidth < 620
+  const lightDevice = window.matchMedia('(pointer: coarse)').matches || host.clientWidth < 620
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
-    powerPreference: 'high-performance'
+    powerPreference: 'high-performance',
   })
   renderer.setClearColor(0x000000, 0)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lightDevice ? 1.5 : 1.9))
@@ -199,24 +248,71 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const facade = track(facadeTexture())
   const paving = track(pavingTexture())
   const assets = {
-    facade: track(new THREE.MeshLambertMaterial({ map: facade })),
-    roof: track(new THREE.MeshLambertMaterial({ color: 0xeee3cc })),
-    side: track(new THREE.MeshLambertMaterial({ color: CREAM })),
     fabric: track(new THREE.MeshLambertMaterial({ color: 0xcdbfa6 })),
     plate: track(new THREE.MeshLambertMaterial({ color: 0x191c1a })),
-    plot: track(new THREE.MeshLambertMaterial({ map: paving })),
-    kerb: track(new THREE.MeshLambertMaterial({ color: 0xcfc3aa })),
-    detail: track(new THREE.MeshLambertMaterial({ color: 0xb9ab90 })),
     vehicleCream: track(new THREE.MeshLambertMaterial({ color: 0xf1e7d0 })),
     vehicleDark: track(new THREE.MeshLambertMaterial({ color: 0x454b43 })),
     green: track(new THREE.MeshBasicMaterial({ color: HOT })),
     lane: track(new THREE.MeshLambertMaterial({ color: 0x00944f })),
     dash: track(new THREE.MeshBasicMaterial({ color: 0xd7ccb3 })),
     outlineHover: track(
-      new THREE.LineBasicMaterial({ color: HOT, transparent: true, opacity: 0.9 })
+      new THREE.LineBasicMaterial({ color: HOT, transparent: true, opacity: 0.9 }),
     ),
     outlineSelect: track(new THREE.LineBasicMaterial({ color: HOT })),
-    district: track(new THREE.LineBasicMaterial({ color: HOT }))
+    district: track(new THREE.LineBasicMaterial({ color: HOT })),
+  }
+
+  /* A district owns a hue: strong on its roofs and kerb, pale on its walls.
+     The unnamed neighbourhood blocks stay cream, so a coloured tower always
+     means a skill you can open. */
+  type DistrictLook = {
+    facade: THREE.Material[]
+    roof: THREE.Material
+    side: THREE.Material
+    detail: THREE.Material
+    plot: THREE.Material
+    kerb: THREE.Material
+  }
+  const cream = new THREE.Color(0xeee3cc)
+  const districtLooks = new Map<DistrictId, DistrictLook>()
+  for (const district of districts) {
+    const ink = new THREE.Color(district.color)
+    const facadeMaterial = track(
+      new THREE.MeshLambertMaterial({ map: facade, color: ink.clone().lerp(cream, 0.62) }),
+    )
+    const roofMaterial = track(
+      new THREE.MeshLambertMaterial({ color: ink.clone().lerp(cream, 0.18) }),
+    )
+    const sideMaterial = track(
+      new THREE.MeshLambertMaterial({ color: ink.clone().lerp(cream, 0.52) }),
+    )
+    const detailMaterial = track(
+      new THREE.MeshLambertMaterial({ color: ink.clone().lerp(cream, 0.4) }),
+    )
+    const plotMaterial = track(
+      new THREE.MeshLambertMaterial({
+        map: paving,
+        color: ink.clone().lerp(new THREE.Color(0xffffff), 0.45),
+      }),
+    )
+    const kerbMaterial = track(
+      new THREE.MeshLambertMaterial({ color: ink.clone().lerp(cream, 0.2) }),
+    )
+    districtLooks.set(district.id, {
+      facade: [
+        facadeMaterial,
+        facadeMaterial,
+        roofMaterial,
+        roofMaterial,
+        facadeMaterial,
+        facadeMaterial,
+      ],
+      roof: roofMaterial,
+      side: sideMaterial,
+      detail: detailMaterial,
+      plot: plotMaterial,
+      kerb: kerbMaterial,
+    })
   }
 
   /* ——— light ————————————————————————————————————————————————————————————— */
@@ -251,8 +347,8 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       bevelThickness: 0.1,
       bevelSize: 0.1,
       bevelSegments: 2,
-      curveSegments: 6
-    }
+      curveSegments: 6,
+    },
   )
   plateGeometry.rotateX(-Math.PI / 2)
   // The bevel adds 0.1 below and above the extrusion, so the slab's top face
@@ -296,7 +392,8 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   for (const district of districts) {
     const rect = plotRect(district)
-    const platform = rectMesh(rect, PLOT_HEIGHT, 0, assets.plot)
+    const look = districtLooks.get(district.id)!
+    const platform = rectMesh(rect, PLOT_HEIGHT, 0, look.plot)
     platform.castShadow = false
     platform.receiveShadow = true
     platform.userData.districtId = district.id
@@ -309,10 +406,10 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       { x: rect.x, z: rect.z - PLOT / 2 + k / 2, w: PLOT, d: k },
       { x: rect.x, z: rect.z + PLOT / 2 - k / 2, w: PLOT, d: k },
       { x: rect.x - PLOT / 2 + k / 2, z: rect.z, w: k, d: PLOT },
-      { x: rect.x + PLOT / 2 - k / 2, z: rect.z, w: k, d: PLOT }
+      { x: rect.x + PLOT / 2 - k / 2, z: rect.z, w: k, d: PLOT },
     ]
     for (const strip of rim) {
-      const mesh = rectMesh(strip, 0.06, PLOT_HEIGHT, assets.kerb)
+      const mesh = rectMesh(strip, 0.06, PLOT_HEIGHT, look.kerb)
       mesh.castShadow = false
       scene.add(mesh)
     }
@@ -325,7 +422,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       new THREE.Vector3(rect.x + half, y, rect.z - half),
       new THREE.Vector3(rect.x + half, y, rect.z + half),
       new THREE.Vector3(rect.x - half, y, rect.z + half),
-      new THREE.Vector3(rect.x - half, y, rect.z - half)
+      new THREE.Vector3(rect.x - half, y, rect.z - half),
     ]
     const ringGeo = track(new THREE.BufferGeometry().setFromPoints(points))
     const ring = new THREE.Line(ringGeo, assets.district)
@@ -348,20 +445,23 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const pickables: THREE.Object3D[] = []
   const records = new Map<string, BuildingRecord>()
 
-  const partMaterials: Record<PartKind, THREE.Material | THREE.Material[]> = {
-    facade: [assets.facade, assets.facade, assets.roof, assets.roof, assets.facade, assets.facade],
-    roof: assets.roof,
-    detail: assets.detail,
-    green: assets.green,
-    side: assets.side
-  }
-
   const buildRecord = (b: CityBuilding): BuildingRecord => {
+    const look = districtLooks.get(b.district.id)!
     const group = new THREE.Group()
     for (const part of buildingParts(b)) {
       const geo = track(new THREE.BoxGeometry(part.w, part.h, part.d))
       scaleBoxUv(geo, part.w, part.h, part.d, 1.15)
-      const mesh = new THREE.Mesh(geo, partMaterials[part.kind])
+      const material =
+        part.kind === 'facade'
+          ? look.facade
+          : part.kind === 'roof'
+            ? look.roof
+            : part.kind === 'detail'
+              ? look.detail
+              : part.kind === 'side'
+                ? look.side
+                : assets.green
+      const mesh = new THREE.Mesh(geo, material)
       mesh.position.set(part.x, part.y + part.h / 2, part.z)
       mesh.castShadow = true
       mesh.receiveShadow = true
@@ -376,9 +476,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     const size = box.getSize(new THREE.Vector3())
     const center = box.getCenter(new THREE.Vector3())
     const outlineGeo = track(
-      new THREE.EdgesGeometry(
-        new THREE.BoxGeometry(size.x + 0.07, size.y + 0.07, size.z + 0.07)
-      )
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(size.x + 0.07, size.y + 0.07, size.z + 0.07)),
     )
     const outline = new THREE.LineSegments(outlineGeo, assets.outlineHover)
     outline.position.copy(center)
@@ -395,6 +493,25 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     pad.raycast = () => {}
     group.add(pad)
 
+    // A small plate above the roof: the tower's code, its district stripe and
+    // a tail that points back at the roof. Sprites always face the camera, so
+    // the code stays readable while the city is orbited.
+    const signTexture = track(rooftopTexture(b.skill.short, b.district.color))
+    const signMaterial = track(
+      new THREE.SpriteMaterial({
+        map: signTexture,
+        transparent: true,
+        depthWrite: false,
+        alphaTest: 0.02,
+      }),
+    )
+    const sign = new THREE.Sprite(signMaterial)
+    const signHeight = 1.625
+    sign.scale.set(2.6, signHeight, 1)
+    sign.position.set(center.x, box.max.y + 0.08 + signHeight / 2, center.z)
+    sign.renderOrder = 6
+    group.add(sign)
+
     group.position.set(b.x, PLOT_HEIGHT + 0.01, b.z)
 
     const record: BuildingRecord = {
@@ -402,7 +519,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       group,
       outline,
       pad,
-      districtId: b.district.id
+      districtId: b.district.id,
     }
     records.set(b.id, record)
     scene.add(group)
@@ -427,8 +544,13 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   // Traffic: little boxes on the road, just enough to give the blocks a scale.
   for (const car of cityVehicles) {
-    const geo = track(new THREE.BoxGeometry(car.turned ? 0.15 : 0.36, 0.12, car.turned ? 0.36 : 0.15))
-    const mesh = new THREE.Mesh(geo, car.tone === 'cream' ? assets.vehicleCream : assets.vehicleDark)
+    const geo = track(
+      new THREE.BoxGeometry(car.turned ? 0.15 : 0.36, 0.12, car.turned ? 0.36 : 0.15),
+    )
+    const mesh = new THREE.Mesh(
+      geo,
+      car.tone === 'cream' ? assets.vehicleCream : assets.vehicleDark,
+    )
     mesh.position.set(car.x, 0.08, car.z)
     mesh.castShadow = true
     mesh.receiveShadow = true
@@ -445,7 +567,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     zoom: options.reducedMotion ? 1 : 0.88,
     shift: 0,
     shiftY: 0,
-    target: new THREE.Vector3(0, 2.4, 0)
+    target: new THREE.Vector3(0, 2.4, 0),
   }
   const goal = {
     azimuth: DEFAULT_AZIMUTH,
@@ -453,7 +575,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     zoom: 1.06,
     shift: 0,
     shiftY: 0,
-    target: new THREE.Vector3(0, 2.4, 0)
+    target: new THREE.Vector3(0, 2.4, 0),
   }
   const view = { width: 1, height: 1, aspect: 1.6, fit: FIT_HEIGHT }
 
@@ -481,11 +603,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     camera.updateProjectionMatrix()
 
     const right = new THREE.Vector3(Math.cos(cam.azimuth), 0, -Math.sin(cam.azimuth))
-    const forward = new THREE.Vector3(
-      -Math.sin(cam.azimuth) * ce,
-      -se,
-      -Math.cos(cam.azimuth) * ce
-    )
+    const forward = new THREE.Vector3(-Math.sin(cam.azimuth) * ce, -se, -Math.cos(cam.azimuth) * ce)
     const up = new THREE.Vector3().crossVectors(right, forward)
     const offset = right
       .multiplyScalar(viewWidth * cam.shift)
@@ -493,7 +611,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     camera.position.set(
       cam.target.x + DISTANCE * ce * Math.sin(cam.azimuth),
       cam.target.y + DISTANCE * se,
-      cam.target.z + DISTANCE * ce * Math.cos(cam.azimuth)
+      cam.target.z + DISTANCE * ce * Math.cos(cam.azimuth),
     )
     camera.position.add(offset)
     camera.lookAt(cam.target.clone().add(offset))
@@ -553,7 +671,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     const rect = host.getBoundingClientRect()
     pointerNdc.set(
       ((clientX - rect.left) / rect.width) * 2 - 1,
-      -((clientY - rect.top) / rect.height) * 2 + 1
+      -((clientY - rect.top) / rect.height) * 2 + 1,
     )
     raycaster.setFromCamera(pointerNdc, camera)
     const hits = raycaster.intersectObjects(pickables, true)
@@ -576,7 +694,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     const rect = host.getBoundingClientRect()
     return {
       x: clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1),
-      y: clamp((event.clientY - rect.top) / Math.max(1, rect.height), 0, 1)
+      y: clamp((event.clientY - rect.top) / Math.max(1, rect.height), 0, 1),
     }
   }
 
@@ -606,11 +724,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     if (!record) return
     selected = id
     selectedDistrict = record.districtId
-    goal.target.set(
-      record.data.x,
-      PLOT_HEIGHT + Math.min(record.data.h * 0.5, 4.5),
-      record.data.z
-    )
+    goal.target.set(record.data.x, PLOT_HEIGHT + Math.min(record.data.h * 0.5, 4.5), record.data.z)
     goal.zoom = 2.2
     goal.elevation = THREE.MathUtils.degToRad(31)
     const sheet = sheetPanel()
@@ -621,7 +735,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   }
 
   const focusDistrict = (id: DistrictId) => {
-    const district = districts.find(d => d.id === id)
+    const district = districts.find((d) => d.id === id)
     if (!district) return
     const rect = plotRect(district)
     selected = null
@@ -764,7 +878,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   canvas.addEventListener('pointercancel', onPointerCancel, { signal })
   canvas.addEventListener('pointerleave', onPointerLeave, { signal })
   canvas.addEventListener('wheel', onWheel, { signal, passive: false })
-  canvas.addEventListener('contextmenu', event => event.preventDefault(), { signal })
+  canvas.addEventListener('contextmenu', (event) => event.preventDefault(), { signal })
 
   /* ——— render loop ——————————————————————————————————————————————————————— */
 
@@ -776,11 +890,11 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   let inView = true
   const intersectionObserver = new IntersectionObserver(
-    entries => {
+    (entries) => {
       inView = entries[0]?.isIntersecting ?? true
       if (inView) lastInteraction = performance.now()
     },
-    { rootMargin: '160px' }
+    { rootMargin: '160px' },
   )
   intersectionObserver.observe(host)
 
@@ -854,6 +968,6 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       for (const item of disposables) item.dispose()
       renderer.dispose()
       if (canvas.parentElement === host) host.removeChild(canvas)
-    }
+    },
   }
 }

@@ -12,13 +12,7 @@
  */
 import { credentials, projects, type Credential, type Project } from './site'
 
-export type DistrictId =
-  | 'programming'
-  | 'web'
-  | 'data'
-  | 'devops'
-  | 'cloud'
-  | 'infrastructure'
+export type DistrictId = 'programming' | 'web' | 'data' | 'devops' | 'cloud' | 'infrastructure'
 
 export type Level = 1 | 2 | 3 | 4 | 5
 
@@ -30,6 +24,8 @@ export type District = {
   /** The long name used on dossiers and the index; the HUD keeps the short one. */
   label?: string
   blurb: string
+  /** Rooftop tint used by the 3D city, the district chip and the index group. */
+  color: string
   /** Position in the 3 × 2 block grid. */
   plot: { col: 0 | 1 | 2; row: 0 | 1 }
 }
@@ -37,55 +33,63 @@ export type District = {
 export const districts: District[] = [
   {
     id: 'programming',
+    color: '#c46a45',
     code: '01',
     name: 'Programming',
     blurb: 'Languages, and the services they run. The west tower block.',
-    plot: { col: 0, row: 0 }
+    plot: { col: 0, row: 0 },
   },
   {
     id: 'web',
+    color: '#3f8a78',
     code: '02',
     name: 'Web',
     label: 'Web District',
     blurb: 'Everything a visitor touches. The busiest district on the plate.',
-    plot: { col: 0, row: 1 }
+    plot: { col: 0, row: 1 },
   },
   {
     id: 'data',
+    color: '#5f72ad',
     code: '03',
     name: 'Data',
     label: 'Data Center',
     blurb: 'Where the state lives: stores, schemas and the feeds behind them.',
-    plot: { col: 1, row: 1 }
+    plot: { col: 1, row: 1 },
   },
   {
     id: 'devops',
+    color: '#bf9440',
     code: '04',
     name: 'DevOps',
     blurb: 'The road from a commit to a container that is running.',
-    plot: { col: 2, row: 0 }
+    plot: { col: 2, row: 0 },
   },
   {
     id: 'cloud',
+    color: '#5d90b8',
     code: '05',
     name: 'Cloud',
     label: 'Cloud City',
     blurb: 'Machines someone else runs, wired from this side of the screen.',
-    plot: { col: 1, row: 0 }
+    plot: { col: 1, row: 0 },
   },
   {
     id: 'infrastructure',
+    color: '#8d6b9e',
     code: '06',
     name: 'Infrastructure',
     blurb: 'The base layer under every deployment: the box, the shell, the meter.',
-    plot: { col: 2, row: 1 }
-  }
+    plot: { col: 2, row: 1 },
+  },
 ]
 
-export const districtById = new Map(districts.map(d => [d.id, d]))
+export const districtById = new Map(districts.map((d) => [d.id, d]))
 
 type SkillInput = {
   name: string
+  /** Two- or three-letter code printed on the tower's rooftop sign. */
+  short: string
   district: DistrictId
   level: Level
   /** One sentence for the dossier. Facts come from site.ts and the certificates. */
@@ -115,251 +119,286 @@ const inputs: SkillInput[] = [
   /* 01 — Programming */
   {
     name: 'Python',
+    short: 'PY',
     district: 'programming',
     level: 4,
     note: 'Cisco Python Essentials 1. Weather Sense, Password Manager, and most of the scripting behind the projects.',
-    cert: 'python-essentials'
+    cert: 'python-essentials',
   },
   {
     name: 'C++',
+    short: 'C++',
     district: 'programming',
     level: 3,
     note: 'C++ Essentials 1 through Cisco NetAcad: objects, memory and the STL.',
-    cert: 'cpp-essentials'
+    cert: 'cpp-essentials',
   },
   {
     name: 'C',
+    short: 'C',
     district: 'programming',
     level: 3,
     note: 'Thirty hours of C through ExcelR. Pointers, arrays and data structures from first principles.',
-    cert: 'c-programming'
+    cert: 'c-programming',
   },
   {
     name: 'Express',
+    short: 'EX',
     district: 'programming',
     level: 3,
     note: 'The API layer under Kivo and Annadata Connect.',
-    aliases: ['Node.js']
+    aliases: ['Node.js'],
   },
   {
     name: 'FastAPI',
+    short: 'FA',
     district: 'programming',
     level: 3,
-    note: 'Typed Python endpoints for the AWS Dashboard.'
+    note: 'Typed Python endpoints for the AWS Dashboard.',
   },
   {
     name: 'Streamlit',
+    short: 'ST',
     district: 'programming',
     level: 3,
-    note: 'Weather Sense and Password Manager: a real interface without a front-end build.'
+    note: 'Weather Sense and Password Manager: a real interface without a front-end build.',
   },
   {
     name: 'Cryptography',
+    short: 'CR',
     district: 'programming',
     level: 2,
-    note: 'Fernet encryption and a SHA-256 hashed master password in the local password manager.'
+    note: 'Fernet encryption and a SHA-256 hashed master password in the local password manager.',
   },
 
   /* 02 — Web */
   {
     name: 'TypeScript',
+    short: 'TS',
     district: 'web',
     level: 5,
-    note: 'Strict types across this site and every React build here. The default now.'
+    note: 'Strict types across this site and every React build here. The default now.',
   },
   {
     name: 'React',
+    short: 'RE',
     district: 'web',
     level: 5,
-    note: 'Nine shipped builds. ARCH, Shadow Quest, Annadata Connect and this page.'
+    note: 'Nine shipped builds. ARCH, Shadow Quest, Annadata Connect and this page.',
   },
   {
     name: 'JavaScript',
+    short: 'JS',
     district: 'web',
     level: 4,
-    note: 'The layer under React, and the whole of CivicReport.'
+    note: 'The layer under React, and the whole of CivicReport.',
   },
   {
     name: 'HTML',
+    short: 'HT',
     district: 'web',
     level: 4,
-    note: 'Semantic, crawlable markup: this page is pre-rendered HTML, not an empty shell.'
+    note: 'Semantic, crawlable markup: this page is pre-rendered HTML, not an empty shell.',
   },
   {
     name: 'CSS',
+    short: 'CS',
     district: 'web',
     level: 4,
-    note: 'Hand-written layout: the hero monitor, the works drum, this city.'
+    note: 'Hand-written layout: the hero monitor, the works drum, this city.',
   },
   {
     name: 'Tailwind',
+    short: 'TW',
     district: 'web',
     level: 4,
-    note: 'The utility layer in ARCH and this portfolio.'
+    note: 'The utility layer in ARCH and this portfolio.',
   },
   {
     name: 'Vite',
+    short: 'VI',
     district: 'web',
     level: 3,
-    note: 'Dev server, build and asset pipeline for this site.'
+    note: 'Dev server, build and asset pipeline for this site.',
   },
   {
     name: 'Capacitor',
+    short: 'CP',
     district: 'web',
     level: 2,
-    note: 'Wraps Shadow Quest and Annadata Connect for Android.'
+    note: 'Wraps Shadow Quest and Annadata Connect for Android.',
   },
   {
     name: 'Leaflet',
+    short: 'LF',
     district: 'web',
     level: 2,
-    note: 'The issue map in CivicReport.'
+    note: 'The issue map in CivicReport.',
   },
 
   /* 03 — Data */
   {
     name: 'PostgreSQL',
+    short: 'PG',
     district: 'data',
     level: 4,
-    note: 'The incident store under ARCH, with Prisma managing the schema.'
+    note: 'The incident store under ARCH, with Prisma managing the schema.',
   },
   {
     name: 'Prisma',
+    short: 'PR',
     district: 'data',
     level: 3,
-    note: 'Typed models and migrations over PostgreSQL in ARCH.'
+    note: 'Typed models and migrations over PostgreSQL in ARCH.',
   },
   {
     name: 'MongoDB',
+    short: 'MG',
     district: 'data',
     level: 3,
-    note: 'Shadow Quest’s sessions, goals and streaks.'
+    note: 'Shadow Quest’s sessions, goals and streaks.',
   },
   {
     name: 'SQLite',
+    short: 'SQ',
     district: 'data',
     level: 3,
-    note: 'Kivo’s health timeline, shipped as a single file.'
+    note: 'Kivo’s health timeline, shipped as a single file.',
   },
   {
     name: 'Gemini AI',
+    short: 'AI',
     district: 'data',
     level: 2,
-    note: 'Classifies photographed civic issues in CivicReport.'
+    note: 'Classifies photographed civic issues in CivicReport.',
   },
   {
     name: 'Open-Meteo API',
+    short: 'OM',
     district: 'data',
     level: 2,
-    note: 'The forecast and air-quality feed behind Weather Sense.'
+    note: 'The forecast and air-quality feed behind Weather Sense.',
   },
 
   /* 04 — DevOps */
   {
     name: 'Git',
+    short: 'GT',
     district: 'devops',
     level: 4,
     note: 'Every line on this plate is versioned. Branches, merges, and a readable log.',
-    alsoIn: ['arch', 'kivo', 'portfolio']
+    alsoIn: ['arch', 'kivo', 'portfolio'],
   },
   {
     name: 'GitHub',
+    short: 'GH',
     district: 'devops',
     level: 4,
     note: 'Source, issues, pull requests and Pages for everything here.',
-    alsoIn: ['arch', 'shadow-quest', 'civicreport']
+    alsoIn: ['arch', 'shadow-quest', 'civicreport'],
   },
   {
     name: 'Docker',
+    short: 'DK',
     district: 'devops',
     level: 4,
     note: 'Annadata Connect and the AWS Dashboard run containerised. Docker Basics, Simplilearn.',
-    cert: 'docker-basics'
+    cert: 'docker-basics',
   },
   {
     name: 'GitHub Actions',
+    short: 'GA',
     district: 'devops',
     level: 3,
-    note: 'The daily uptime check and the deploy that publishes this site.'
+    note: 'The daily uptime check and the deploy that publishes this site.',
   },
 
   /* 05 — Cloud */
   {
     name: 'AWS',
+    short: 'AW',
     district: 'cloud',
     level: 3,
     note: 'AWS Foundations: compute, storage, networking and billing. EC2 and S3 in the dashboard.',
     aliases: ['LocalStack'],
-    cert: 'aws-foundations'
+    cert: 'aws-foundations',
   },
   {
     name: 'LocalStack',
+    short: 'LS',
     district: 'cloud',
     level: 3,
-    note: 'A local AWS for the dashboard, so a demo never costs anything.'
+    note: 'A local AWS for the dashboard, so a demo never costs anything.',
   },
   {
     name: 'Terraform',
+    short: 'TF',
     district: 'cloud',
     level: 2,
     note: 'Infrastructure as code, written against LocalStack first. Still going up.',
-    learning: true
+    learning: true,
   },
   {
     name: 'Kubernetes',
+    short: 'K8S',
     district: 'cloud',
     level: 2,
     note: 'Pods, deployments and services — learned by running them, not by reading about them.',
-    learning: true
+    learning: true,
   },
   {
     name: 'Nginx',
+    short: 'NX',
     district: 'cloud',
     level: 2,
-    note: 'Reverse proxy and static serving for the things hosted on my own box.'
+    note: 'Reverse proxy and static serving for the things hosted on my own box.',
   },
 
   /* 06 — Infrastructure */
   {
     name: 'Linux',
+    short: 'LX',
     district: 'infrastructure',
     level: 4,
     note: 'Shell, filesystem and permissions — the base layer for everything deployed here.',
-    cert: 'linux-unhatched'
+    cert: 'linux-unhatched',
   },
   {
     name: 'Prometheus',
+    short: 'PM',
     district: 'infrastructure',
     level: 2,
-    note: 'Metrics scraped from the services running on my own machines.'
+    note: 'Metrics scraped from the services running on my own machines.',
   },
   {
     name: 'Grafana',
+    short: 'GF',
     district: 'infrastructure',
     level: 2,
-    note: 'The dashboards that read those metrics back.'
+    note: 'The dashboards that read those metrics back.',
   },
   {
     name: 'Networking',
+    short: 'NW',
     district: 'infrastructure',
     level: 2,
     note: 'Ports, DNS, reverse proxies and why a container cannot see the host.',
-    cert: 'cloud-computing'
-  }
+    cert: 'cloud-computing',
+  },
 ]
 
-export const skills: Skill[] = inputs.map(input => ({
+export const skills: Skill[] = inputs.map((input) => ({
   ...input,
   id: slug(input.name),
   districtName: districtById.get(input.district)?.name ?? input.district,
-  code: districtById.get(input.district)?.code ?? '00'
+  code: districtById.get(input.district)?.code ?? '00',
 }))
 
-export const skillById = new Map(skills.map(s => [s.id, s]))
+export const skillById = new Map(skills.map((s) => [s.id, s]))
 
 export function skillsInDistrict(id: DistrictId): Skill[] {
   return skills
-    .filter(skill => skill.district === id)
+    .filter((skill) => skill.district === id)
     .slice()
     .sort((a, b) => b.level - a.level || a.name.localeCompare(b.name, 'en'))
 }
@@ -373,28 +412,29 @@ export function levelLabel(skill: Pick<Skill, 'level' | 'learning'>): string {
 
 /** The projects that actually use a technology, newest and featured first. */
 export function projectsFor(skill: Skill): Project[] {
-  const names = [skill.name, ...(skill.aliases ?? [])].map(n => n.toLowerCase())
-  const found = projects.filter(p =>
-    p.stack.some(tool => names.includes(tool.toLowerCase()))
-  )
+  const names = [skill.name, ...(skill.aliases ?? [])].map((n) => n.toLowerCase())
+  const found = projects.filter((p) => p.stack.some((tool) => names.includes(tool.toLowerCase())))
   for (const id of skill.alsoIn ?? []) {
-    const project = projects.find(p => p.id === id)
+    const project = projects.find((p) => p.id === id)
     if (project && !found.includes(project)) found.push(project)
   }
   return found
     .slice()
-    .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || b.year.localeCompare(a.year))
+    .sort(
+      (a, b) =>
+        Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || b.year.localeCompare(a.year),
+    )
     .slice(0, 4)
 }
 
 export function certificateFor(skill: Skill): Credential | undefined {
-  return skill.cert ? credentials.find(c => c.id === skill.cert) : undefined
+  return skill.cert ? credentials.find((c) => c.id === skill.cert) : undefined
 }
 
 export const cityStats = {
   towers: skills.length,
   districts: districts.length,
-  learning: skills.filter(s => s.learning).length
+  learning: skills.filter((s) => s.learning).length,
 }
 
 /* ——— the plate —————————————————————————————————————————————————————————— */
@@ -405,8 +445,8 @@ export const ROAD = 3.6
 export const PLOT_HEIGHT = 0.18
 export const PLATE = { width: 44, depth: 30, thickness: 1.1, radius: 1.5 }
 
-export const columnX = [0, 1, 2].map(col => (col - 1) * (PLOT + ROAD))
-export const rowZ = [0, 1].map(row => (row - 0.5) * (PLOT + ROAD))
+export const columnX = [0, 1, 2].map((col) => (col - 1) * (PLOT + ROAD))
+export const rowZ = [0, 1].map((row) => (row - 0.5) * (PLOT + ROAD))
 
 export function plotCenter(district: District): { x: number; z: number } {
   return { x: columnX[district.plot.col], z: rowZ[district.plot.row] }
@@ -414,13 +454,7 @@ export function plotCenter(district: District): { x: number; z: number } {
 
 export type Rect = { x: number; z: number; w: number; d: number }
 
-export type CityShape =
-  | 'tower'
-  | 'setback'
-  | 'block'
-  | 'slab'
-  | 'antenna'
-  | 'construction'
+export type CityShape = 'tower' | 'setback' | 'block' | 'slab' | 'antenna' | 'construction'
 
 export type CityBuilding = {
   id: string
@@ -466,7 +500,7 @@ const SLOTS: [number, number][] = [
   [-1, -1],
   [1, -1],
   [-1, 1],
-  [1, 1]
+  [1, 1],
 ]
 const PITCH = 3.15
 
@@ -503,14 +537,15 @@ export const cityBuildings: CityBuilding[] = (() => {
       const shape = shapeFor(skill, index)
       const { w, d } = footprint(skill, shape)
       const base = LEVEL_HEIGHT[skill.level] + (noise(`${skill.id}:h`) - 0.5) * 0.9
-      const h = shape === 'construction' ? 2.5 : shape === 'slab' ? Math.max(1.9, base * 0.62) : base
+      const h =
+        shape === 'construction' ? 2.5 : shape === 'slab' ? Math.max(1.9, base * 0.62) : base
       out.push({ id: skill.id, skill, district, x, z, w, d, h, shape })
     })
   }
   return out
 })()
 
-export const cityBuildingById = new Map(cityBuildings.map(b => [b.id, b]))
+export const cityBuildingById = new Map(cityBuildings.map((b) => [b.id, b]))
 
 /** One box of a building, in the building's own space: y is its base. */
 export type PartKind = 'facade' | 'roof' | 'detail' | 'green' | 'side'
@@ -537,7 +572,7 @@ export function buildingParts(b: CityBuilding): BuildingPart[] {
     d: number,
     x: number,
     y: number,
-    z: number
+    z: number,
   ) => {
     parts.push({ kind, w, h, d, x, y, z })
   }
@@ -639,7 +674,7 @@ export const cityFabric: CityFabric[] = (() => {
   const out: CityFabric[] = []
   for (const district of districts) {
     const center = plotCenter(district)
-    const used = cityBuildings.filter(b => b.district.id === district.id).length
+    const used = cityBuildings.filter((b) => b.district.id === district.id).length
     const chosen = SLOTS.slice(used)
     chosen.forEach((slot, index) => {
       const seed = `${district.id}:fabric:${index}`
@@ -648,7 +683,7 @@ export const cityFabric: CityFabric[] = (() => {
         z: center.z + slot[1] * PITCH + (noise(`${seed}:z`) - 0.5) * 0.3,
         w: 1.35 + noise(`${seed}:w`) * 0.65,
         d: 1.35 + noise(`${seed}:d`) * 0.65,
-        h: 0.85 + noise(`${seed}:h`) * 1.25
+        h: 0.85 + noise(`${seed}:h`) * 1.25,
       })
     })
   }
@@ -668,7 +703,7 @@ export function plotRect(district: District): Rect {
 export const greenRoads: Rect[] = [
   { x: -6.8, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
   { x: 6.8, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
-  { x: 0, z: 0, w: PLATE.width - 1.4, d: ROAD }
+  { x: 0, z: 0, w: PLATE.width - 1.4, d: ROAD },
 ]
 
 /** A handful of tiny vehicles, so the blocks have a sense of scale. */
@@ -688,7 +723,7 @@ export const cityVehicles: CityVehicle[] = [
   { x: -7.42, z: -8.8, turned: true, tone: 'cream' },
   { x: -6.18, z: -3.6, turned: true, tone: 'dark' },
   { x: 6.18, z: 4.4, turned: true, tone: 'cream' },
-  { x: 7.42, z: 9.2, turned: true, tone: 'dark' }
+  { x: 7.42, z: 9.2, turned: true, tone: 'dark' },
 ]
 
 /** Cream dashes down the middle of the four road corridors. */
@@ -719,6 +754,6 @@ export const plateRim: Rect[] = (() => {
     { x: 0, z: -d / 2 + inset, w: w - inset * 2, d: 0.12 },
     { x: 0, z: d / 2 - inset, w: w - inset * 2, d: 0.12 },
     { x: -w / 2 + inset, z: 0, w: 0.12, d: d - inset * 2 },
-    { x: w / 2 - inset, z: 0, w: 0.12, d: d - inset * 2 }
+    { x: w / 2 - inset, z: 0, w: 0.12, d: d - inset * 2 },
   ]
 })()

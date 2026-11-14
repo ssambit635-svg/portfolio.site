@@ -9,16 +9,13 @@ import {
   skillById,
   skillsInDistrict,
   type DistrictId,
-  type Skill
+  type Skill,
 } from '../lib/skillCity'
 import { prefersReducedMotion } from '../lib/utils'
 import type { SkillCityController } from './skillCityScene'
 import '../city.css'
 
-type Selection =
-  | { kind: 'skill'; id: string }
-  | { kind: 'district'; id: DistrictId }
-  | null
+type Selection = { kind: 'skill'; id: string } | { kind: 'district'; id: DistrictId } | null
 
 type Hover = { id: string; x: number; y: number } | null
 
@@ -27,7 +24,9 @@ function isFocusTarget(element: Element | null): element is HTMLElement {
   return (
     element instanceof HTMLElement &&
     element !== document.body &&
-    element.matches('button, a[href], summary, input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    element.matches(
+      'button, a[href], summary, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    )
   )
 }
 
@@ -56,7 +55,7 @@ function ArrowUpRight() {
 function LevelBlocks({ skill }: { skill: Skill }) {
   return (
     <span className="city-level-blocks" aria-hidden="true">
-      {[1, 2, 3, 4, 5].map(n => (
+      {[1, 2, 3, 4, 5].map((n) => (
         <i
           key={n}
           data-on={n <= skill.level ? 'true' : 'false'}
@@ -92,7 +91,7 @@ function SkillDossier({ skill }: { skill: Skill }) {
         <h4>Shipped with</h4>
         {used.length > 0 ? (
           <ul className="city-panel-projects">
-            {used.map(project => (
+            {used.map((project) => (
               <li className="city-project" key={project.id}>
                 <a
                   className="city-project-main"
@@ -148,13 +147,7 @@ function SkillDossier({ skill }: { skill: Skill }) {
   )
 }
 
-function DistrictDossier({
-  id,
-  onPick
-}: {
-  id: DistrictId
-  onPick: (skill: Skill) => void
-}) {
+function DistrictDossier({ id, onPick }: { id: DistrictId; onPick: (skill: Skill) => void }) {
   const district = districtById.get(id)
   if (!district) return null
   const list = skillsInDistrict(id)
@@ -170,11 +163,9 @@ function DistrictDossier({
       </h3>
       <p className="city-panel-note city-panel-blurb">{district.blurb}</p>
       <div className="city-panel-section">
-        <h4>
-          {list.length} towers — tallest first
-        </h4>
+        <h4>{list.length} towers — tallest first</h4>
         <ul className="city-panel-towers">
-          {list.map(skill => (
+          {list.map((skill) => (
             <li key={skill.id}>
               <button type="button" onClick={() => onPick(skill)}>
                 <span>{skill.name}</span>
@@ -184,7 +175,9 @@ function DistrictDossier({
           ))}
         </ul>
       </div>
-      <p className="city-panel-empty">Pick a tower to open its dossier, or drag the city around it.</p>
+      <p className="city-panel-empty">
+        Pick a tower to open its dossier, or drag the city around it.
+      </p>
     </div>
   )
 }
@@ -214,8 +207,8 @@ export default function SkillCity() {
     let cancelled = false
     let controller: SkillCityController | null = null
     const observer = new IntersectionObserver(
-      entries => {
-        if (!entries.some(entry => entry.isIntersecting)) return
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return
         observer.disconnect()
         void import('./skillCityScene')
           .then(({ createSkillCity }) => {
@@ -224,10 +217,10 @@ export default function SkillCity() {
               controller = createSkillCity(host, {
                 reducedMotion: prefersReducedMotion(),
                 onHover: (id, at) => setHover(id && at ? { id, x: at.x, y: at.y } : null),
-                onSelect: id => setSelection(id ? { kind: 'skill', id } : null),
-                onDistrict: id => {
+                onSelect: (id) => setSelection(id ? { kind: 'skill', id } : null),
+                onDistrict: (id) => {
                   if (id) setSelection({ kind: 'district', id })
-                }
+                },
               })
               controllerRef.current = controller
               // A district or tower may have been picked from the index before
@@ -244,7 +237,7 @@ export default function SkillCity() {
             if (!cancelled) setFailed(true)
           })
       },
-      { rootMargin: '360px' }
+      { rootMargin: '360px' },
     )
     observer.observe(host)
 
@@ -287,7 +280,7 @@ export default function SkillCity() {
     window.addEventListener('keydown', onKey)
     const frame = requestAnimationFrame(() => {
       panelRef.current?.querySelector<HTMLButtonElement>('.city-panel-close')?.focus({
-        preventScroll: true
+        preventScroll: true,
       })
     })
     return () => {
@@ -296,14 +289,13 @@ export default function SkillCity() {
     }
   }, [selection])
 
-  const selectedSkill = selection?.kind === 'skill' ? skillById.get(selection.id) ?? null : null
+  const selectedSkill = selection?.kind === 'skill' ? (skillById.get(selection.id) ?? null) : null
   const selectedDistrict =
-    selection?.kind === 'district' ? districtById.get(selection.id) ?? null : null
-  const hovered = hover ? skillById.get(hover.id) ?? null : null
+    selection?.kind === 'district' ? (districtById.get(selection.id) ?? null) : null
+  const hovered = hover ? (skillById.get(hover.id) ?? null) : null
   const open = Boolean(selectedSkill || selectedDistrict)
   // A selected tower also lights its district chip, so the HUD keeps the context.
-  const activeDistrict =
-    selectedSkill?.district ?? (selectedDistrict ? selectedDistrict.id : null)
+  const activeDistrict = selectedSkill?.district ?? (selectedDistrict ? selectedDistrict.id : null)
 
   /** The index sits under the monitor; keep the dossier where the visitor can see it. */
   const revealScreen = () => {
@@ -313,13 +305,13 @@ export default function SkillCity() {
     if (rect.top >= 0 && rect.bottom <= window.innerHeight) return
     screen.scrollIntoView({
       behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-      block: 'center'
+      block: 'center',
     })
   }
 
   const pickDistrict = (id: DistrictId) => {
-    setSelection(current =>
-      current?.kind === 'district' && current.id === id ? null : { kind: 'district', id }
+    setSelection((current) =>
+      current?.kind === 'district' && current.id === id ? null : { kind: 'district', id },
     )
   }
 
@@ -376,12 +368,13 @@ export default function SkillCity() {
                         {cityStats.towers} towers · {cityStats.districts} districts
                       </span>
                       <span className="city-hud-dim">Height = depth</span>
+                      <span className="city-hud-key">Colour = district · code = tower</span>
                     </div>
                   </div>
 
                   <div className="city-hud-bottom">
                     <div className="city-districts">
-                      {districts.map(district => {
+                      {districts.map((district) => {
                         const active = activeDistrict === district.id
                         return (
                           <button
@@ -391,6 +384,11 @@ export default function SkillCity() {
                             aria-pressed={active}
                             onClick={() => pickDistrict(district.id)}
                           >
+                            <span
+                              className="city-district-swatch"
+                              style={{ background: district.color }}
+                              aria-hidden="true"
+                            />
                             <b>{district.code}</b>
                             {district.name}
                           </button>
@@ -461,7 +459,7 @@ export default function SkillCity() {
                       {selectedDistrict ? (
                         <DistrictDossier
                           id={selectedDistrict.id}
-                          onPick={skill => setSelection({ kind: 'skill', id: skill.id })}
+                          onPick={(skill) => setSelection({ kind: 'skill', id: skill.id })}
                         />
                       ) : null}
                       <div className="city-panel-foot" aria-hidden="true">
@@ -510,10 +508,13 @@ export default function SkillCity() {
             SS / CITY PLAN 01
           </span>
           <p>
-            Every tower is a technology, and its height is how deep the work goes. The cranes are
-            technologies still being built — <b>{cityStats.learning} of {cityStats.towers}</b> are
-            under construction, on purpose. Drag the city, scroll to zoom, and open any tower for
-            the projects behind it.
+            Every tower is a technology, and its height is how deep the work goes. The rooftop code
+            names it; the colour is its district. The cranes are technologies still being built —{' '}
+            <b>
+              {cityStats.learning} of {cityStats.towers}
+            </b>{' '}
+            are under construction, on purpose. Drag the city, scroll to zoom, and open any tower
+            for the projects behind it.
           </p>
         </figcaption>
       </figure>
@@ -527,14 +528,19 @@ export default function SkillCity() {
           </span>
         </summary>
         <div className="city-index-body">
-          {districts.map(district => (
+          {districts.map((district) => (
             <section className="city-index-group" key={district.id}>
               <h3>
+                <i
+                  className="city-index-swatch"
+                  style={{ background: district.color }}
+                  aria-hidden="true"
+                />
                 <span>{district.code}</span>
                 {district.label ?? district.name}
               </h3>
               <ul>
-                {skillsInDistrict(district.id).map(skill => (
+                {skillsInDistrict(district.id).map((skill) => (
                   <li key={skill.id}>
                     <button
                       type="button"
@@ -548,7 +554,12 @@ export default function SkillCity() {
                         revealScreen()
                       }}
                     >
-                      {skill.name}
+                      <span className="city-index-name">
+                        <span className="city-index-code" aria-hidden="true">
+                          {skill.short}
+                        </span>
+                        {skill.name}
+                      </span>
                       <span className="city-index-level">{levelLabel(skill)}</span>
                     </button>
                   </li>
