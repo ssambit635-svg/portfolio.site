@@ -706,25 +706,129 @@ export const greenRoads: Rect[] = [
   { x: 0, z: 0, w: PLATE.width - 1.4, d: ROAD },
 ]
 
-/** A handful of tiny vehicles, so the blocks have a sense of scale. */
-export type CityVehicle = {
-  x: number
-  z: number
-  /** 0 drives east-west, 1 drives north-south. */
-  turned: boolean
-  tone: 'cream' | 'dark'
+/** The avenue centres, reused by the lanes, the lamps and the crossings. */
+export const AVENUE_X = 6.8
+export const AVENUE_HALF = { x: PLATE.width / 2 - 1.6, z: PLATE.depth / 2 - 1.6 }
+
+/** Which way a lane runs: along x on the cross avenue, along z on the two others. */
+export type TrafficLane = {
+  axis: 'x' | 'z'
+  /** The road's centre line across the axis: `z` for an x lane, `x` for a z lane. */
+  road: number
+  /** Offset from that centre line, in world units. Right-hand traffic. */
+  offset: number
+  /** +1 towards increasing coordinates, -1 towards decreasing. */
+  dir: 1 | -1
+  /** The lap runs from one end of the avenue to the other and wraps. */
+  from: number
+  to: number
 }
 
-export const cityVehicles: CityVehicle[] = [
-  { x: -15.2, z: 0.58, turned: false, tone: 'cream' },
-  { x: -10.6, z: -0.58, turned: false, tone: 'dark' },
-  { x: 9.8, z: 0.58, turned: false, tone: 'cream' },
-  { x: 15.4, z: -0.58, turned: false, tone: 'cream' },
-  { x: -7.42, z: -8.8, turned: true, tone: 'cream' },
-  { x: -6.18, z: -3.6, turned: true, tone: 'dark' },
-  { x: 6.18, z: 4.4, turned: true, tone: 'cream' },
-  { x: 7.42, z: 9.2, turned: true, tone: 'dark' },
+export const trafficLanes: TrafficLane[] = [
+  { axis: 'x', road: 0, offset: 0.94, dir: -1, from: -AVENUE_HALF.x, to: AVENUE_HALF.x },
+  { axis: 'x', road: 0, offset: -0.94, dir: 1, from: -AVENUE_HALF.x, to: AVENUE_HALF.x },
+  { axis: 'z', road: -AVENUE_X, offset: -0.94, dir: -1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
+  { axis: 'z', road: -AVENUE_X, offset: 0.94, dir: 1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
+  { axis: 'z', road: AVENUE_X, offset: -0.94, dir: -1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
+  { axis: 'z', road: AVENUE_X, offset: 0.94, dir: 1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
 ]
+
+/** The two junctions, where the cross avenue meets the north-south ones. */
+export const junctions: Array<{ x: number; z: number }> = [
+  { x: -AVENUE_X, z: 0 },
+  { x: AVENUE_X, z: 0 },
+]
+
+export type CityCarKind = 'sedan' | 'hatch' | 'supercar' | 'van'
+
+/**
+ * Traffic. Every car keeps to a lane for its whole lap, at its own pace, and
+ * the scene gives way at the junctions, so the streets read as a working city
+ * rather than a set of boxes sliding through each other.
+ */
+export type CityCar = {
+  kind: CityCarKind
+  /** Index into `trafficLanes`. */
+  lane: number
+  /** Where it starts along its lane, in world units. */
+  start: number
+  /** World units per second. */
+  speed: number
+  /** Body length on the plate, in world units. */
+  length: number
+}
+
+export const cityCars: CityCar[] = (() => {
+  const out: CityCar[] = []
+  const kinds: CityCarKind[] = ['supercar', 'sedan', 'hatch', 'van', 'supercar', 'hatch']
+  const count = 30
+  for (let i = 0; i < count; i += 1) {
+    const lane = i % trafficLanes.length
+    const spec = trafficLanes[lane]
+    const span = spec.to - spec.from
+    const kind = kinds[Math.floor(noise(`car:${i}:kind`) * kinds.length) % kinds.length]
+    const slow = kind === 'van' ? 0.72 : kind === 'hatch' ? 0.92 : 1
+    out.push({
+      kind,
+      lane,
+      start: spec.from + ((i / count + noise(`car:${i}:at`) * 0.06) % 1) * span,
+      speed: (1.9 + noise(`car:${i}:speed`) * 1.5) * slow,
+      length: kind === 'van' ? 1.26 : kind === 'hatch' ? 0.92 : kind === 'supercar' ? 1.12 : 1.05,
+    })
+  }
+  return out
+})()
+
+/** A lamp standard on the kerb; `arm` is the yaw that points its head at the road. */
+export type CityLamp = { x: number; z: number; arm: number }
+
+export const cityLamps: CityLamp[] = (() => {
+  const out: CityLamp[] = []
+  const kerb = ROAD / 2 + 0.34
+  const step = 5.4
+
+  // The cross avenue: standards on both kerbs, clear of the two junctions.
+  for (let x = -18.9; x <= 18.9; x += step) {
+    if (Math.abs(Math.abs(x) - AVENUE_X) < 3) continue
+    for (const side of [-1, 1]) {
+      out.push({ x, z: side * kerb, arm: side > 0 ? Math.PI : 0 })
+    }
+  }
+  // The two north-south avenues.
+  for (const avenue of [-AVENUE_X, AVENUE_X]) {
+    for (let z = -11.7; z <= 11.7; z += step) {
+      if (Math.abs(z) < 3) continue
+      for (const side of [-1, 1]) {
+        out.push({ x: avenue + side * kerb, z, arm: side > 0 ? -Math.PI / 2 : Math.PI / 2 })
+      }
+    }
+  }
+  return out
+})()
+
+/** Zebra stripes across each approach to a junction. */
+export const cityCrossings: Rect[] = (() => {
+  const out: Rect[] = []
+  const stripe = 0.5
+  const gap = 0.24
+  const length = 1.5
+  const across = ROAD - 0.5
+  for (const junction of junctions) {
+    for (const side of [-1, 1]) {
+      // Approaching along x, the stripes run across z.
+      for (let i = 0; i < 4; i += 1) {
+        const z = -across / 2 + 0.35 + i * (stripe + gap)
+        out.push({ x: junction.x + side * (ROAD / 2 + 0.55 + length / 2), z, w: length, d: stripe })
+      }
+      // Approaching along z, the stripes run across x.
+      for (let i = 0; i < 4; i += 1) {
+        const x = -across / 2 + 0.35 + i * (stripe + gap)
+        out.push({ x, z: junction.z + side * (ROAD / 2 + 0.55 + length / 2), w: stripe, d: length })
+      }
+    }
+  }
+  return out
+})()
 
 /** Cream dashes down the middle of the four road corridors. */
 export const roadDashes: Rect[] = (() => {

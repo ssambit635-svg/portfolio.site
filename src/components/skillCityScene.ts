@@ -11,13 +11,13 @@
  */
 import * as THREE from 'three'
 import { techLogos, type TechLogo } from '../lib/techLogos'
+import { createTraffic } from './cityTraffic'
 import {
   PLATE,
   PLOT,
   PLOT_HEIGHT,
   cityBuildings,
   cityFabric,
-  cityVehicles,
   districts,
   greenRoads,
   plateRim,
@@ -376,8 +376,6 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const assets = {
     fabric: track(new THREE.MeshLambertMaterial({ map: facadePlain, color: 0xe4d8bf })),
     plate: track(new THREE.MeshLambertMaterial({ color: 0x191c1a })),
-    vehicleCream: track(new THREE.MeshLambertMaterial({ color: 0xf1e7d0 })),
-    vehicleDark: track(new THREE.MeshLambertMaterial({ color: 0x454b43 })),
     green: track(new THREE.MeshBasicMaterial({ color: HOT })),
     lane: track(new THREE.MeshLambertMaterial({ color: 0x00944f })),
     dash: track(new THREE.MeshBasicMaterial({ color: 0xd7ccb3 })),
@@ -703,20 +701,9 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     scene.add(group)
   }
 
-  // Traffic: little boxes on the road, just enough to give the blocks a scale.
-  for (const car of cityVehicles) {
-    const geo = track(
-      new THREE.BoxGeometry(car.turned ? 0.15 : 0.36, 0.12, car.turned ? 0.36 : 0.15),
-    )
-    const mesh = new THREE.Mesh(
-      geo,
-      car.tone === 'cream' ? assets.vehicleCream : assets.vehicleDark,
-    )
-    mesh.position.set(car.x, 0.08, car.z)
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-    scene.add(mesh)
-  }
+  // Traffic, kerb lamps and zebra crossings: real kit cars running the avenues,
+  // with the traffic rules in cityTraffic.ts.
+  const traffic = createTraffic(scene, camera, !options.reducedMotion)
 
   for (const mesh of plotMeshes.values()) pickables.push(mesh)
 
@@ -1107,6 +1094,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       }
     }
 
+    traffic.update(dt / 1000)
     placeCamera()
     renderer.render(scene, camera)
   }
@@ -1126,6 +1114,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       resizeObserver.disconnect()
       intersectionObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
+      traffic.dispose()
       for (const item of disposables) item.dispose()
       renderer.dispose()
       if (canvas.parentElement === host) host.removeChild(canvas)
