@@ -217,6 +217,11 @@
   text-align: right;
   align-items: flex-end;
 }
+.city-hud-key {
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  color: #7f7c71;
+}
 .city-hud-live {
   display: inline-flex;
   align-items: center;
@@ -291,6 +296,15 @@
     color 0.16s,
     border-color 0.16s;
   -webkit-tap-highlight-color: transparent;
+}
+.city-district .city-district-swatch {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.city-district[aria-pressed='true'] .city-district-swatch {
+  border-color: rgba(4, 20, 12, 0.45);
 }
 .city-district b {
   font-weight: 400;
@@ -819,7 +833,7 @@
 .city-index-group h3 {
   margin: 0 0 8px;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   font-family: var(--mono);
   font-size: 8.5px;
@@ -827,6 +841,26 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #8a857a;
+}
+.city-index-swatch {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border: 1px solid rgba(238, 227, 204, 0.28);
+}
+.city-index-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.city-index-code {
+  flex: none;
+  width: 22px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: #6f6b60;
 }
 .city-index-group h3 span {
   color: var(--green);
@@ -1049,6 +1083,9 @@
   .city-hud-right {
     font-size: 8px;
   }
+  .city-hud-key {
+    font-size: 7px;
+  }
   .city-hud-live {
     font-size: 7.5px;
   }
@@ -1085,7 +1122,16 @@
     margin-left: auto;
   }
   .city-districts {
+    /* With a swatch on every chip the six no longer fit a phone's screen:
+       take a second row instead of a silent horizontal scroll. */
     gap: 2px;
+    flex-wrap: wrap;
+    overflow: visible;
+    row-gap: 3px;
+  }
+  .city-index-code {
+    width: 24px;
+    font-size: 9.5px;
   }
   .city-district {
     font-size: 7px;
@@ -1094,17 +1140,6 @@
   }
   .city-district b {
     display: none;
-  }
-}
-
-/* On a 320-wide screen the six district chips are wider than the screen and
-   the last one clipped; let them take a second row instead of hiding behind a
-   silent horizontal scroll. */
-@media (max-width: 380px) {
-  .city-districts {
-    flex-wrap: wrap;
-    overflow: visible;
-    row-gap: 3px;
   }
 }
 
