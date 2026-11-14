@@ -10,7 +10,14 @@
  * skills, so a tower's height and the level bars in its dossier can never
  * disagree.
  */
-import { credentials, projects, type Credential, type Project } from './site'
+import {
+  achievements,
+  credentials,
+  experience,
+  projects,
+  type Credential,
+  type Project,
+} from './site'
 
 export type DistrictId = 'programming' | 'web' | 'data' | 'devops' | 'cloud' | 'infrastructure'
 
@@ -739,7 +746,46 @@ export const junctions: Array<{ x: number; z: number }> = [
   { x: AVENUE_X, z: 0 },
 ]
 
-export type CityCarKind = 'sedan' | 'hatch' | 'supercar' | 'van'
+export type CityCarKind = 'sedan' | 'hatch' | 'supercar' | 'van' | 'taxi'
+
+/**
+ * What the traffic means. The towers are skills; the cars are the proof — one
+ * vehicle per certificate, shipped project, award and course on the site, so
+ * the street is the CV driving past.
+ */
+export type CarRole = 'certified' | 'shipped' | 'award' | 'learning'
+
+export const carRoles: Record<CarRole, { label: string; note: string; kind: CityCarKind }> = {
+  certified: {
+    label: 'Certified',
+    note: 'Certificate or badge',
+    kind: 'supercar',
+  },
+  shipped: {
+    label: 'Shipped',
+    note: 'A project that went out',
+    kind: 'van',
+  },
+  award: {
+    label: 'Award',
+    note: 'Hackathon or competition',
+    kind: 'taxi',
+  },
+  learning: {
+    label: 'Learning',
+    note: 'A course in progress',
+    kind: 'hatch',
+  },
+}
+
+/** The thing a car is carrying. */
+export type CarEntry = {
+  id: string
+  /** Printed in the hover plaque: the credential, project or award. */
+  title: string
+  /** The second line — issuer, status, year. */
+  detail: string
+}
 
 /**
  * Traffic. Every car keeps to a lane for its whole lap, at its own pace, and
@@ -748,6 +794,8 @@ export type CityCarKind = 'sedan' | 'hatch' | 'supercar' | 'van'
  */
 export type CityCar = {
   kind: CityCarKind
+  role: CarRole
+  entry: CarEntry
   /** Index into `trafficLanes`. */
   lane: number
   /** Where it starts along its lane, in world units. */
@@ -758,25 +806,59 @@ export type CityCar = {
   length: number
 }
 
+const CAR_LENGTH: Record<CityCarKind, number> = {
+  supercar: 1.12,
+  van: 1.26,
+  taxi: 1.06,
+  sedan: 1.05,
+  hatch: 0.92,
+}
+
+/** Every car on the street, one per thing the site can prove. */
 export const cityCars: CityCar[] = (() => {
-  const out: CityCar[] = []
-  const kinds: CityCarKind[] = ['supercar', 'sedan', 'hatch', 'van', 'supercar', 'hatch']
-  const count = 30
-  for (let i = 0; i < count; i += 1) {
+  const fleet: Array<{ role: CarRole; entry: CarEntry }> = [
+    ...credentials.map((credential) => ({
+      role: 'certified' as const,
+      entry: {
+        id: credential.id,
+        title: credential.title,
+        detail: credential.issuer,
+      },
+    })),
+    ...projects.map((project) => ({
+      role: 'shipped' as const,
+      entry: {
+        id: project.id,
+        title: project.title,
+        detail: project.status === 'live' ? `Live · ${project.year}` : `In the lab · ${project.year}`,
+      },
+    })),
+    ...achievements.map((award) => ({
+      role: 'award' as const,
+      entry: { id: award.id, title: award.title, detail: award.detail },
+    })),
+    ...experience.map((course) => ({
+      role: 'learning' as const,
+      entry: { id: course.id, title: course.role, detail: course.org },
+    })),
+  ]
+
+  return fleet.map((item, i) => {
     const lane = i % trafficLanes.length
     const spec = trafficLanes[lane]
     const span = spec.to - spec.from
-    const kind = kinds[Math.floor(noise(`car:${i}:kind`) * kinds.length) % kinds.length]
-    const slow = kind === 'van' ? 0.72 : kind === 'hatch' ? 0.92 : 1
-    out.push({
+    const kind = carRoles[item.role].kind
+    const slow = kind === 'van' ? 0.72 : kind === 'hatch' ? 0.92 : kind === 'taxi' ? 0.88 : 1
+    return {
       kind,
+      role: item.role,
+      entry: item.entry,
       lane,
-      start: spec.from + ((i / count + noise(`car:${i}:at`) * 0.06) % 1) * span,
+      start: spec.from + ((i / fleet.length + noise(`car:${i}:at`) * 0.04) % 1) * span,
       speed: (1.9 + noise(`car:${i}:speed`) * 1.5) * slow,
-      length: kind === 'van' ? 1.26 : kind === 'hatch' ? 0.92 : kind === 'supercar' ? 1.12 : 1.05,
-    })
-  }
-  return out
+      length: CAR_LENGTH[kind],
+    }
+  })
 })()
 
 /** A lamp standard on the kerb; `arm` is the yaw that points its head at the road. */

@@ -23,23 +23,37 @@ import {
   cityCrossings,
   cityLamps,
   trafficLanes,
+  type CarEntry,
+  type CarRole,
   type CityCarKind,
 } from '../lib/skillCity'
 import deliveryUrl from '../assets/cars/delivery.glb?url'
 import hatchbackUrl from '../assets/cars/hatchback-sports.glb?url'
 import raceUrl from '../assets/cars/race-future.glb?url'
 import sedanUrl from '../assets/cars/sedan-sports.glb?url'
+import taxiUrl from '../assets/cars/taxi.glb?url'
 
 const CAR_URLS: Record<CityCarKind, string> = {
   sedan: sedanUrl,
   hatch: hatchbackUrl,
   supercar: raceUrl,
   van: deliveryUrl,
+  taxi: taxiUrl,
+}
+
+/** A car under the pointer: what it is carrying, not just where it is. */
+export type CarHit = {
+  role: CarRole
+  entry: CarEntry
+  /** Distance along the ray, so the nearest of several hits wins. */
+  distance: number
 }
 
 /** A car's state along its lane. */
 type Runner = {
   kind: CityCarKind
+  role: CarRole
+  entry: CarEntry
   lane: number
   /** Position along the lane's axis, in world units. */
   at: number
@@ -52,6 +66,8 @@ type Runner = {
 export type Traffic = {
   /** Advance the cars. `dt` is the frame's delta in seconds. */
   update: (dt: number) => void
+  /** The car under this ray, if any. */
+  hitTest: (raycaster: THREE.Raycaster) => CarHit | null
   dispose: () => void
 }
 
@@ -236,6 +252,8 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
     slotByKind.set(car.kind, slot + 1)
     runners.push({
       kind: car.kind,
+      role: car.role,
+      entry: car.entry,
       lane: car.lane,
       at: car.start,
       speed: car.speed,
@@ -244,6 +262,14 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
     })
   }
   const meshes = new Map<CityCarKind, THREE.InstancedMesh>()
+  /** Which car sits in which instance slot, per type. Runners keep the order
+   * they were added in, which is the order the slots were handed out. */
+  const bySlot = new Map<CityCarKind, Runner[]>()
+  for (const runner of runners) {
+    const list = bySlot.get(runner.kind) ?? []
+    list.push(runner)
+    bySlot.set(runner.kind, list)
+  }
 
   // The sun's shadow map skips the green carriageways, so every car carries a
   // soft contact shadow of its own — without it they read as decals.
@@ -427,8 +453,24 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
     }
   }
 
+  const hitTest = (raycaster: THREE.Raycaster): CarHit | null => {
+    let best: CarHit | null = null
+    for (const [kind, mesh] of meshes) {
+      for (const intersection of raycaster.intersectObject(mesh, false)) {
+        const slot = intersection.instanceId
+        if (slot === undefined) continue
+        const runner = bySlot.get(kind)?.[slot]
+        if (!runner) continue
+        if (best && best.distance <= intersection.distance) continue
+        best = { role: runner.role, entry: runner.entry, distance: intersection.distance }
+      }
+    }
+    return best
+  }
+
   return {
     update,
+    hitTest,
     dispose: () => {
       disposed = true
       for (const mesh of meshes.values()) {

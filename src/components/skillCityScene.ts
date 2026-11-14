@@ -17,6 +17,7 @@ import {
   PLOT,
   PLOT_HEIGHT,
   cityBuildings,
+  carRoles,
   cityFabric,
   districts,
   greenRoads,
@@ -31,6 +32,15 @@ import {
 
 export type HoverPoint = { x: number; y: number }
 
+/** A car under the pointer: the proof it stands for, and where to print it. */
+export type VehicleHover = {
+  role: string
+  title: string
+  detail: string
+  x: number
+  y: number
+}
+
 export type SceneOptions = {
   reducedMotion: boolean
   /** Called with a skill id, or null when the pointer leaves a tower. */
@@ -39,6 +49,8 @@ export type SceneOptions = {
   onSelect: (id: string | null) => void
   /** A city block was clicked. null means empty plate. */
   onDistrict: (id: DistrictId | null) => void
+  /** A car is under the pointer. null when it moves away. */
+  onVehicle: (hit: VehicleHover | null) => void
 }
 
 export type SkillCityController = {
@@ -835,6 +847,10 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
         node = node.parent
       }
     }
+    // Cars are not pickable through `pickables` — they are instanced and they
+    // move — so they get their own pass, and the nearer of the two wins.
+    const car = traffic.hitTest(raycaster)
+    if (car) return { kind: 'car' as const, hit: car }
     return null
   }
 
@@ -1007,6 +1023,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const onPointerLeave = () => {
     pointer.inside = false
     setHovered(null, null)
+    options.onVehicle(null)
   }
 
   const onWheel = (event: WheelEvent) => {
@@ -1091,6 +1108,17 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
         setHovered(hit.id, { x: pointer.x, y: pointer.y })
       } else {
         setHovered(null, null)
+      }
+      if (hit?.kind === 'car') {
+        options.onVehicle({
+          role: carRoles[hit.hit.role].label,
+          title: hit.hit.entry.title,
+          detail: hit.hit.entry.detail,
+          x: pointer.x,
+          y: pointer.y,
+        })
+      } else {
+        options.onVehicle(null)
       }
     }
 

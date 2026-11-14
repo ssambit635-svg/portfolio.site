@@ -18,6 +18,8 @@ import '../city.css'
 type Selection = { kind: 'skill'; id: string } | { kind: 'district'; id: DistrictId } | null
 
 type Hover = { id: string; x: number; y: number } | null
+/** A car under the pointer, with the proof it carries. */
+type VehicleTag = { role: string; title: string; detail: string; x: number; y: number } | null
 
 /** Only real controls deserve focus back when a dossier closes. */
 function isFocusTarget(element: Element | null): element is HTMLElement {
@@ -189,6 +191,7 @@ export default function SkillCity() {
   const [selection, setSelection] = useState<Selection>(null)
   const lastFocus = useRef<HTMLElement | null>(null)
   const [hover, setHover] = useState<Hover>(null)
+  const [vehicle, setVehicle] = useState<VehicleTag | null>(null)
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
   const selectionRef = useRef<Selection>(null)
@@ -221,6 +224,7 @@ export default function SkillCity() {
                 onDistrict: (id) => {
                   if (id) setSelection({ kind: 'district', id })
                 },
+                onVehicle: (hit) => setVehicle(hit),
               })
               controllerRef.current = controller
               // A district or tower may have been picked from the index before
@@ -361,6 +365,10 @@ export default function SkillCity() {
                       </span>
                       <span className="city-hud-dim">Height = depth</span>
                       <span className="city-hud-key">Colour = district · code = tower</span>
+                      <span className="city-hud-dim city-hud-street">Street = proof</span>
+                      <span className="city-hud-key city-hud-street">
+                        Supercar certified · van shipped · taxi award · car learning
+                      </span>
                     </div>
                   </div>
 
@@ -417,6 +425,17 @@ export default function SkillCity() {
                     </div>
                   </div>
                 </div>
+
+                {vehicle && !open ? (
+                  <div
+                    className="city-tag city-tag-car"
+                    style={{ left: `${vehicle.x * 100}%`, top: `${vehicle.y * 100}%` }}
+                    aria-hidden="true"
+                  >
+                    {vehicle.title}
+                    <em>{vehicle.role}</em>
+                  </div>
+                ) : null}
 
                 {hovered && !open ? (
                   <div
@@ -498,7 +517,9 @@ export default function SkillCity() {
               {cityStats.learning} of {cityStats.towers}
             </b>{' '}
             are under construction, on purpose. Drag the city, scroll to zoom, and open any tower
-            for the projects behind it.
+            for the projects behind it. The traffic is the proof: a supercar carries a certificate,
+            the van a shipped project, the taxi an award, and the hatchback a course in progress —
+            hover one and it names itself.
           </p>
         </figcaption>
       </figure>

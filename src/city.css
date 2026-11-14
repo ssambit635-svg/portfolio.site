@@ -398,6 +398,16 @@
   font-style: normal;
   color: var(--green);
 }
+/* A car's plaque: cream, so proof and skill never read as the same thing. */
+.city-tag-car {
+  border-color: #d7ccb3;
+}
+.city-tag-car em {
+  color: #969183;
+}
+.city-tag-car::after {
+  background: #d7ccb3;
+}
 .city-tag::after {
   content: '';
   position: absolute;
@@ -1071,6 +1081,11 @@
 }
 
 @media (max-width: 560px) {
+  /* The key needs two lines it does not have room for; the caption under the
+     monitor carries the same sentence, in full. */
+  .city-hud-street {
+    display: none;
+  }
   .city-hud-name {
     font-size: 8.5px;
   }
