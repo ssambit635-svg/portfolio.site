@@ -702,42 +702,134 @@ export function plotRect(district: District): Rect {
   return { x, z, w: PLOT, d: PLOT }
 }
 
+/** The avenue centres, reused by the roads, the lanes, the lamps and the crossings. */
+export const AVENUE_X = 6.8
+
 /**
- * The road grid: two avenues running north-south, one running east-west,
- * painted the same green as the site's signal colour. Broad bands, like the
- * lit roads of a model city, not thin outlines around each block.
+ * The circuit. The two avenues run north-south between the columns of blocks;
+ * a short connector at the front of the plate and another at the back join
+ * them into one closed ring. A lap closes on itself, so a car never reaches the
+ * end of a street, is never teleported back to the start, and never drives the
+ * wrong way down the road it is on.
+ */
+export const RING = { halfX: AVENUE_X, halfZ: 13, radius: 2.4, width: 2.8 }
+
+/**
+ * The road grid: two avenues running north-south, one running east-west, and
+ * the two connectors that close the ring. Painted the same green as the site's
+ * signal colour — broad bands, like the lit roads of a model city, not thin
+ * outlines around each block.
  */
 export const greenRoads: Rect[] = [
-  { x: -6.8, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
-  { x: 6.8, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
+  { x: -AVENUE_X, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
+  { x: AVENUE_X, z: 0, w: ROAD, d: PLATE.depth - 1.6 },
   { x: 0, z: 0, w: PLATE.width - 1.4, d: ROAD },
+  { x: 0, z: -RING.halfZ, w: AVENUE_X * 2 + ROAD, d: RING.width },
+  { x: 0, z: RING.halfZ, w: AVENUE_X * 2 + ROAD, d: RING.width },
 ]
 
-/** The avenue centres, reused by the lanes, the lamps and the crossings. */
-export const AVENUE_X = 6.8
-export const AVENUE_HALF = { x: PLATE.width / 2 - 1.6, z: PLATE.depth / 2 - 1.6 }
+/** A point on the ring, and the direction the road runs there. */
+export type RingPoint = { x: number; z: number; tx: number; tz: number }
 
-/** Which way a lane runs: along x on the cross avenue, along z on the two others. */
+type RingSample = RingPoint & { s: number }
+
+/**
+ * The centre line of the circuit, sampled every few centimetres so a car's
+ * heading is smooth all the way round the corners.
+ */
+const ringSamples: RingSample[] = (() => {
+  const { halfX: a, halfZ: b, radius: r } = RING
+  const points: Array<{ x: number; z: number }> = []
+  const push = (x: number, z: number) => {
+    const last = points[points.length - 1]
+    if (last && Math.abs(last.x - x) < 1e-6 && Math.abs(last.z - z) < 1e-6) return
+    points.push({ x, z })
+  }
+  const line = (x0: number, z0: number, x1: number, z1: number) => {
+    const steps = Math.max(1, Math.round(Math.hypot(x1 - x0, z1 - z0) / 0.08))
+    for (let i = 0; i < steps; i += 1) {
+      push(x0 + ((x1 - x0) * i) / steps, z0 + ((z1 - z0) * i) / steps)
+    }
+  }
+  const arc = (cx: number, cz: number, from: number, to: number) => {
+    const steps = Math.max(4, Math.round((Math.abs(to - from) * r) / 0.08))
+    for (let i = 0; i < steps; i += 1) {
+      const t = from + ((to - from) * i) / steps
+      push(cx + Math.cos(t) * r, cz + Math.sin(t) * r)
+    }
+  }
+  const x = a - r
+  const z = b - r
+  // Down the east side, west along the south edge, up the west side, east along
+  // the north edge, with a quarter circle at each corner.
+  line(a, -z, a, z)
+  arc(x, z, 0, Math.PI / 2)
+  line(x, b, -x, b)
+  arc(-x, z, Math.PI / 2, Math.PI)
+  line(-a, z, -a, -z)
+  arc(-x, -z, Math.PI, (Math.PI * 3) / 2)
+  line(-x, -b, x, -b)
+  arc(x, -z, (Math.PI * 3) / 2, Math.PI * 2)
+
+  const out: RingSample[] = []
+  let s = 0
+  for (let index = 0; index < points.length; index += 1) {
+    const point = points[index]
+    const previous = points[index === 0 ? points.length - 1 : index - 1]
+    const next = points[(index + 1) % points.length]
+    // The heading through a point, averaged over its neighbours: smooth corners
+    // instead of one hard turn per sample.
+    const dx = next.x - previous.x
+    const dz = next.z - previous.z
+    const length = Math.hypot(dx, dz) || 1
+    if (index > 0) s += Math.hypot(point.x - previous.x, point.z - previous.z)
+    out.push({ x: point.x, z: point.z, s, tx: dx / length, tz: dz / length })
+  }
+  return out
+})()
+
+/** One lap of the circuit, in world units. */
+export const ringLength = ringSamples[ringSamples.length - 1].s
+
+/** Where `distance` along the ring falls, and which way the road runs there. */
+export function pointOnRing(distance: number): RingPoint {
+  const total = ringLength
+  let s = distance % total
+  if (s < 0) s += total
+  let low = 0
+  let high = ringSamples.length - 1
+  while (low < high) {
+    const mid = (low + high + 1) >> 1
+    if (ringSamples[mid].s <= s) low = mid
+    else high = mid - 1
+  }
+  const sample = ringSamples[low]
+  const next = ringSamples[(low + 1) % ringSamples.length]
+  const span = (low + 1 < ringSamples.length ? next.s : total) - sample.s
+  const t = span > 1e-6 ? (s - sample.s) / span : 0
+  return {
+    x: sample.x + (next.x - sample.x) * t,
+    z: sample.z + (next.z - sample.z) * t,
+    tx: sample.tx,
+    tz: sample.tz,
+  }
+}
+
+/**
+ * A lane on the circuit. Both run right-hand traffic: each keeps to the right
+ * of its own direction, so the two lanes are on opposite sides of the centre
+ * line and never meet.
+ */
 export type TrafficLane = {
-  axis: 'x' | 'z'
-  /** The road's centre line across the axis: `z` for an x lane, `x` for a z lane. */
-  road: number
-  /** Offset from that centre line, in world units. Right-hand traffic. */
-  offset: number
-  /** +1 towards increasing coordinates, -1 towards decreasing. */
+  /** Which way round the ring the lane runs. */
   dir: 1 | -1
-  /** The lap runs from one end of the avenue to the other and wraps. */
-  from: number
-  to: number
+  /** Distance from the centre line, on the lane's own right-hand side. */
+  offset: number
 }
 
 export const trafficLanes: TrafficLane[] = [
-  { axis: 'x', road: 0, offset: 0.94, dir: -1, from: -AVENUE_HALF.x, to: AVENUE_HALF.x },
-  { axis: 'x', road: 0, offset: -0.94, dir: 1, from: -AVENUE_HALF.x, to: AVENUE_HALF.x },
-  { axis: 'z', road: -AVENUE_X, offset: -0.94, dir: -1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
-  { axis: 'z', road: -AVENUE_X, offset: 0.94, dir: 1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
-  { axis: 'z', road: AVENUE_X, offset: -0.94, dir: -1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
-  { axis: 'z', road: AVENUE_X, offset: 0.94, dir: 1, from: -AVENUE_HALF.z, to: AVENUE_HALF.z },
+  { dir: 1, offset: 0.7 },
+  { dir: -1, offset: 0.7 },
 ]
 
 /** The two junctions, where the cross avenue meets the north-south ones. */
@@ -830,7 +922,8 @@ export const cityCars: CityCar[] = (() => {
       entry: {
         id: project.id,
         title: project.title,
-        detail: project.status === 'live' ? `Live · ${project.year}` : `In the lab · ${project.year}`,
+        detail:
+          project.status === 'live' ? `Live · ${project.year}` : `In the lab · ${project.year}`,
       },
     })),
     ...achievements.map((award) => ({
@@ -843,19 +936,19 @@ export const cityCars: CityCar[] = (() => {
     })),
   ]
 
+  // Round the ring in alternating lanes, evenly spaced and a little jittered so
+  // no two cars ever start nose to tail.
   return fleet.map((item, i) => {
     const lane = i % trafficLanes.length
-    const spec = trafficLanes[lane]
-    const span = spec.to - spec.from
     const kind = carRoles[item.role].kind
-    const slow = kind === 'van' ? 0.72 : kind === 'hatch' ? 0.92 : kind === 'taxi' ? 0.88 : 1
+    const slow = kind === 'van' ? 0.78 : kind === 'hatch' ? 0.92 : kind === 'taxi' ? 0.88 : 1
     return {
       kind,
       role: item.role,
       entry: item.entry,
       lane,
-      start: spec.from + ((i / fleet.length + noise(`car:${i}:at`) * 0.04) % 1) * span,
-      speed: (1.9 + noise(`car:${i}:speed`) * 1.5) * slow,
+      start: ((i / fleet.length + noise(`car:${i}:at`) * 0.02) % 1) * ringLength,
+      speed: (1.9 + noise(`car:${i}:speed`) * 1.4) * slow,
       length: CAR_LENGTH[kind],
     }
   })

@@ -17,11 +17,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import {
-  AVENUE_X,
-  ROAD,
   cityCars,
   cityCrossings,
   cityLamps,
+  junctions,
+  pointOnRing,
+  ringLength,
   trafficLanes,
   type CarEntry,
   type CarRole,
@@ -58,6 +59,8 @@ type Runner = {
   /** Position along the lane's axis, in world units. */
   at: number
   speed: number
+  /** Current speed, eased towards `speed` or whatever the car ahead allows. */
+  velocity: number
   length: number
   /** Slot inside its type's instanced mesh. */
   slot: number
@@ -154,7 +157,13 @@ function halo(): THREE.Texture {
 }
 
 const dummy = new THREE.Object3D()
-const JUNCTION_CLEAR = ROAD / 2 + 0.55
+
+/**
+ * The kit builds every vehicle nose-down its own -z. The placement below aims a
+ * car's local +z down the road, so the body is turned round once here: bonnet in
+ * front, tail lights behind.
+ */
+const NOSE = Math.PI
 
 export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate: boolean): Traffic {
   const disposables: Array<{ dispose: () => void }> = []
@@ -173,6 +182,26 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
   const stripeMaterial = track(new THREE.MeshBasicMaterial({ color: 0xd9cfb9 }))
   const stripeMesh = new THREE.Mesh(stripeGeometry, stripeMaterial)
   scene.add(stripeMesh)
+
+  /* ——— the centre line down the circuit ———————————————————————————————— */
+
+  const ringDashParts: THREE.BufferGeometry[] = []
+  for (let step = 0; step < ringLength - 1.2; step += 2.2) {
+    const on = pointOnRing(step + 0.55)
+    // No paint through the two junctions: the cross avenue already has its own.
+    if (junctions.some((junction) => Math.hypot(on.x - junction.x, on.z - junction.z) < 2.4)) {
+      continue
+    }
+    ringDashParts.push(
+      new THREE.BoxGeometry(0.1, 0.03, 1.1)
+        .rotateY(Math.atan2(on.tx, on.tz))
+        .translate(on.x, 0.055, on.z),
+    )
+  }
+  const ringDashGeometry = track(mergeGeometries(ringDashParts))
+  for (const part of ringDashParts) part.dispose()
+  const ringDashes = new THREE.Mesh(ringDashGeometry, stripeMaterial)
+  scene.add(ringDashes)
 
   /* ——— lamp standards along the kerbs ——————————————————————————————————— */
 
@@ -257,6 +286,7 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
       lane: car.lane,
       at: car.start,
       speed: car.speed,
+      velocity: car.speed,
       length: car.length,
       slot,
     })
@@ -293,14 +323,14 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
     const mesh = meshes.get(runner.kind)
     if (!mesh) return
     const lane = trafficLanes[runner.lane]
-    const across = lane.road + lane.offset
-    if (lane.axis === 'x') {
-      dummy.position.set(runner.at, 0.07, across)
-      dummy.rotation.set(0, lane.dir > 0 ? Math.PI / 2 : -Math.PI / 2, 0)
-    } else {
-      dummy.position.set(across, 0.07, runner.at)
-      dummy.rotation.set(0, lane.dir > 0 ? Math.PI : 0, 0)
-    }
+    const on = pointOnRing(runner.at)
+    // Heading is the road's own direction, flipped for the lane that runs the
+    // other way round. Yaw is atan2(x, z), which points the model's nose down
+    // its own +z — the way the kit cars are built.
+    const hx = on.tx * lane.dir
+    const hz = on.tz * lane.dir
+    dummy.position.set(on.x - hz * lane.offset, 0.07, on.z + hx * lane.offset)
+    dummy.rotation.set(0, Math.atan2(hx, hz) + NOSE, 0)
     dummy.scale.setScalar(runner.length)
     dummy.updateMatrix()
     mesh.setMatrixAt(runner.slot, dummy.matrix)
@@ -380,75 +410,48 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
 
   /* ——— traffic rules ———————————————————————————————————————————————————— */
 
-  /** Is a car from the crossing avenue sitting in the junction at `junctionX`? */
-  const junctionBusy = (junctionX: number, callerAxis: 'x' | 'z'): boolean => {
-    for (const other of runners) {
-      const lane = trafficLanes[other.lane]
-      if (lane.axis === callerAxis) continue
-      const x = lane.axis === 'x' ? other.at : lane.road
-      const z = lane.axis === 'x' ? lane.road : other.at
-      if (Math.abs(x - junctionX) > JUNCTION_CLEAR) continue
-      if (Math.abs(z) > JUNCTION_CLEAR) continue
-      return true
-    }
-    return false
-  }
-
-  /** Where this car has to hold, if a junction ahead is already taken. */
-  const junctionLimit = (runner: Runner, lane: number): number => {
-    const spec = trafficLanes[lane]
-    let limit = spec.dir > 0 ? spec.to : spec.from
-    const consider = (stop: number) => {
-      const ahead = spec.dir > 0 ? stop > runner.at : stop < runner.at
-      if (!ahead) return
-      if (spec.dir > 0 ? stop < limit : stop > limit) limit = stop
-    }
-    const hold = (junctionX: number) => {
-      if (!junctionBusy(junctionX, spec.axis)) return
-      const stop =
-        (spec.axis === 'x' ? junctionX : 0) - spec.dir * (ROAD / 2 + 0.5 + runner.length / 2)
-      consider(stop)
-    }
-    if (spec.axis === 'x') {
-      hold(-AVENUE_X)
-      hold(AVENUE_X)
-    } else {
-      hold(spec.road)
-    }
-    return limit
-  }
-
-  /** Where this car has to hold to keep a gap to the car in front. */
-  const followLimit = (runner: Runner, lane: number): number => {
-    const spec = trafficLanes[lane]
-    let limit = spec.dir > 0 ? spec.to : spec.from
-    for (const other of runners) {
-      if (other === runner || other.lane !== lane) continue
-      const ahead = spec.dir > 0 ? other.at > runner.at : other.at < runner.at
-      if (!ahead) continue
-      const stop = other.at - spec.dir * (runner.length / 2 + other.length / 2 + 0.26)
-      if (spec.dir > 0 ? stop < limit : stop > limit) limit = stop
-    }
-    return limit
+  /**
+   * How far ahead the car in front is, measured round the ring. Positive and
+   * modular, so a car near the seam still sees the one that wrapped.
+   */
+  const aheadOf = (runner: Runner, other: Runner): number => {
+    const dir = trafficLanes[runner.lane].dir
+    let gap = (other.at - runner.at) * dir
+    gap %= ringLength
+    if (gap < 0) gap += ringLength
+    return gap
   }
 
   const update = (dt: number) => {
     // The halos face the camera, so they keep working while the model is orbited.
     faceCamera()
     if (!animate) return
+
     for (const runner of runners) {
       const lane = trafficLanes[runner.lane]
-      const next = runner.at + runner.speed * dt * lane.dir
-      const limit = junctionLimit(runner, runner.lane)
-      const follow = followLimit(runner, runner.lane)
-      let stopAt = lane.dir > 0 ? Math.min(limit, follow) : Math.max(limit, follow)
-      if (lane.dir > 0 ? stopAt < runner.at : stopAt > runner.at) stopAt = runner.at
-      let target = next
-      if (lane.dir > 0 ? target > stopAt : target < stopAt) target = stopAt
-      if (lane.dir > 0 ? target >= lane.to : target <= lane.from) {
-        target = lane.dir > 0 ? lane.from : lane.to
+      const cruise = runner.speed
+      // Clearance to the nearest car ahead in this lane. Cars ease off rather
+      // than stop dead, and the limit is enforced on the step, so two cars can
+      // never occupy the same stretch of road.
+      let clear = ringLength
+      let aheadLength = 0
+      for (const other of runners) {
+        if (other === runner || other.lane !== runner.lane) continue
+        const gap = aheadOf(runner, other)
+        if (gap < clear) {
+          clear = gap
+          aheadLength = other.length
+        }
       }
-      runner.at = target
+      // Centre to centre: half of each body, plus a bumper's worth of daylight.
+      const keep = runner.length / 2 + aheadLength / 2 + 0.34
+      const room = Math.max(0, clear - keep)
+      // Accelerate towards the cruising speed, brake towards whatever the car
+      // in front leaves room for.
+      const want = Math.min(cruise, room * 2.2)
+      runner.velocity += (want - runner.velocity) * Math.min(1, dt * 4)
+      const step = Math.min(runner.velocity * dt, Math.max(0, room))
+      runner.at = (runner.at + step * lane.dir + ringLength) % ringLength
       place(runner)
     }
   }
@@ -483,6 +486,7 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
       scene.remove(halos)
       scene.remove(contact)
       scene.remove(stripeMesh)
+      scene.remove(ringDashes)
       lampPosts.dispose()
       lampLenses.dispose()
       halos.dispose()
