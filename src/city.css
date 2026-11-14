@@ -1,7 +1,7 @@
 /* ——— Skill City ————————————————————————————————————————————————————————————
-   The skills section as a physical object: a cream monitor standing on the
-   page, its screen holding a miniature city. The city itself is three.js; the
-   screen, bezel, stand and HUD are drawn here.
+   The skills section as a physical object: a cream monitor, hung without a
+   stand, its screen holding a miniature city. The city itself is three.js and
+   the case is a photograph; only the glass overlays and the HUD are drawn here.
 
    No bloom, no halo, no glassy neon. Depth comes from the city's own sun and
    shadow map; every highlight on the page is a flat, hard-edged rectangle. */
@@ -22,102 +22,103 @@
   margin: 0 auto;
 }
 
-/* The monitor. */
+/* The monitor — a photographed case, not a drawn one.
+   `city-display.jpg` is a 966 × 691 crop of the studio render: the ivory
+   enamel bezel, the blank chin and their highlights are photographic, so the
+   object keeps its micro-contrast at every width instead of reading as a
+   gradient. The screen is not redrawn either — it sits inside the glass
+   rectangle measured off that crop (4.35% / 6.51% / 91.51% × 81.77%), behind
+   the render's own inset glass. No stand: the panel hangs as a wall display. */
 .city-monitor {
   position: relative;
   isolation: isolate;
 }
 .city-case {
   position: relative;
-  border: 1px solid rgba(74, 60, 38, 0.42);
-  border-radius: 22px;
-  background: linear-gradient(
-    180deg,
-    #f7efdf 0%,
-    #eee3ce 20%,
-    #e4d7be 56%,
-    #d6c7ab 88%,
-    #cbbc9f 100%
-  );
+  aspect-ratio: 966 / 691;
+  border-radius: 24px;
+  background: url('./assets/city-display.jpg') center / 100% 100% no-repeat;
   box-shadow:
-    inset 0 1px 0 #fffaf0,
-    inset 0 -2px 0 rgba(88, 71, 44, 0.3),
-    inset 1px 0 0 rgba(255, 252, 243, 0.5),
-    inset -1px 0 0 rgba(120, 101, 68, 0.18),
-    0 46px 80px -34px #000,
-    0 14px 28px -18px #000;
+    0 44px 78px -36px #000,
+    0 12px 26px -18px #000;
 }
-/* A faint moulded-plastic grain, so the case is not a flat gradient. */
-.city-case::before {
-  content: '';
+
+/* The glass, measured off the render. */
+.city-screen-mount {
+  position: absolute;
+  z-index: 1;
+  left: 4.35%;
+  top: 6.51%;
+  width: 91.51%;
+  height: 81.77%;
+}
+.city-screen {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0.5;
-  background-image: radial-gradient(rgba(92, 76, 50, 0.16) 0.5px, transparent 0.7px);
-  background-size: 3px 3px;
+  overflow: hidden;
+  border-radius: 1.25% / 1.75%;
+  background: radial-gradient(120% 96% at 50% 0%, #101513 0%, #080b09 58%, #050706 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.9),
+    inset 0 3px 10px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 250, 240, 0.16);
+  container-type: inline-size;
+  isolation: isolate;
 }
-.city-case-top,
-.city-case-bottom {
-  position: relative;
-  z-index: 1;
+
+/* Silkscreen on the chin, printed over the render's own blank strip. */
+.city-chin {
+  position: absolute;
+  z-index: 2;
+  left: 5.6%;
+  right: 5.6%;
+  bottom: 5.4%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 15px 24px 11px;
+  gap: 14px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: clamp(7px, 0.72vw, 9px);
+  line-height: 1;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #5a5040;
+  color: #7a6f5c;
+  pointer-events: none;
 }
 .city-brand {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #383126;
+  color: #40382c;
   letter-spacing: 0.18em;
 }
 .city-brand i {
   display: block;
-  width: 8px;
-  height: 8px;
-  background: #383126;
+  width: 7px;
+  height: 7px;
+  background: #40382c;
 }
 .city-brand b {
   font-weight: 400;
-  color: #9a8a6d;
+  color: #a4977d;
 }
-.city-case-model {
-  color: #6d6049;
+.city-chin-model {
+  color: #8a7f6b;
   letter-spacing: 0.16em;
 }
-
-/* The dark frame inside the case, then the screen. */
-.city-screen-frame {
-  position: relative;
-  z-index: 1;
-  margin: 0 16px;
-  padding: 9px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #23231f 0%, #141512 45%, #0b0c0a 100%);
-  box-shadow:
-    inset 0 2px 7px rgba(0, 0, 0, 0.92),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.07),
-    0 1px 0 rgba(255, 253, 245, 0.55);
+.city-chin-led {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #7a6f5c;
 }
-.city-screen {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: 4px;
-  background: radial-gradient(120% 96% at 50% 0%, #101513 0%, #080b09 58%, #050706 100%);
-  box-shadow: inset 0 0 0 1px #000;
-  container-type: inline-size;
-  isolation: isolate;
+.city-chin-led::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 7px rgba(0, 240, 131, 0.6);
 }
 
 .city-canvas {
@@ -145,16 +146,23 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(
-    104deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.014) 16%,
-    rgba(255, 255, 255, 0) 33%,
-    rgba(255, 255, 255, 0) 78%,
-    rgba(255, 255, 255, 0.018) 100%
-  );
+  /* The render's own sheen, brought back over the city: a broad diagonal
+     wash from the upper left, a warm bounce off the ivory bezel above it and
+     one cooler reflection in the lower right. */
+  background:
+    linear-gradient(
+      104deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.02) 15%,
+      rgba(255, 255, 255, 0) 32%,
+      rgba(255, 255, 255, 0) 76%,
+      rgba(255, 255, 255, 0.026) 100%
+    ),
+    radial-gradient(118% 74% at 12% -18%, rgba(255, 246, 230, 0.075), transparent 62%),
+    radial-gradient(70% 60% at 96% 104%, rgba(186, 210, 224, 0.05), transparent 70%);
   box-shadow:
     inset 0 0 64px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 252, 244, 0.09),
     inset 0 0 0 1px rgba(255, 255, 255, 0.035);
 }
 .city-scanlines {
@@ -924,33 +932,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px 26px;
   }
-  .city-screen {
-    aspect-ratio: 4 / 3.15;
-  }
-  .city-case-top,
-  .city-case-bottom {
-    padding: 11px 15px 9px;
-    font-size: 8.5px;
-    letter-spacing: 0.16em;
-  }
-  .city-case-model {
-    display: none;
-  }
-  .city-screen-frame {
-    margin: 0 10px;
-    padding: 6px;
-    border-radius: 7px;
-  }
+  /* A taller case keeps the city readable on a narrow screen; the render is
+     stretched with it, so the glass stays the same fraction of the panel. */
   .city-case {
-    border-radius: 16px;
+    aspect-ratio: 8 / 7;
+    border-radius: 12px;
   }
-  .city-stand-neck {
-    height: 38px;
-    width: 104px;
+  .city-chin {
+    bottom: 5.2%;
+    font-size: 7px;
+    letter-spacing: 0.17em;
   }
-  .city-stand-foot {
-    height: 10px;
-    width: 52%;
+  .city-chin-model {
+    display: none;
   }
   .city-hint {
     display: none;
@@ -1089,21 +1083,16 @@
   .city-hud-live {
     font-size: 7.5px;
   }
-  .city-screen {
-    aspect-ratio: 4 / 4.1;
+  .city-case {
+    aspect-ratio: 7 / 8;
+    border-radius: 10px;
   }
-  .city-case-top {
-    padding: 10px 12px 8px;
-  }
-  .city-screen-frame {
-    margin: 0 7px;
-    padding: 4px;
-  }
-  .city-case-bottom {
-    display: none;
-  }
-  .city-stand {
-    padding-top: 0;
+  .city-chin {
+    left: 5.4%;
+    right: 5.4%;
+    bottom: 5.4%;
+    font-size: 6.5px;
+    letter-spacing: 0.15em;
   }
   .city-index-body {
     grid-template-columns: 1fr;
@@ -1141,37 +1130,6 @@
   .city-district b {
     display: none;
   }
-}
-
-/* The stand sits under the case and lifts it off the page. */
-.city-stand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: none;
-}
-.city-stand-neck {
-  width: 132px;
-  height: 54px;
-  background: linear-gradient(
-    90deg,
-    #b7a98f 0%,
-    #ddcfb6 26%,
-    #f2e8d5 45%,
-    #e0d3ba 62%,
-    #b5a78e 100%
-  );
-  clip-path: polygon(34% 0, 66% 0, 82% 100%, 18% 100%);
-}
-.city-stand-foot {
-  width: min(360px, 48%);
-  height: 13px;
-  margin-top: -1px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, #eee3ce 0%, #d8cab0 42%, #b3a58a 100%);
-  box-shadow:
-    inset 0 1px 0 #fdf7ea,
-    0 22px 34px -14px rgba(0, 0, 0, 0.9);
 }
 
 @media (hover: none) {
