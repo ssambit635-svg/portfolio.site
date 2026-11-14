@@ -35,11 +35,11 @@ A personal portfolio: a dark editorial landing page, a certificates dashboard, a
 
 ## What it is
 
-| Page | Route | What it does |
-| --- | --- | --- |
-| Portfolio | `/` | Hero with a live desktop, a works wheel of projects, certifications, Ask Emo, skills, about and contact. |
-| Certificates | `/dashboard/` | Certificates and achievements as tiles, opened from the Certified section. |
-| CV | `/cv/` | A one-page A4 CV. Prints, or saves as a single PDF page. |
+| Page         | Route         | What it does                                                                                             |
+| ------------ | ------------- | -------------------------------------------------------------------------------------------------------- |
+| Portfolio    | `/`           | Hero with a live desktop, a works wheel of projects, certifications, Ask Emo, skills, about and contact. |
+| Certificates | `/dashboard/` | Certificates and achievements as tiles, opened from the Certified section.                               |
+| CV           | `/cv/`        | A one-page A4 CV. Prints, or saves as a single PDF page.                                                 |
 
 Features:
 
@@ -68,16 +68,16 @@ npm run preview -- --host 0.0.0.0
 
 ## Scripts
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Vite dev server. Creates the status snapshot if it is missing. |
-| `npm run build` | Refresh status, type-check, bundle, pre-render every page, generate crawl files, then run the SEO, feature and voice tests. |
-| `npm run typecheck` | Strict TypeScript check. |
-| `npm run lint` | ESLint (typescript-eslint and React hooks rules). |
-| `npm run format:css` / `format:check` | Prettier for the stylesheets. |
-| `npm run uptime` | Check every live project now and rewrite `src/generated/uptime.json`. |
-| `npm run test` | SEO, feature and voice tests on their own. Run `build` first. |
-| `npm run test:a11y` | axe-core (WCAG 2.x A/AA) on `/`, `/dashboard/` and `/cv/` at desktop and phone widths, and a one-page A4 check of the CV. Needs Chromium: set `CHROME_PATH`, or run `npx playwright install chromium`. |
+| Command                               | Purpose                                                                                                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`                         | Vite dev server. Creates the status snapshot if it is missing.                                                                                                                                         |
+| `npm run build`                       | Refresh status, type-check, bundle, pre-render every page, generate crawl files, then run the SEO, feature and voice tests.                                                                            |
+| `npm run typecheck`                   | Strict TypeScript check.                                                                                                                                                                               |
+| `npm run lint`                        | ESLint (typescript-eslint and React hooks rules).                                                                                                                                                      |
+| `npm run format:css` / `format:check` | Prettier for the stylesheets.                                                                                                                                                                          |
+| `npm run uptime`                      | Check every live project now and rewrite `src/generated/uptime.json`.                                                                                                                                  |
+| `npm run test`                        | SEO, feature and voice tests on their own. Run `build` first.                                                                                                                                          |
+| `npm run test:a11y`                   | axe-core (WCAG 2.x A/AA) on `/`, `/dashboard/` and `/cv/` at desktop and phone widths, and a one-page A4 check of the CV. Needs Chromium: set `CHROME_PATH`, or run `npx playwright install chromium`. |
 
 ## Project layout
 
@@ -114,18 +114,18 @@ Stack: **React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · three.js · GSAP 
 
 Most changes never touch a component.
 
-| To change | Edit |
-| --- | --- |
-| Name, contact, social profiles, projects | `src/lib/site.ts` |
-| Certificates and achievements | `credentials` and `achievements` in `src/lib/site.ts` |
-| Technologies shown in Ask Emo and the CV | `stack` on each project in `src/lib/site.ts` |
-| Skills, districts, levels and tower copy | `src/lib/skillCity.ts` |
-| Ask Emo wording and matching | `src/lib/ask.ts` |
-| CV layout | `src/pages/Cv.tsx`, `src/cv.css` |
-| Colours, type and label styles | `src/index.css` |
-| How a status is judged (slow, asleep, down) | `scripts/lib/uptime-status.mjs` |
-| Page titles, paths and structured data | `pages` in `src/lib/seo.ts` |
-| Portrait | `public/sambit-swain.jpg` |
+| To change                                   | Edit                                                  |
+| ------------------------------------------- | ----------------------------------------------------- |
+| Name, contact, social profiles, projects    | `src/lib/site.ts`                                     |
+| Certificates and achievements               | `credentials` and `achievements` in `src/lib/site.ts` |
+| Technologies shown in Ask Emo and the CV    | `stack` on each project in `src/lib/site.ts`          |
+| Skills, districts, levels and tower copy    | `src/lib/skillCity.ts`                                |
+| Ask Emo wording and matching                | `src/lib/ask.ts`                                      |
+| CV layout                                   | `src/pages/Cv.tsx`, `src/cv.css`                      |
+| Colours, type and label styles              | `src/index.css`                                       |
+| How a status is judged (slow, asleep, down) | `scripts/lib/uptime-status.mjs`                       |
+| Page titles, paths and structured data      | `pages` in `src/lib/seo.ts`                           |
+| Portrait                                    | `public/sambit-swain.jpg`                             |
 
 ## Quality gates
 
@@ -153,9 +153,9 @@ To check Pages from the API: `GET /repos/{owner}/{repo}/pages` returns `200` whe
 
 Both values are optional and public. Set them in `.env.local` locally, or as repository variables for CI.
 
-| Variable | Purpose |
-| --- | --- |
-| `VITE_SITE_URL` | Absolute production URL, including any subpath. Defaults to the GitHub Pages URL above. |
+| Variable                        | Purpose                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `VITE_SITE_URL`                 | Absolute production URL, including any subpath. Defaults to the GitHub Pages URL above.          |
 | `VITE_GOOGLE_SITE_VERIFICATION` | The `content` value of Google's HTML verification tag. Omit it if you do not use Search Console. |
 
 Crawlers only read `robots.txt` from the origin root. On a project site such as this one, add the sitemap line to the root user-site repository, or serve the portfolio from a custom domain at the root.
@@ -163,3 +163,8 @@ Crawlers only read `robots.txt` from the origin root. On a project site such as 
 ## License
 
 Code is released under the [MIT License](LICENSE). Personal photographs, certificates and third-party brand marks belong to their owners. Replace them before reusing this code for yourself.
+
+The toy cars driving Skill City are [Kenney's Car Kit 3.1](https://kenney.nl/assets/car-kit), released under CC0 1.0 — public domain, no attribution required, credited here anyway. They live in `src/assets/cars/` as meshopt-compressed glTF.
+
+
+The toy cars driving Skill City are [Kenney's Car Kit 3.1](https://kenney.nl/assets/car-kit), released under CC0 1.0 — public domain, no attribution required, credited here anyway. They live in `src/assets/cars/` as meshopt-compressed glTF.

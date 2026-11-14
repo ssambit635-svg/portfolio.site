@@ -11,13 +11,14 @@
  */
 import * as THREE from 'three'
 import { techLogos, type TechLogo } from '../lib/techLogos'
+import { createTraffic } from './cityTraffic'
 import {
   PLATE,
   PLOT,
   PLOT_HEIGHT,
   cityBuildings,
+  carRoles,
   cityFabric,
-  cityVehicles,
   districts,
   greenRoads,
   plateRim,
@@ -31,6 +32,15 @@ import {
 
 export type HoverPoint = { x: number; y: number }
 
+/** A car under the pointer: the proof it stands for, and where to print it. */
+export type VehicleHover = {
+  role: string
+  title: string
+  detail: string
+  x: number
+  y: number
+}
+
 export type SceneOptions = {
   reducedMotion: boolean
   /** Called with a skill id, or null when the pointer leaves a tower. */
@@ -39,6 +49,8 @@ export type SceneOptions = {
   onSelect: (id: string | null) => void
   /** A city block was clicked. null means empty plate. */
   onDistrict: (id: DistrictId | null) => void
+  /** A car is under the pointer. null when it moves away. */
+  onVehicle: (hit: VehicleHover | null) => void
 }
 
 export type SkillCityController = {
@@ -376,8 +388,6 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const assets = {
     fabric: track(new THREE.MeshLambertMaterial({ map: facadePlain, color: 0xe4d8bf })),
     plate: track(new THREE.MeshLambertMaterial({ color: 0x191c1a })),
-    vehicleCream: track(new THREE.MeshLambertMaterial({ color: 0xf1e7d0 })),
-    vehicleDark: track(new THREE.MeshLambertMaterial({ color: 0x454b43 })),
     green: track(new THREE.MeshBasicMaterial({ color: HOT })),
     lane: track(new THREE.MeshLambertMaterial({ color: 0x00944f })),
     dash: track(new THREE.MeshBasicMaterial({ color: 0xd7ccb3 })),
@@ -703,20 +713,9 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     scene.add(group)
   }
 
-  // Traffic: little boxes on the road, just enough to give the blocks a scale.
-  for (const car of cityVehicles) {
-    const geo = track(
-      new THREE.BoxGeometry(car.turned ? 0.15 : 0.36, 0.12, car.turned ? 0.36 : 0.15),
-    )
-    const mesh = new THREE.Mesh(
-      geo,
-      car.tone === 'cream' ? assets.vehicleCream : assets.vehicleDark,
-    )
-    mesh.position.set(car.x, 0.08, car.z)
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-    scene.add(mesh)
-  }
+  // Traffic, kerb lamps and zebra crossings: real kit cars running the avenues,
+  // with the traffic rules in cityTraffic.ts.
+  const traffic = createTraffic(scene, camera, !options.reducedMotion)
 
   for (const mesh of plotMeshes.values()) pickables.push(mesh)
 
@@ -848,6 +847,10 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
         node = node.parent
       }
     }
+    // Cars are not pickable through `pickables` — they are instanced and they
+    // move — so they get their own pass, and the nearer of the two wins.
+    const car = traffic.hitTest(raycaster)
+    if (car) return { kind: 'car' as const, hit: car }
     return null
   }
 
@@ -1020,6 +1023,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const onPointerLeave = () => {
     pointer.inside = false
     setHovered(null, null)
+    options.onVehicle(null)
   }
 
   const onWheel = (event: WheelEvent) => {
@@ -1105,8 +1109,20 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       } else {
         setHovered(null, null)
       }
+      if (hit?.kind === 'car') {
+        options.onVehicle({
+          role: carRoles[hit.hit.role].label,
+          title: hit.hit.entry.title,
+          detail: hit.hit.entry.detail,
+          x: pointer.x,
+          y: pointer.y,
+        })
+      } else {
+        options.onVehicle(null)
+      }
     }
 
+    traffic.update(dt / 1000)
     placeCamera()
     renderer.render(scene, camera)
   }
@@ -1126,6 +1142,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       resizeObserver.disconnect()
       intersectionObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
+      traffic.dispose()
       for (const item of disposables) item.dispose()
       renderer.dispose()
       if (canvas.parentElement === host) host.removeChild(canvas)
