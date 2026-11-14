@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   AtSign,
   BadgeCheck,
@@ -44,9 +45,53 @@ const actions = [
  */
 export default function SiteMenu() {
   const isCompact = useMediaQuery('(max-width: 960px)')
+  const [chrome, setChrome] = useState({ hidden: false, scrolled: false })
+
+  /*
+   * On a phone the menu floats over the page, and body copy used to run straight
+   * under the monogram and the pill. Collapse the chrome while the page is moving
+   * down, bring it back the moment the reader scrolls up (or stops at the top),
+   * and fade a soft scrim in behind it so nothing reads through the mark. On a
+   * pointer device nothing changes.
+   */
+  useEffect(() => {
+    if (!isCompact) {
+      setChrome({ hidden: false, scrolled: false })
+      return
+    }
+    let lastY = window.scrollY
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const y = window.scrollY
+      const delta = y - lastY
+      if (Math.abs(delta) < 5) return
+      // Never fold the chrome away while its own panel is open.
+      const panelOpen = Boolean(document.querySelector('.menu-panel'))
+      const hidden = y > 120 && delta > 0 && !panelOpen
+      const scrolled = y > 24
+      lastY = y
+      setChrome((previous) =>
+        previous.hidden === hidden && previous.scrolled === scrolled
+          ? previous
+          : { hidden, scrolled },
+      )
+    }
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
+    }
+  }, [isCompact])
 
   return (
-    <div className="site-menu">
+    <div
+      className={`site-menu${chrome.hidden ? ' is-hidden' : ''}${chrome.scrolled ? ' is-scrolled' : ''}`}
+    >
+      <div className="site-menu-scrim" aria-hidden="true" />
       <a className="nav-name" href="#home" aria-label="Sambit Swain — home">
         <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
           <g fill="none" stroke="currentColor" strokeLinejoin="miter">

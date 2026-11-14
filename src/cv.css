@@ -157,6 +157,91 @@ body {
   font-size: 8.4pt;
 }
 
+/* ——— Phone ————————————————————————————————————————————————————————————————
+   The sheet is A4 on screen, which at 320–390 wide meant fifteen millimetres
+   of padding each side, clipped contact links and two columns of project text
+   in a 170px column. Below 720px the sheet becomes a document that scrolls:
+   one column, the contact block under the name, long URLs allowed to break.
+   Print is untouched — the A4 rules below still win in the print media. */
+@media screen and (max-width: 720px) {
+  .cv-page {
+    padding: 14px 14px 32px;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .cv-toolbar {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    font-size: 14px;
+  }
+  .cv-toolbar a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .cv-toolbar button {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+  .cv-sheet {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 22px 18px 30px;
+    overflow: visible;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+  .cv-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .cv-head h1 {
+    font-size: clamp(34px, 11vw, 46px);
+  }
+  .cv-role {
+    font-size: 10.5pt;
+  }
+  .cv-contact {
+    width: 100%;
+    text-align: left;
+    font-size: 9.5pt;
+    line-height: 1.5;
+  }
+  .cv-contact li + li {
+    margin-top: 3px;
+  }
+  .cv-contact a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .cv-block {
+    margin-bottom: 12px;
+  }
+  .cv-block h2 {
+    font-size: 8pt;
+  }
+  .cv-grid {
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+  .cv-two {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .cv-row h3 {
+    font-size: 10.5pt;
+  }
+  .cv-row .cv-meta,
+  .cv-list .cv-meta {
+    font-size: 9pt;
+  }
+}
+
 @media print {
   html,
   body {

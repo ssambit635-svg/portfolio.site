@@ -310,6 +310,7 @@
     right: auto;
     left: 20px;
     top: 12%;
+    font-size: 10.5px;
   }
   .ww-front {
     left: 20px;
@@ -330,14 +331,21 @@
     z-index: -1;
     background: linear-gradient(transparent, rgba(5, 5, 5, 0.88) 62%);
   }
+  .ww-meta-no {
+    font-size: 10.5px;
+  }
   .ww-meta-desc {
     max-width: none;
-    font-size: 12px;
+    font-size: 13px;
+  }
+  .ww-meta-stack li {
+    font-size: 10.5px;
   }
   .ww-front-link {
     display: inline-flex;
     min-height: 44px;
     align-items: center;
+    font-size: 11px;
   }
   .ww-index {
     display: none;
@@ -350,6 +358,15 @@
   }
   .ww-hint-word {
     display: none;
+  }
+}
+
+/* At 320 the kicker and the 01/09 counter ran into each other. Let the label
+   take two lines in the space left of the counter instead of colliding. */
+@media (max-width: 380px) {
+  .ww-kicker {
+    max-width: 58vw;
+    line-height: 1.5;
   }
 }
 
@@ -470,5 +487,16 @@
   .works-row-desc,
   .works-row-side {
     grid-column: 2;
+  }
+  .works-index-head p,
+  .works-row-meta {
+    font-size: 10.5px;
+  }
+  .works-index-head a,
+  .works-row-links a {
+    font-size: 11px;
+  }
+  .works-row-desc {
+    font-size: 14px;
   }
 }

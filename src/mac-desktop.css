@@ -829,6 +829,9 @@ footer#contact {
     height: auto;
     min-height: 100svh;
     padding-bottom: 26px;
+    /* The drawn laptop is shorter than the phone screen; centre it instead of
+       leaving three hundred pixels of empty floor under it. */
+    justify-content: center;
   }
 
   .lap-stage {
@@ -934,7 +937,32 @@ footer#contact {
     font-size: clamp(calc(var(--u) * 4.1), 8.1cqw, calc(var(--u) * 5.4));
   }
   .ms-greeting > a {
+    position: relative;
     font-size: calc(var(--u) * 1.3);
+  }
+  .ms-greeting > a::after {
+    content: '';
+    position: absolute;
+    inset: -14px 0;
+  }
+  .ms-menu-apple {
+    position: relative;
+  }
+  .ms-menu-apple::after {
+    content: '';
+    position: absolute;
+    inset: -14px -12px;
+  }
+  /* A finger has no hover: the dock labels are 7px and the tips never fire, so
+     give every app a 44px square and let the icons speak. */
+  .ms-dapp {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .ms-dlabel,
+  .ms-dock-hint {
+    display: none;
   }
   .ms-widget {
     top: calc(var(--u) * 4.6);
@@ -986,5 +1014,51 @@ footer#contact {
 @media (prefers-reduced-motion: reduce) {
   .ms-wall-grain {
     display: none;
+  }
+}
+
+/* A landscape phone is shorter than the footer's 560px floor: the floor made
+   the footer taller than the viewport, so the last screen of the page cropped
+   the top of the Mac. Let the footer be exactly one viewport tall; the photo
+   frame is already pinned to the top and crops from the desk edge. */
+@media (max-width: 960px) and (orientation: landscape) {
+  footer#contact {
+    min-height: 100svh;
+  }
+}
+
+/* A landscape phone is wide enough for the desktop photo layout, but its
+   screen is only ~437px: nine dock tiles with 8px labels overflowed and the
+   last label clipped against the bezel. Drop the labels and keep the 40px
+   tiles, and give the menu-bar items a real 44px hit area. */
+@media (max-width: 960px) and (orientation: landscape) {
+  .ms-dlabel {
+    display: none;
+  }
+
+  .ms-dock {
+    --u: 6.1px;
+  }
+}
+
+@media (max-width: 960px) {
+  .ms-greeting > a {
+    position: relative;
+  }
+
+  .ms-greeting > a::after {
+    content: '';
+    position: absolute;
+    inset: -14px 0;
+  }
+
+  .ms-menu-apple {
+    position: relative;
+  }
+
+  .ms-menu-apple::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
   }
 }

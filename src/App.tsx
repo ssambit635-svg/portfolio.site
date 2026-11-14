@@ -6,16 +6,17 @@ import EmoRobot from './components/EmoRobot'
 import HeroKeyboard from './components/HeroKeyboard'
 import WorksWheel from './components/WorksWheel'
 import Preloader from './components/Preloader'
+import ArrowIcon from './components/ArrowIcon'
 import UptimeDot from './components/UptimeDot'
 import AskEmo from './components/AskEmo'
-import SkillsButtons from './components/SkillsButtons'
+import SkillCity from './components/SkillCity'
 import { credentials, experience, profile, projects } from './lib/site'
 import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
 import heroMonitor from './assets/hero-monitor.jpg'
 
 function Arrow() {
-  return <span aria-hidden="true">↗</span>
+  return <ArrowIcon />
 }
 
 /**
@@ -269,7 +270,7 @@ export default function App() {
         <Hero />
         <Works />
         <Certified />
-        <SkillsButtons />
+        <SkillCity />
         <AskEmo />
         <About />
       </main>

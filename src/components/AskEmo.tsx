@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { answer, suggestions, type Answer } from '../lib/ask'
 import '../features.css'
+import ArrowIcon from './ArrowIcon'
 
 /**
  * Ask Emo: a text panel that answers questions about the work from the site's own
@@ -51,7 +52,7 @@ export default function AskEmo() {
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="e.g. Which projects use Docker?"
+                placeholder="e.g. Which projects use AWS?"
                 autoComplete="off"
                 maxLength={160}
               />
@@ -86,7 +87,7 @@ export default function AskEmo() {
                         target={link.href.startsWith('mailto:') ? undefined : '_blank'}
                         rel="noreferrer"
                       >
-                        {link.label} ↗
+                        {link.label} <ArrowIcon />
                       </a>
                     </li>
                   ))}
