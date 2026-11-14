@@ -325,15 +325,7 @@ export default function SkillCity() {
       <figure className="city-figure">
         <div className="city-monitor">
           <div className="city-case">
-            <div className="city-case-top" aria-hidden="true">
-              <span className="city-brand">
-                <i />
-                SWAIN <b>/</b> SYSTEMS
-              </span>
-              <span className="city-case-model">SC-29 · SKILL CITY · 2026</span>
-            </div>
-
-            <div className="city-screen-frame">
+            <div className="city-screen-mount">
               <div className="city-screen">
                 <div ref={hostRef} className="city-canvas" aria-hidden="true" />
 
@@ -484,22 +476,14 @@ export default function SkillCity() {
               </div>
             </div>
 
-            <div className="city-case-bottom" aria-hidden="true">
-              <span className="city-chin-left">
-                <i className="city-led" />
-                Power
+            <div className="city-chin" aria-hidden="true">
+              <span className="city-brand">
+                <i />
+                SWAIN <b>/</b> SYSTEMS
               </span>
-              <span>City OS 4.0 · {cityStats.towers} towers</span>
-              <span className="city-chin-grille">
-                {Array.from({ length: 9 }, (_, i) => (
-                  <i key={i} />
-                ))}
-              </span>
+              <span className="city-chin-model">SC-29 · SKILL CITY · 2026</span>
+              <span className="city-chin-led">Power</span>
             </div>
-          </div>
-          <div className="city-stand" aria-hidden="true">
-            <span className="city-stand-neck" />
-            <span className="city-stand-foot" />
           </div>
         </div>
 
