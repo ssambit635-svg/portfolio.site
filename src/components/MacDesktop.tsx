@@ -3,6 +3,7 @@ import { profile } from '../lib/site'
 import { useClock } from '../hooks/useClock'
 import wallpaper from '../assets/macos-wallpaper.jpg'
 import '../mac-desktop.css'
+import ArrowIcon from './ArrowIcon'
 
 /**
  * The MacBook's screen. Every icon in the Dock is a REAL link — mail, phone,
@@ -370,7 +371,7 @@ export default function MacDesktop() {
                 rel="noreferrer"
                 onClick={() => setApple(false)}
               >
-                GitHub ↗
+                GitHub <ArrowIcon />
               </a>
               <a
                 role="menuitem"
@@ -379,7 +380,7 @@ export default function MacDesktop() {
                 rel="noreferrer"
                 onClick={() => setApple(false)}
               >
-                LinkedIn ↗
+                LinkedIn <ArrowIcon />
               </a>
               <i className="ms-apple-sep" />
               <button type="button" role="menuitem" onClick={doSleep}>
@@ -395,7 +396,7 @@ export default function MacDesktop() {
             Let’s talk<span aria-hidden="true">.</span>
           </h2>
           <a href={HIRE}>
-            Start a conversation <span aria-hidden="true">↗</span>
+            Start a conversation <ArrowIcon />
           </a>
         </div>
 

@@ -46,13 +46,8 @@ export default function PegBoard() {
 
   return (
     <div className="board-wrap">
-      <div
-        className="board"
-        ref={boardRef}
-        onPointerMove={tilt}
-        onPointerLeave={settle}
-      >
-        <img src={board} alt="" loading="lazy" decoding="async" />
+      <div className="board" ref={boardRef} onPointerMove={tilt} onPointerLeave={settle}>
+        <img src={board} alt="" width={928} height={1152} loading="lazy" decoding="async" />
         <div className="board-underlight" aria-hidden="true" />
         <div className="board-ledspill" aria-hidden="true" />
 
@@ -78,7 +73,9 @@ export default function PegBoard() {
                 aria-hidden="true"
               >
                 {rows.flatMap((row, r) =>
-                  Array.from(row).map((ch, i) => <i key={`${r}-${i}`} className={ch === '1' ? 'on' : ''} />),
+                  Array.from(row).map((ch, i) => (
+                    <i key={`${r}-${i}`} className={ch === '1' ? 'on' : ''} />
+                  )),
                 )}
               </span>
             </a>

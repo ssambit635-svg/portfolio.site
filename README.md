@@ -45,7 +45,7 @@ Features:
 
 - **Ask Emo.** A text panel that answers questions about projects, skills, certificates and contact. It runs fully in the browser from the site's own data. There is no model and no paid API.
 - **Live status dots.** Each live project shows whether it is up, slow, asleep on free hosting, down or unreachable, as of the last build. A scheduled deploy refreshes it daily.
-- **Skills.** Technologies in use, grouped into Build and Cloud & DevOps. Each is a 3D button: press one to ask Ask Emo which projects use it.
+- **Skill City.** The skills section as a miniature city inside a monitor: each technology is a tower, its height is how deep the work goes, and anything still being learned is a building under construction. Drag to orbit, scroll to zoom, open a tower for the projects behind it. Keyboard and no-WebGL readers get the same content in the tower index and the district buttons.
 - **Static output.** Every page is pre-rendered HTML with real content, metadata and JSON-LD. There is no runtime backend.
 
 ## Quick start
@@ -102,12 +102,13 @@ src/
     site.ts                    Profile, projects, credentials, achievements (the content)
     ask.ts                     Ask Emo: matches a question against the site's facts
     stack.ts                   Technology matching used by Ask Emo and the CV
+    skillCity.ts               Skill City: districts, levels, projects and plate layout
     seo.ts                     Metadata, page list and structured data
-  features.css, skills.css, cv.css, index.css   Styles
+  features.css, city.css, cv.css, index.css     Styles
   assets/                      Screenshots, certificate scans, wallpapers, skill logos
 ```
 
-Stack: **React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · GSAP · Lenis**.
+Stack: **React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · three.js · GSAP · Lenis**.
 
 ## Editing content
 
@@ -118,7 +119,7 @@ Most changes never touch a component.
 | Name, contact, social profiles, projects | `src/lib/site.ts` |
 | Certificates and achievements | `credentials` and `achievements` in `src/lib/site.ts` |
 | Technologies shown in Ask Emo and the CV | `stack` on each project in `src/lib/site.ts` |
-| Skills buttons and their groups | `src/components/SkillsButtons.tsx` |
+| Skills, districts, levels and tower copy | `src/lib/skillCity.ts` |
 | Ask Emo wording and matching | `src/lib/ask.ts` |
 | CV layout | `src/pages/Cv.tsx`, `src/cv.css` |
 | Colours, type and label styles | `src/index.css` |

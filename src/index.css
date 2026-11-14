@@ -59,10 +59,13 @@ button {
 }
 .skip-link {
   position: fixed;
-  top: -60px;
+  top: -72px;
   left: 20px;
   z-index: 100;
-  padding: 10px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 14px;
   background: white;
   color: black;
 }
@@ -88,6 +91,10 @@ button {
 }
 .site-menu > * {
   pointer-events: auto;
+}
+/* Only painted on a phone; see the touch block below. */
+.site-menu-scrim {
+  display: none;
 }
 .nav-name {
   position: absolute;
@@ -1051,15 +1058,7 @@ button {
   letter-spacing: 0.1em;
   color: #aaa;
 }
-footer {
-  min-height: 100vh;
-  position: relative;
-  overflow: visible;
-  padding: 12vh 5vw 25px 14vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
+/* The home footer is entirely drawn by mac-desktop.css (footer#contact). */
 .footer-glow {
   top: 0;
   left: 10%;
@@ -1478,10 +1477,6 @@ footer {
     gap: 12px;
     flex-wrap: wrap;
   }
-  footer {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1490,19 +1485,6 @@ footer {
     animation: none !important;
     scroll-behavior: auto !important;
     transition: none !important;
-  }
-}
-footer {
-  --machine-h: 640px;
-}
-@media (min-width: 700px) {
-  footer {
-    --machine-h: 740px;
-  }
-}
-@media (min-width: 1100px) {
-  footer {
-    --machine-h: 820px;
   }
 }
 .footer-kicker {
@@ -1865,8 +1847,8 @@ footer {
     padding: 2cqw 2.4cqw;
   }
   .hero-screen-label {
-    font-size: clamp(7px, 1.05vw, 10px);
-    letter-spacing: 0.14em;
+    font-size: clamp(10.5px, 1.35vw, 12px);
+    letter-spacing: 0.12em;
   }
   .hero .hero-screen-title {
     font-size: clamp(15px, 4.2vw, 34px);
@@ -1901,6 +1883,80 @@ footer {
   .menu-panel .menu-item {
     height: 44px;
   }
+  .menu-trigger {
+    font-size: 11px;
+  }
+
+  /* A soft plate under the floating chrome while it is showing, so copy never
+     reads through the mark. It fades with the chrome, not against it. */
+  .site-menu-scrim {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto;
+    height: 104px;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(5, 5, 5, 0.94) 0%,
+      rgba(5, 5, 5, 0.78) 42%,
+      rgba(5, 5, 5, 0) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  .site-menu > .site-menu-scrim {
+    pointer-events: none;
+  }
+  .site-menu.is-scrolled:not(.is-hidden) .site-menu-scrim {
+    opacity: 1;
+  }
+  .nav-name,
+  .menu-trigger {
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0s,
+      color 0.2s,
+      background 0.2s,
+      border-color 0.2s;
+  }
+  .site-menu.is-hidden .nav-name,
+  .site-menu.is-hidden .menu-trigger {
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0s 0.2s;
+  }
+
+  /* A jump from the menu should land with the section title clear of the
+     floating chrome, not under it. */
+  main > section[id]:not(#home),
+  footer#contact {
+    scroll-margin-top: 76px;
+  }
+
+  /* Point-sized extras still deserve a thumb-sized target. */
+  .emo-hit {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .led-ico {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .hero-keyboard::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
 }
 
 /* Let a landscape phone see the full scene, with any spare width staying dark
@@ -1922,8 +1978,8 @@ footer {
     font-size: clamp(22px, 4.5vw, 38px);
   }
   .hero-screen-label {
-    font-size: clamp(7px, 1.05vw, 10px);
-    letter-spacing: 0.14em;
+    font-size: clamp(10.5px, 1.15vw, 12px);
+    letter-spacing: 0.12em;
   }
   .hero .hero-screen-title {
     font-size: min(3.2cqw, 4.8vw);
@@ -1984,7 +2040,7 @@ footer {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px 8px;
-    font-size: 8px;
+    font-size: 10.5px;
     line-height: 1.5;
   }
   .works-index {
@@ -2006,6 +2062,30 @@ footer {
   .white-button {
     min-height: 44px;
     align-items: center;
+  }
+
+  /* Type that was drawn for a desktop monitor is too small in the hand. Lift
+     the reading labels; the miniature instrument panels keep their own scale. */
+  .section-head p {
+    font-size: 10.5px;
+  }
+  .cert p {
+    font-size: 10.5px;
+  }
+  .cert .cert-id {
+    font-size: 10.5px;
+  }
+  .cert-link {
+    font-size: 11px;
+  }
+  .education > h3 {
+    font-size: 11px;
+  }
+  .edu-row span {
+    font-size: 10.5px;
+  }
+  .personal {
+    font-size: 10.5px;
   }
 }
 

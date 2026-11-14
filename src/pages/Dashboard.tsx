@@ -1,4 +1,5 @@
 import Mark from '../components/Mark'
+import ArrowIcon from '../components/ArrowIcon'
 import { pages } from '../lib/seo'
 import { achievements, credentials, profile, type Credential } from '../lib/site'
 
@@ -20,7 +21,9 @@ function CertCard({ credential }: { credential: Credential }) {
         ) : (
           <div className="grid h-full place-items-center px-4 text-center">
             <div>
-              <p className="t-display text-[clamp(20px,2.4vw,30px)] text-ink/75">{credential.issuer}</p>
+              <p className="t-display text-[clamp(20px,2.4vw,30px)] text-ink/75">
+                {credential.issuer}
+              </p>
               <p className="t-kicker mt-2 text-mute">Scan not added yet</p>
             </div>
           </div>
@@ -37,7 +40,7 @@ function CertCard({ credential }: { credential: Credential }) {
             aria-label={`${credential.title} — ${credential.action ?? 'View'} on ${credential.issuer}`}
             className="t-kicker mt-2.5 inline-flex items-center gap-1 text-ink after:absolute after:inset-0 hover:text-rust"
           >
-            {credential.action ?? 'View'} <span aria-hidden>↗</span>
+            {credential.action ?? 'View'} <ArrowIcon />
           </a>
         )}
       </div>
@@ -58,7 +61,7 @@ export default function Dashboard() {
             <span className="t-kicker">{profile.name}</span>
           </a>
           <a href={homeHref} className="t-kicker text-mute transition-colors hover:text-ink">
-            ← Back to portfolio
+            <ArrowIcon dir="left" /> Back to portfolio
           </a>
         </div>
       </header>
@@ -71,8 +74,8 @@ export default function Dashboard() {
               Certificates &amp; achievements
             </h1>
             <p className="mt-6 max-w-2xl text-[16px] leading-relaxed text-ink/75">
-              Every course credential and the hackathon builds that came out of them. Each tile opens the
-              issuer&rsquo;s own page for that credential.
+              Every course credential and the hackathon builds that came out of them. Each tile
+              opens the issuer&rsquo;s own page for that credential.
             </p>
           </div>
         </section>

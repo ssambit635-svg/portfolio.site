@@ -42,13 +42,17 @@
 .about .board {
   /* The photo fills the board exactly. Anything the board's own light (the underlight
      and the LED spill) paints past the photo would show as a pale bezel, so it is
-     clipped to the same rounded corners. */
+     clipped to the same rounded corners.
+     The ratio is reserved up front: the image is lazy, and without it the About
+     section grew by ~440px when the photo arrived and shoved the footer down. */
+  aspect-ratio: 928 / 1152;
   overflow: hidden;
   border-radius: 8px;
 }
 .about .board > img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
   object-position: 50% 58%;
   margin: 0;
   border-radius: 8px;
