@@ -9,15 +9,6 @@ import certDocker from '../assets/certs/docker-basics.jpg'
 import certLinux from '../assets/certs/linux-unhatched.jpg'
 import certPython from '../assets/certs/python-essentials.jpg'
 
-import shotArch from '../assets/projects/arch.jpg'
-import shotKivo from '../assets/projects/kivo.jpg'
-import shotShadow from '../assets/projects/shadow-quest.jpg'
-import shotAnnadata from '../assets/projects/annadata-connect.jpg'
-import shotCivic from '../assets/projects/civicreport.jpg'
-import shotWeather from '../assets/projects/weather-sense.jpg'
-import shotAws from '../assets/projects/aws-dashboard.jpg'
-import shotPassword from '../assets/projects/password-manager.jpg'
-import shotPortfolio from '../assets/projects/portfolio.jpg'
 
 export const profile = {
   name: 'Sambit Swain',
@@ -78,7 +69,8 @@ export type Project = {
   description: string
   year: string
   stack: string[]
-  image: string
+  /** A real capture of the running project. Absent until one exists. */
+  image?: string
   href: string
   action: string
   repo?: string
@@ -96,7 +88,6 @@ export const projects: Project[] = [
       'A self-hosted incident response workspace: alerts, context and decisions in one place, from first alert to postmortem. Human-reviewed assistance drafts triage and customer updates, and a public status page keeps customers informed — all on infrastructure you control.',
     year: '2026',
     stack: ['Next.js', 'React', 'TypeScript', 'PostgreSQL', 'Prisma'],
-    image: shotArch,
     href: 'https://arch-qrh6.onrender.com/',
     action: 'Live demo',
     repo: 'https://github.com/ssambit635-svg/ARCH.git',
@@ -117,7 +108,6 @@ export const projects: Project[] = [
       'Photograph a paper lab report, verify each extracted value, and build a personal health timeline with trends, risk insights and a doctor-visit summary. Built for the iQOO Hackathon 2026.',
     year: '2026',
     stack: ['JavaScript', 'Node.js', 'Express', 'SQLite', 'Android'],
-    image: shotKivo,
     href: 'https://kivo-api-qzqc.onrender.com/',
     action: 'Live demo',
     repo: 'https://github.com/ssambit635-svg/kivo.git',
@@ -138,7 +128,6 @@ export const projects: Project[] = [
       'A samurai-inspired focus app with configurable work sessions, an ensō timer and goal streaks. Built for Tech Zypher 2026.',
     year: '2026',
     stack: ['React', 'TypeScript', 'MongoDB', 'Capacitor'],
-    image: shotShadow,
     href: 'https://shadowquest.onrender.com/',
     action: 'Live app',
     repo: 'https://github.com/ssambit635-svg/Shadow-quest.git',
@@ -159,7 +148,6 @@ export const projects: Project[] = [
       'Connects farmers to procurement centres with live queue tokens, MSP comparisons and above-MSP buyers, with queue tools for officers and an overview for state authorities. Built for Smart India Hackathon 2026.',
     year: '2026',
     stack: ['React', 'Node.js', 'Express', 'Capacitor', 'Docker'],
-    image: shotAnnadata,
     href: 'https://ssambit635-svg-annadata-connect.onrender.com/',
     action: 'Live demo',
     repo: 'https://github.com/ssambit635-svg/ssambit635-svg-Annadata-Connect.git',
@@ -180,7 +168,6 @@ export const projects: Project[] = [
       'Citizens photograph a local issue; Gemini classifies it, places it on a Leaflet map and helps track the report through resolution.',
     year: '2026',
     stack: ['HTML', 'CSS', 'JavaScript', 'Gemini AI', 'Leaflet'],
-    image: shotCivic,
     href: 'https://ssambit635-svg.github.io/Civic-report/',
     action: 'Live site',
     repo: 'https://github.com/ssambit635-svg/Civic-report.git',
@@ -201,7 +188,6 @@ export const projects: Project[] = [
       'Combines a seven-day forecast and air-quality index with practical lifestyle scores for plans like carrying an umbrella or going for a run.',
     year: '2025',
     stack: ['Python', 'Streamlit', 'Open-Meteo API'],
-    image: shotWeather,
     href: 'https://weather-sense-kutb55y3djjhmcbymj6wjh.streamlit.app/',
     action: 'Live app',
     repo: 'https://github.com/ssambit635-svg/Weather-sense.git',
@@ -222,7 +208,6 @@ export const projects: Project[] = [
       'A cloud dashboard for viewing EC2 instances, S3 buckets and month-to-date AWS spend, with costs grouped by service.',
     year: '2025',
     stack: ['FastAPI', 'React', 'Recharts', 'LocalStack', 'Docker'],
-    image: shotAws,
     href: 'https://cloud-control-f8ez.onrender.com',
     action: 'Live demo',
     repo: 'https://github.com/ssambit635-svg/Aws-dashboard-frontend',
@@ -243,7 +228,6 @@ export const projects: Project[] = [
       'A local password manager for generating and retrieving credentials, using Fernet encryption and a SHA-256 hashed master password. No cloud accounts.',
     year: '2025',
     stack: ['Python', 'cryptography', 'Streamlit'],
-    image: shotPassword,
     href: 'https://github.com/ssambit635-svg/password_manager_python.git',
     action: 'Source',
     status: 'local',
@@ -262,7 +246,6 @@ export const projects: Project[] = [
     description: 'Personal site: React, TypeScript, a paper editorial layout and a systems map of the work.',
     year: '2026',
     stack: ['React', 'TypeScript', 'Vite', 'Tailwind'],
-    image: shotPortfolio,
     href: 'https://github.com/ssambit635-svg/portfolio.site.git',
     action: 'Source',
     status: 'live',
