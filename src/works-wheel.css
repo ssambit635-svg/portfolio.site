@@ -98,6 +98,63 @@
 .ww-card:focus-visible .ww-shot {
   filter: saturate(1);
 }
+/* A card that has no capture yet. Not a grey box: the project's own code, set
+   in the same mono as the rest of the page, on a plate ruled like a spec
+   sheet — so an empty slot still reads as part of the system. */
+.ww-plate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 14px;
+  background:
+    repeating-linear-gradient(0deg, rgba(244, 242, 237, 0.045) 0 1px, transparent 1px 5px), #0a0a0a;
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+.ww-plate:before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(244, 242, 237, 0.14);
+  pointer-events: none;
+}
+/* The mark reads at any angle, which the card's own rotation has no sympathy
+   for — so the plate leans on this rather than on a headline. */
+.ww-plate-mark {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 40%;
+  max-width: 104px;
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke: rgba(244, 242, 237, 0.3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.ww-plate-no {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  color: rgba(244, 242, 237, 0.4);
+  letter-spacing: 0.18em;
+}
+.ww-plate-code {
+  position: relative;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  line-height: 1;
+}
+.ww-plate-note {
+  position: relative;
+  color: rgba(244, 242, 237, 0.45);
+}
 .ww-cta {
   position: absolute;
   right: 10px;
