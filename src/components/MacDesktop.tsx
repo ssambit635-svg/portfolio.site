@@ -55,8 +55,8 @@ type AppDef = {
   name: string
   tip: string
   href: string
-  from: string
-  to: string
+  /** The one hue the app is allowed, and only once it is hovered. */
+  accent: string
   glyph: GlyphName
   external?: boolean
 }
@@ -67,8 +67,7 @@ const PERSONAL: AppDef[] = [
     name: 'Email',
     tip: profile.email,
     href: MAIL,
-    from: '#7fd8ff',
-    to: '#0b74e8',
+    accent: '#8fb4de',
     glyph: 'mail',
   },
   {
@@ -76,8 +75,7 @@ const PERSONAL: AppDef[] = [
     name: 'Phone',
     tip: profile.phone,
     href: CALL,
-    from: '#b6f2c0',
-    to: '#1e9b56',
+    accent: '#8ecfa6',
     glyph: 'phone',
   },
   {
@@ -85,8 +83,7 @@ const PERSONAL: AppDef[] = [
     name: 'Hire me',
     tip: 'Open a brief',
     href: HIRE,
-    from: '#d8ffb0',
-    to: '#3fbf72',
+    accent: '#c3d29a',
     glyph: 'bulb',
   },
 ]
@@ -97,8 +94,7 @@ const SOCIAL: AppDef[] = [
     name: 'GitHub',
     tip: '@ssambit635-svg',
     href: profile.github,
-    from: '#ffffff',
-    to: '#ffffff',
+    accent: '#e8e4db',
     glyph: 'github',
     external: true,
   },
@@ -107,8 +103,7 @@ const SOCIAL: AppDef[] = [
     name: 'LinkedIn',
     tip: 'Connect with me',
     href: profile.linkedin,
-    from: '#2e9cf5',
-    to: '#0a5cae',
+    accent: '#8fb2de',
     glyph: 'linkedin',
     external: true,
   },
@@ -117,8 +112,7 @@ const SOCIAL: AppDef[] = [
     name: 'X',
     tip: '@swainsambit7i',
     href: profile.x,
-    from: '#ffffff',
-    to: '#ffffff',
+    accent: '#e8e4db',
     glyph: 'x',
     external: true,
   },
@@ -127,8 +121,7 @@ const SOCIAL: AppDef[] = [
     name: 'Discord',
     tip: 'Message me',
     href: profile.discord,
-    from: '#7c86ff',
-    to: '#4650d8',
+    accent: '#a9a5e0',
     glyph: 'discord',
     external: true,
   },
@@ -137,8 +130,7 @@ const SOCIAL: AppDef[] = [
     name: 'Hashnode',
     tip: 'Read the blog',
     href: profile.hashnode,
-    from: '#5b8dff',
-    to: '#1442c8',
+    accent: '#93aee0',
     glyph: 'hashnode',
     external: true,
   },
@@ -147,8 +139,7 @@ const SOCIAL: AppDef[] = [
     name: 'Avely',
     tip: 'My profile',
     href: profile.avely,
-    from: '#9b8cff',
-    to: '#5a46d6',
+    accent: '#b4a7e0',
     glyph: 'user',
     external: true,
   },
@@ -213,34 +204,22 @@ function Search() {
   )
 }
 
-function DockLink({
-  app,
-  onHighlight,
-}: {
-  app: AppDef
-  onHighlight: (app: AppDef | null) => void
-}) {
+function DockLink({ app }: { app: AppDef }) {
   return (
     <a
       className="ms-dapp"
-      style={css({ '--from': app.from, '--to': app.to })}
+      style={css({ '--accent': app.accent })}
       href={app.href}
       target={app.external ? '_blank' : undefined}
       rel={app.external ? 'noreferrer' : undefined}
       aria-label={`${app.name} — ${app.tip}`}
-      onPointerEnter={() => onHighlight(app)}
-      onPointerLeave={() => onHighlight(null)}
-      onFocus={() => onHighlight(app)}
-      onBlur={() => onHighlight(null)}
     >
-      <span className="ms-tip">
-        <b>{app.name}</b>
-        <i>{app.tip}</i>
+      <span className="ms-tip" aria-hidden="true">
+        {app.name}
       </span>
       <span className="ms-dico">
         <Glyph name={app.glyph} />
       </span>
-      <span className="ms-dlabel">{app.name}</span>
     </a>
   )
 }
@@ -254,7 +233,6 @@ export default function MacDesktop() {
   const [sleep, setSleep] = useState(false)
   const [apple, setApple] = useState(false)
   const [compact, setCompact] = useState(false)
-  const [highlightedApp, setHighlightedApp] = useState<AppDef | null>(null)
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -418,18 +396,13 @@ export default function MacDesktop() {
         >
           <div className="ms-dock-inner">
             {PERSONAL.map((a) => (
-              <DockLink key={a.id} app={a} onHighlight={setHighlightedApp} />
+              <DockLink key={a.id} app={a} />
             ))}
             <i className="ms-dock-sep" aria-hidden="true" />
             {SOCIAL.map((a) => (
-              <DockLink key={a.id} app={a} onHighlight={setHighlightedApp} />
+              <DockLink key={a.id} app={a} />
             ))}
           </div>
-          <p className="ms-dock-hint" aria-live="polite">
-            {highlightedApp
-              ? `${highlightedApp.name} · ${highlightedApp.tip}`
-              : 'Choose an app to connect'}
-          </p>
         </div>
       </div>
 

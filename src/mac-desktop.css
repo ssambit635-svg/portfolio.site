@@ -576,17 +576,19 @@ footer#contact {
   box-shadow: 0 0 calc(var(--u) * 0.8) #6fffa7;
 }
 
-/* ——— dock —————————————————————————————————————————————————————————————— */
+/* ——— dock ——————————————————————————————————————————————————————————————
+   The shelf macOS draws: one blurred slab of dark glass, a hairline of light
+   along its top edge, and nothing written on it. The apps are squircle tiles,
+   graphite with cream glyphs, and each one keeps its brand hue for the moment
+   you point at it — the only time a dock icon should raise its voice. */
 .ms-dock {
   position: absolute;
   z-index: 55;
   left: 50%;
-  bottom: calc(var(--u) * 0.65);
+  bottom: calc(var(--u) * 0.72);
   transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(var(--u) * 0.48);
+  align-items: flex-end;
   width: max-content;
   max-width: 97%;
 }
@@ -594,145 +596,112 @@ footer#contact {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: calc(var(--u) * 0.66);
+  gap: calc(var(--u) * 0.34);
   width: 100%;
   max-width: 100%;
-  padding: calc(var(--u) * 0.7) calc(var(--u) * 0.85) calc(var(--u) * 0.58);
-  border-radius: calc(var(--u) * 1.8);
-  background: rgba(226, 234, 249, 0.2);
-  backdrop-filter: blur(calc(var(--u) * 2.6)) saturate(165%);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 2.6)) saturate(165%);
+  padding: calc(var(--u) * 0.44) calc(var(--u) * 0.5);
+  border-radius: calc(var(--u) * 1.55);
+  background: rgba(21, 23, 27, 0.5);
+  backdrop-filter: blur(calc(var(--u) * 2.2)) saturate(150%);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 2.2)) saturate(150%);
   box-shadow:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.48),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.2),
-    0 calc(var(--u) * 1) calc(var(--u) * 2.4) rgba(0, 0, 0, 0.42);
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    0 calc(var(--u) * 0.9) calc(var(--u) * 2.2) rgba(0, 0, 0, 0.4);
 }
 .ms-dapp {
   --s: 1;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: block;
   transform-origin: 50% 100%;
-  transition: transform 0.18s cubic-bezier(0.22, 0.9, 0.24, 1);
   cursor: pointer;
 }
+/* macOS lifts its neighbours too, just less. */
 .ms-dapp:hover {
-  --s: 1.2;
+  --s: 1.14;
 }
-.ms-dapp:hover + .ms-dapp {
-  --s: 1.1;
-}
-.ms-dapp:hover + .ms-dapp + .ms-dapp {
-  --s: 1.04;
-}
+.ms-dapp:hover + .ms-dapp,
 .ms-dapp:has(+ .ms-dapp:hover) {
-  --s: 1.1;
+  --s: 1.06;
 }
+.ms-dapp:hover + .ms-dapp + .ms-dapp,
 .ms-dapp:has(+ .ms-dapp + .ms-dapp:hover) {
-  --s: 1.04;
+  --s: 1.02;
 }
 .ms-dapp:focus-visible {
-  --s: 1.16;
+  --s: 1.12;
 }
 .ms-dico {
   display: grid;
   place-items: center;
-  width: calc(var(--u) * 6.8);
-  height: calc(var(--u) * 6.8);
-  border-radius: 23.5%;
+  width: calc(var(--u) * 6.1);
+  height: calc(var(--u) * 6.1);
+  border-radius: 24%;
   transform: scale(var(--s));
   transform-origin: 50% 100%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 54%),
+    linear-gradient(180deg, #2c2f34 0%, #1b1d21 100%);
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.26),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.09),
+    0 calc(var(--u) * 0.16) calc(var(--u) * 0.4) rgba(0, 0, 0, 0.42);
+  color: #ece7db;
   transition:
     transform 0.18s cubic-bezier(0.22, 0.9, 0.24, 1),
+    color 0.18s,
     box-shadow 0.18s;
-  background: none;
-  box-shadow: none;
-  color: var(--from);
 }
 .ms-dico svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 calc(var(--u) * 0.12) calc(var(--u) * 0.25) rgba(0, 0, 0, 0.55));
+  width: 52%;
+  height: 52%;
 }
-.ms-dlabel {
-  display: block;
-  margin-top: calc(var(--u) * 0.58);
-  color: rgba(255, 255, 255, 0.94);
-  font-size: calc(var(--u) * 1.04);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.015em;
-  white-space: nowrap;
-  text-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.92),
-    0 0 8px rgba(0, 0, 0, 0.52);
+/* Point at a tile and it takes on the one hue its app owns. */
+.ms-dapp:hover .ms-dico,
+.ms-dapp:focus-visible .ms-dico {
+  color: color-mix(in srgb, var(--accent) 58%, #ece7db);
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.12),
+    0 calc(var(--u) * 0.3) calc(var(--u) * 0.7) rgba(0, 0, 0, 0.45);
 }
 .ms-dapp:active .ms-dico {
-  transform: scale(calc(var(--s) * 0.94));
-}
-.ms-dapp[style*='#3a3f47'] .ms-dico,
-.ms-dapp[style*='#5c626b'] .ms-dico {
-  color: #fff;
+  transform: scale(calc(var(--s) * 0.95));
 }
 .ms-dock-sep {
   width: 1px;
   align-self: stretch;
-  margin: 0 calc(var(--u) * 0.3);
-  background: rgba(255, 255, 255, 0.38);
+  margin: calc(var(--u) * 0.12) calc(var(--u) * 0.26);
+  background: rgba(255, 255, 255, 0.16);
 }
+/* The name, the way macOS says it: one line, under the tile, on hover only. */
 .ms-tip {
   position: absolute;
-  bottom: calc(100% + var(--u) * 1.1);
+  z-index: 2;
+  bottom: calc(100% + var(--u) * 0.85);
   left: 50%;
-  transform: translate(-50%, 30%) scale(0.94);
+  transform: translate(-50%, calc(var(--u) * 0.25));
+  padding: calc(var(--u) * 0.32) calc(var(--u) * 0.72);
+  border-radius: calc(var(--u) * 0.55);
+  background: rgba(22, 22, 24, 0.9);
+  box-shadow:
+    0 0 0 0.5px rgba(255, 255, 255, 0.14),
+    0 calc(var(--u) * 0.4) calc(var(--u) * 1) rgba(0, 0, 0, 0.42);
+  color: #f3f0e9;
+  font-size: calc(var(--u) * 1.06);
+  line-height: 1;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: calc(var(--u) * 0.55) calc(var(--u) * 1);
-  border-radius: calc(var(--u) * 0.8);
-  background: rgba(30, 32, 38, 0.86);
-  backdrop-filter: blur(calc(var(--u) * 1.6)) saturate(160%);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 1.6)) saturate(160%);
-  box-shadow:
-    0 0 0 0.5px rgba(255, 255, 255, 0.18),
-    0 calc(var(--u) * 0.7) calc(var(--u) * 1.6) rgba(0, 0, 0, 0.45);
-  white-space: nowrap;
   transition:
-    opacity 0.16s,
-    transform 0.16s;
-  z-index: 2;
-}
-.ms-tip b {
-  font-size: calc(var(--u) * 1.32);
-  font-weight: 600;
-}
-.ms-tip i {
-  font-style: normal;
-  font-size: calc(var(--u) * 1.14);
-  color: rgba(255, 255, 255, 0.62);
+    opacity 0.14s,
+    transform 0.14s;
 }
 .ms-dapp:hover .ms-tip,
 .ms-dapp:focus-visible .ms-tip {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-.ms-dock-hint {
-  min-height: 1em;
-  max-width: 100%;
-  overflow: hidden;
-  font-size: calc(var(--u) * 1.02);
-  font-weight: 500;
-  letter-spacing: 0.015em;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  transform: translate(-50%, 0);
 }
 
 /* a narrow panel gets a narrower menu bar — no fighting with the notch */
@@ -953,16 +922,11 @@ footer#contact {
     position: absolute;
     inset: -14px -12px;
   }
-  /* A finger has no hover: the dock labels are 7px and the tips never fire, so
-     give every app a 44px square and let the icons speak. */
+  /* A finger has no hover, so the tooltip never fires: give every app a real
+     44px target and let the icon speak for itself. */
   .ms-dapp {
     min-width: 44px;
     min-height: 44px;
-    justify-content: center;
-  }
-  .ms-dlabel,
-  .ms-dock-hint {
-    display: none;
   }
   .ms-widget {
     top: calc(var(--u) * 4.6);
@@ -982,23 +946,38 @@ footer#contact {
     max-width: 96%;
     bottom: calc(var(--u) * 0.5);
   }
+  /* One shelf, not two. Nine equal columns across whatever the panel gives us,
+     so the dock still fills the screen edge to edge the way a Mac's does,
+     instead of wrapping or hanging off the bezel. */
+  .ms-dock {
+    width: calc(100% - var(--u) * 3.2);
+    max-width: none;
+    /* Clear of the bezel the drawn laptop puts under the screen. */
+    bottom: calc(var(--u) * 1.9);
+  }
   .ms-dock-inner {
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: calc(var(--u) * 0.56);
-    column-gap: calc(var(--u) * 0.58);
-    max-width: 100%;
-    padding: calc(var(--u) * 0.5) calc(var(--u) * 0.65) calc(var(--u) * 0.46);
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: calc(var(--u) * 0.24);
+    width: 100%;
+    padding: calc(var(--u) * 0.4);
+    border-radius: calc(var(--u) * 1.3);
   }
   .ms-dock-sep {
     display: none;
   }
-  .ms-dico {
-    width: calc(var(--u) * 6);
-    height: calc(var(--u) * 6);
+  .ms-dapp {
+    width: 100%;
+    /* The 44px finger target on coarse pointers is what pushed the shelf off
+       the bezel; here the tiles are the targets, and nine of them fit. */
+    min-width: 0;
+    min-height: 0;
   }
-  .ms-dlabel {
-    font-size: calc(var(--u) * 0.98);
+  .ms-dico {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 22%;
   }
   .ms-tip {
     display: none;
@@ -1028,14 +1007,10 @@ footer#contact {
 }
 
 /* A landscape phone is wide enough for the desktop photo layout, but its
-   screen is only ~437px: nine dock tiles with 8px labels overflowed and the
-   last label clipped against the bezel. Drop the labels and keep the 40px
-   tiles, and give the menu-bar items a real 44px hit area. */
+   screen is only ~437px: nine dock tiles overflowed the bezel. Tighten the
+   unit until the shelf fits, and give the menu-bar items a real 44px hit
+   area. */
 @media (max-width: 960px) and (orientation: landscape) {
-  .ms-dlabel {
-    display: none;
-  }
-
   .ms-dock {
     --u: 6.1px;
   }
