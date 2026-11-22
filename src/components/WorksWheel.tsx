@@ -24,8 +24,10 @@ import '../works-wheel.css'
 export interface WorksWheelItem {
   /** Project name. Shown beside the front card and in the index. */
   title: string
-  /** Cover art. Any src an <img> takes. */
-  image: string
+  /** Cover art. Any src an <img> takes. Omit it and the card shows the plate. */
+  image?: string
+  /** Second line on the plate: what the card is, while it has no cover. */
+  note?: string
   /** Where the card links to. Omit for a wheel that only browses. */
   href?: string
 }
@@ -94,8 +96,7 @@ const EASE = 0.12
 /** Travel that still counts as a tap rather than a drag. */
 const TAP = 6
 
-const clamp = (v: number, lo: number, hi: number) =>
-  Math.min(hi, Math.max(lo, v))
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
 type Stage = { w: number; h: number }
@@ -104,8 +105,7 @@ const rad = (deg: number) => (deg * Math.PI) / 180
 
 /** How far left the arc has carried something that has turned `drumDeg` off the
     front. Zero at the front, so the piece being read stays centred. */
-const bowAt = (drumDeg: number, bow: number) =>
-  -bow * (1 - Math.cos(rad(drumDeg)))
+const bowAt = (drumDeg: number, bow: number) => -bow * (1 - Math.cos(rad(drumDeg)))
 
 /** Both states in one chain: the ring terms fall away as `m` reaches the drum,
     and the drum terms are still zero while the ring is up. The bow is applied
@@ -257,73 +257,66 @@ export function WorksWheel({
       }
 
       for (let i = 0; i < count; i++) {
-        const d = i - pos;
-        const drumDeg = d * STEP;
-        const card = cardRefs.current[i];
+        const d = i - pos
+        const drumDeg = d * STEP
+        const card = cardRefs.current[i]
         if (card) {
-          card.style.transform = place(
-            d * (360 / count),
-            drumDeg,
-            ringR,
-            drumR,
-            bow,
-            m,
-          );
+          card.style.transform = place(d * (360 / count), drumDeg, ringR, drumR, bow, m)
           // Culled by distance, not by angle: at a full turn the far side comes
           // back round to face us, and everything past the neighbours lands on
           // the vanishing point in a heap.
-          const away = Math.abs(d) > CULL;
-          card.style.opacity = m > 0.5 && away ? '0' : '1';
-          card.style.pointerEvents = m > 0.5 && away ? 'none' : '';
+          const away = Math.abs(d) > CULL
+          card.style.opacity = m > 0.5 && away ? '0' : '1'
+          card.style.pointerEvents = m > 0.5 && away ? 'none' : ''
           // Everything but the piece at the front sits back in its own shadow.
-          card.style.setProperty('--ww-veil', String(m * clamp(Math.abs(d) * 0.5, 0, 0.52)));
-          card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
+          card.style.setProperty('--ww-veil', String(m * clamp(Math.abs(d) * 0.5, 0, 0.52)))
+          card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2))
         }
-        const face = card?.firstElementChild as HTMLElement | null;
-        if (face) face.style.transform = `scale(${lerp(ringScale, 1, m)})`;
+        const face = card?.firstElementChild as HTMLElement | null
+        if (face) face.style.transform = `scale(${lerp(ringScale, 1, m)})`
       }
 
-      if (labelRef.current) labelRef.current.style.opacity = String(1 - m);
+      if (labelRef.current) labelRef.current.style.opacity = String(1 - m)
       if (frontRef.current) {
-        frontRef.current.style.opacity = String(m);
+        frontRef.current.style.opacity = String(m)
         // Hidden, not merely transparent: an invisible line of type would still
         // be a click target and a tab stop over the ring.
-        frontRef.current.style.visibility = m > 0.5 ? 'visible' : 'hidden';
+        frontRef.current.style.visibility = m > 0.5 ? 'visible' : 'hidden'
       }
       if (metaRef.current) {
-        const veil = clamp((m - 0.55) / 0.45, 0, 1);
-        metaRef.current.style.opacity = String(veil);
-        metaRef.current.style.pointerEvents = veil > 0.9 ? 'auto' : 'none';
+        const veil = clamp((m - 0.55) / 0.45, 0, 1)
+        metaRef.current.style.opacity = String(veil)
+        metaRef.current.style.pointerEvents = veil > 0.9 ? 'auto' : 'none'
       }
 
-      const near = clamp(Math.round(pos), 0, last);
-      setActive((prev) => (prev === near ? prev : near));
-    };
+      const near = clamp(Math.round(pos), 0, last)
+      setActive((prev) => (prev === near ? prev : near))
+    }
 
-    frame = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(frame);
-  }, [metrics, stage.h, count, last, reduced, scrubbed, units]);
+    frame = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(frame)
+  }, [metrics, stage.h, count, last, reduced, scrubbed, units])
 
   const to = React.useCallback(
     (next: number) => {
-      target.current = clamp(next, 0, last + 1);
+      target.current = clamp(next, 0, last + 1)
     },
     [last],
-  );
+  )
 
   /** The gesture can arrive a little before the section has lined up. Rather
       than hold a drum's turn of scroll with a sliver of the hero still showing,
       finish the approach while the drum opens. */
   const alignTop = React.useCallback((top: number) => {
-    if (aligning.current || Math.abs(top) < 6) return;
-    const y = window.scrollY + top;
-    const lenis = getLenis();
-    if (lenis) lenis.scrollTo(y, { duration: 0.45 });
-    else window.scrollTo({ top: y, behavior: "smooth" });
+    if (aligning.current || Math.abs(top) < 6) return
+    const y = window.scrollY + top
+    const lenis = getLenis()
+    if (lenis) lenis.scrollTo(y, { duration: 0.45 })
+    else window.scrollTo({ top: y, behavior: 'smooth' })
     aligning.current = window.setTimeout(() => {
-      aligning.current = 0;
-    }, 700);
-  }, []);
+      aligning.current = 0
+    }, 700)
+  }, [])
 
   /** Send the wheel to an item - by turning it, or by scrolling to it when the
       page is the thing doing the turning. */
@@ -343,7 +336,7 @@ export function WorksWheel({
       to(index + 1)
     },
     [alignTop, scrubbed, to, units],
-  );
+  )
 
   // Native listener, because the wheel has to be cancellable - and it only
   // cancels while the section is really on screen and the drum still has
@@ -377,10 +370,7 @@ export function WorksWheel({
       // the drum sits between two cards - nothing at the front, and the pair
       // either side of the gap both turned half away. Settle onto an item.
       window.clearTimeout(settling.current)
-      settling.current = window.setTimeout(
-        () => to(Math.round(target.current)),
-        SETTLE,
-      )
+      settling.current = window.setTimeout(() => to(Math.round(target.current)), SETTLE)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => {
@@ -512,14 +502,28 @@ export function WorksWheel({
                   }}
                 >
                   <span className="ww-face">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      draggable={false}
-                      loading="lazy"
-                      decoding="async"
-                      className="ww-shot"
-                    />
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        draggable={false}
+                        loading="lazy"
+                        decoding="async"
+                        className="ww-shot"
+                      />
+                    ) : (
+                      <span className="ww-plate">
+                        {/* A wireframe of the capture that belongs here. */}
+                        <svg className="ww-plate-mark" viewBox="0 0 48 32" aria-hidden="true">
+                          <rect x="0.5" y="0.5" width="47" height="31" />
+                          <path d="M0.5 7.5h47" />
+                          <path d="M5 27.5 20.5 12m0 15.5L35.5 12" />
+                        </svg>
+                        <span className="ww-plate-no">{String(i + 1).padStart(2, '0')}</span>
+                        <span className="ww-plate-code">{item.title}</span>
+                        {item.note ? <span className="ww-plate-note">{item.note}</span> : null}
+                      </span>
+                    )}
                     {action && item.href ? (
                       <span className="ww-cta">
                         {action}
@@ -580,9 +584,7 @@ export function WorksWheel({
                 aria-current={i === active ? 'true' : undefined}
                 className={i === active ? 'is-active' : undefined}
               >
-                <span className="ww-index-no">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
+                <span className="ww-index-no">{String(i + 1).padStart(2, '0')}</span>
                 {item.title}
               </button>
             </li>

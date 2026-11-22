@@ -23,10 +23,10 @@
 }
 
 /* The monitor — a photographed case, not a drawn one.
-   `city-display.jpg` is a 966 × 691 crop of the studio render: the ivory
-   enamel bezel, the blank chin and their highlights are photographic, so the
-   object keeps its micro-contrast at every width instead of reading as a
-   gradient. The screen is not redrawn either — it sits inside the glass
+   `city-display.jpg` is a 966 × 691 crop of the studio render: the enamel
+   bezel, the blank chin and their highlights are photographic, so the object
+   keeps its micro-contrast at every width instead of reading as a gradient.
+   The crop is desaturated and dimmed to pitch black in `.city-case::before`. The screen is not redrawn either — it sits inside the glass
    rectangle measured off that crop (4.35% / 6.51% / 91.51% × 81.77%), behind
    the render's own inset glass. No stand: the panel hangs as a wall display. */
 .city-monitor {
@@ -37,10 +37,25 @@
   position: relative;
   aspect-ratio: 966 / 691;
   border-radius: 24px;
-  background: url('./assets/city-display.jpg') center / 100% 100% no-repeat;
+  background: #000;
+  /* Pitch black. The photograph still gives the case its form — the bevel, the
+     chin, the highlight along the top edge — but it is pulled down almost to
+     black, so the panel is a black object catching a little light rather than
+     a photo of an ivory one. */
   box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 236, 0.14),
+    inset 0 1px 0 rgba(255, 252, 244, 0.1),
     0 44px 78px -36px #000,
     0 12px 26px -18px #000;
+}
+.city-case::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: url('./assets/city-display.jpg') center / 100% 100% no-repeat;
+  filter: brightness(0.07) contrast(1.25) saturate(0.2);
+  pointer-events: none;
 }
 
 /* The glass, measured off the render. */
@@ -82,35 +97,35 @@
   line-height: 1;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #7a6f5c;
+  color: rgba(244, 240, 232, 0.42);
   pointer-events: none;
 }
 .city-brand {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #40382c;
+  color: #efe9db;
   letter-spacing: 0.18em;
 }
 .city-brand i {
   display: block;
   width: 7px;
   height: 7px;
-  background: #40382c;
+  background: #efe9db;
 }
 .city-brand b {
   font-weight: 400;
-  color: #a4977d;
+  color: rgba(244, 240, 232, 0.55);
 }
 .city-chin-model {
-  color: #8a7f6b;
+  color: rgba(244, 240, 232, 0.46);
   letter-spacing: 0.16em;
 }
 .city-chin-led {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #7a6f5c;
+  color: rgba(244, 240, 232, 0.4);
 }
 .city-chin-led::before {
   content: '';
@@ -147,7 +162,7 @@
   z-index: 1;
   pointer-events: none;
   /* The render's own sheen, brought back over the city: a broad diagonal
-     wash from the upper left, a warm bounce off the ivory bezel above it and
+     wash from the upper left, a warm bounce off the bezel above it and
      one cooler reflection in the lower right. */
   background:
     linear-gradient(

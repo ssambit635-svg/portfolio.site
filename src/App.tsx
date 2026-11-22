@@ -72,7 +72,12 @@ function Hero() {
     a drum, and the section keeps the gesture until the last piece has turned
     past the front — then the page carries on. */
 function Works() {
-  const wheel = projects.map(({ title, image, href }) => ({ title, image, href }))
+  const wheel = projects.map(({ title, kind, year, image, href }) => ({
+    title,
+    note: `${kind} · ${year}`,
+    image,
+    href,
+  }))
   return (
     <section id="works" className="works" aria-labelledby="work-heading">
       <h2 id="work-heading" className="sr-only">
