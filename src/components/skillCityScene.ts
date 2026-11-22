@@ -22,6 +22,8 @@ import {
   cityFabric,
   districts,
   greenRoads,
+  junctions,
+  ROAD,
   plateRim,
   plotRect,
   roadDashes,
@@ -357,6 +359,165 @@ function markInk(hex: string): string {
 
 type RectMesh = (rect: Rect, height: number, y: number, material: THREE.Material) => THREE.Mesh
 
+/* ——— the street kit ————————————————————————————————————————————————————————
+   What makes a city look built rather than modelled is the small stuff: a tank
+   on a roof, a signal on its pole, a bench, a bin, a planter. Every shape here
+   becomes one InstancedMesh, so the whole set is a dozen draw calls, and none
+   of it is touched per frame. */
+
+type KitItem = { x: number; y: number; z: number; ry?: number; s?: number }
+
+type KitShape =
+  'tank' | 'unit' | 'vent' | 'stair' | 'pole' | 'head' | 'bollard' | 'bench' | 'bin' | 'planter'
+
+type Kit = Record<KitShape, KitItem[]>
+
+const emptyKit = (): Kit => ({
+  tank: [],
+  unit: [],
+  vent: [],
+  stair: [],
+  pole: [],
+  head: [],
+  bollard: [],
+  bench: [],
+  bin: [],
+  planter: [],
+})
+
+/** A tiny deterministic hash, so the city is the same city on every load. */
+function seedHash(seed: string): number {
+  let value = 2166136261
+  for (let i = 0; i < seed.length; i += 1) {
+    value ^= seed.charCodeAt(i)
+    value = Math.imul(value, 16777619)
+  }
+  return (value >>> 0) / 4294967295
+}
+
+/** A soft round falloff: the darkening where a wall meets the ground. */
+function contactShadowTexture(): THREE.CanvasTexture {
+  const S = 64
+  const canvas = document.createElement('canvas')
+  canvas.width = S
+  canvas.height = S
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    const gradient = ctx.createRadialGradient(S / 2, S / 2, S * 0.12, S / 2, S / 2, S / 2)
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.85)')
+    gradient.addColorStop(0.55, 'rgba(0, 0, 0, 0.34)')
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, S, S)
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
+/** The ground floor of a neighbourhood block: glass, a door, a warm room. */
+function shopTexture(): THREE.CanvasTexture {
+  const S = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = S
+  canvas.height = S
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.fillStyle = '#cfc2a6'
+    ctx.fillRect(0, 0, S, S)
+    // The stone plinth the glass sits on.
+    ctx.fillStyle = '#b9ab8e'
+    ctx.fillRect(0, S - 14, S, 14)
+    ctx.fillStyle = 'rgba(60, 48, 32, 0.22)'
+    ctx.fillRect(0, S - 15, S, 1)
+
+    const bays = [
+      { x: 6, w: 46, door: false },
+      { x: 58, w: 20, door: true },
+      { x: 84, w: 38, door: false },
+    ]
+    for (const bay of bays) {
+      const top = 18
+      const bottom = S - 16
+      if (bay.door) {
+        ctx.fillStyle = '#4b3d2a'
+        ctx.fillRect(bay.x, top + 12, bay.w, bottom - top - 12)
+        ctx.fillStyle = '#e8d6a8'
+        ctx.fillRect(bay.x + 4, top + 18, bay.w - 8, 16)
+        ctx.fillStyle = 'rgba(40, 32, 20, 0.35)'
+        ctx.fillRect(bay.x, top + 12, bay.w, 2)
+        continue
+      }
+      // A warm room behind the glass.
+      const glow = ctx.createLinearGradient(0, top, 0, bottom)
+      glow.addColorStop(0, '#f6e2b4')
+      glow.addColorStop(0.62, '#dcbe86')
+      glow.addColorStop(1, '#a8814c')
+      ctx.fillStyle = glow
+      ctx.fillRect(bay.x, top, bay.w, bottom - top)
+      // Shelves and a couple of silhouettes, so the room has depth.
+      ctx.fillStyle = 'rgba(74, 52, 28, 0.5)'
+      ctx.fillRect(bay.x, top + 26, bay.w, 2)
+      ctx.fillRect(bay.x, top + 46, bay.w, 2)
+      ctx.fillStyle = 'rgba(74, 52, 28, 0.42)'
+      for (let i = 0; i < 3; i += 1) {
+        const boxX = bay.x + 6 + i * 13
+        ctx.fillRect(boxX, top + 16, 7, 10)
+      }
+      // The frame around it, mullion down the middle.
+      ctx.strokeStyle = 'rgba(38, 30, 20, 0.62)'
+      ctx.lineWidth = 2
+      ctx.strokeRect(bay.x + 1, top + 1, bay.w - 2, bottom - top - 2)
+      ctx.fillStyle = 'rgba(38, 30, 20, 0.35)'
+      ctx.fillRect(bay.x + bay.w / 2 - 1, top, 2, bottom - top)
+    }
+    // The awning line over the whole run.
+    ctx.fillStyle = '#8c6a45'
+    ctx.fillRect(0, 8, S, 9)
+    ctx.fillStyle = 'rgba(255, 248, 232, 0.22)'
+    ctx.fillRect(0, 8, S, 2)
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.ClampToEdgeWrapping
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+  return texture
+}
+
+/** A signal head: dark housing, three lenses, the bottom one lit. */
+function signalTexture(): THREE.CanvasTexture {
+  const W = 32
+  const H = 80
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.fillStyle = '#22251f'
+    ctx.fillRect(0, 0, W, H)
+    ctx.fillStyle = 'rgba(255, 250, 240, 0.10)'
+    ctx.fillRect(0, 0, W, 2)
+    const lens = (y: number, lit: boolean, colour: string) => {
+      ctx.beginPath()
+      ctx.arc(W / 2, y, 8, 0, Math.PI * 2)
+      ctx.fillStyle = lit ? colour : 'rgba(12, 14, 12, 0.9)'
+      ctx.fill()
+      if (lit) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)'
+        ctx.lineWidth = 1
+        ctx.stroke()
+      }
+    }
+    lens(16, false, '#e2564a')
+    lens(40, false, '#e6b64a')
+    lens(64, true, '#4fe08a')
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
 export function createSkillCity(host: HTMLElement, options: SceneOptions): SkillCityController {
   const scene = new THREE.Scene()
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 400)
@@ -401,6 +562,94 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     ),
     outlineSelect: track(new THREE.LineBasicMaterial({ color: HOT })),
     district: track(new THREE.LineBasicMaterial({ color: HOT })),
+  }
+
+  const kit = emptyKit()
+  const kitStone = track(new THREE.MeshLambertMaterial({ color: 0xb3a88f }))
+  const kitMetal = track(new THREE.MeshLambertMaterial({ color: 0x33372f }))
+  const shopMaterial = track(new THREE.MeshLambertMaterial({ map: track(shopTexture()) }))
+  const kitWood = track(new THREE.MeshLambertMaterial({ color: 0x6a5539 }))
+  const kitSignal = track(
+    new THREE.MeshBasicMaterial({ map: track(signalTexture()), toneMapped: false }),
+  )
+
+  const KIT_SHAPES: Record<
+    KitShape,
+    { geometry: THREE.BufferGeometry; material: THREE.Material; castShadow: boolean }
+  > = {
+    tank: {
+      geometry: track(
+        mergeGeometries([
+          new THREE.CylinderGeometry(0.12, 0.12, 0.24, 8).translate(0, 0.12, 0),
+          new THREE.CylinderGeometry(0.05, 0.05, 0.04, 6).translate(0, 0.26, 0),
+          new THREE.BoxGeometry(0.28, 0.03, 0.28).translate(0, 0.015, 0),
+        ]),
+      ),
+      material: kitMetal,
+      castShadow: true,
+    },
+    unit: {
+      geometry: track(new THREE.BoxGeometry(0.34, 0.2, 0.26).translate(0, 0.1, 0)),
+      material: kitMetal,
+      castShadow: true,
+    },
+    vent: {
+      geometry: track(new THREE.CylinderGeometry(0.05, 0.05, 0.26, 6).translate(0, 0.13, 0)),
+      material: kitMetal,
+      castShadow: true,
+    },
+    stair: {
+      geometry: track(new THREE.BoxGeometry(0.42, 0.3, 0.36).translate(0, 0.15, 0)),
+      material: kitStone,
+      castShadow: true,
+    },
+    pole: {
+      geometry: track(new THREE.CylinderGeometry(0.024, 0.03, 0.72, 6).translate(0, 0.36, 0)),
+      material: kitMetal,
+      castShadow: true,
+    },
+    head: {
+      geometry: track(new THREE.BoxGeometry(0.13, 0.32, 0.11).translate(0, 0.16, 0)),
+      material: kitSignal,
+      castShadow: false,
+    },
+    bollard: {
+      geometry: track(new THREE.CylinderGeometry(0.032, 0.038, 0.17, 6).translate(0, 0.085, 0)),
+      material: kitStone,
+      castShadow: true,
+    },
+    bench: {
+      geometry: track(
+        mergeGeometries([
+          new THREE.BoxGeometry(0.5, 0.05, 0.16).translate(0, 0.16, 0),
+          new THREE.BoxGeometry(0.5, 0.14, 0.03).translate(0, 0.26, -0.065),
+          new THREE.BoxGeometry(0.04, 0.16, 0.14).translate(-0.2, 0.08, 0),
+          new THREE.BoxGeometry(0.04, 0.16, 0.14).translate(0.2, 0.08, 0),
+        ]),
+      ),
+      material: kitWood,
+      castShadow: true,
+    },
+    bin: {
+      geometry: track(
+        mergeGeometries([
+          new THREE.CylinderGeometry(0.07, 0.06, 0.19, 8).translate(0, 0.095, 0),
+          new THREE.CylinderGeometry(0.075, 0.075, 0.02, 8).translate(0, 0.2, 0),
+        ]),
+      ),
+      material: kitMetal,
+      castShadow: true,
+    },
+    planter: {
+      geometry: track(
+        mergeGeometries([
+          new THREE.BoxGeometry(0.3, 0.15, 0.3).translate(0, 0.075, 0),
+          new THREE.BoxGeometry(0.24, 0.06, 0.24).translate(0, 0.18, 0),
+        ]),
+      ),
+      material: kitStone,
+      castShadow: true,
+    },
   }
 
   /* A district owns a hue: strong on its roofs and kerb, pale on its walls.
@@ -566,6 +815,29 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       treeAt(rect.x + t, rect.z + walkLine)
       treeAt(rect.x - walkLine, rect.z + t)
       treeAt(rect.x + walkLine, rect.z + t)
+    }
+
+    // Furniture on the same footway: a bench facing the road, a bin beside it,
+    // a planter on the opposite kerb, bollards on the four corners.
+    const walkY = 0.07
+    const side = seedHash(`${district.id}:side`) > 0.5 ? 1 : -1
+    kit.bench.push({
+      x: rect.x - 1.9,
+      y: walkY,
+      z: rect.z + side * (walkLine + 0.05),
+      ry: side > 0 ? 0 : Math.PI,
+    })
+    kit.bin.push({ x: rect.x - 1.25, y: walkY, z: rect.z + side * (walkLine + 0.05) })
+    kit.planter.push({ x: rect.x + 2.1, y: walkY, z: rect.z - side * (walkLine + 0.02) })
+    kit.planter.push({ x: rect.x - walkLine - 0.02, y: walkY, z: rect.z + 2.1 })
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        kit.bollard.push({
+          x: rect.x + sx * (PLOT / 2 + walk * 0.55),
+          y: walkY,
+          z: rect.z + sz * (PLOT / 2 + walk * 0.55),
+        })
+      }
     }
 
     // A thin cream kerb around the platform.
@@ -762,19 +1034,155 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   for (const building of cityBuildings) buildRecord(building)
 
+  // Plenty of roof to fill: tanks and stair heads on the tall ones, vents and
+  // plant on the rest.
+  for (const building of cityBuildings) {
+    const top = PLOT_HEIGHT + building.h + 0.01
+    const roll = seedHash(`${building.id}:roof`)
+    const sway = (n: string) => (seedHash(`${building.id}:${n}`) - 0.5) * building.w * 0.42
+    if (building.h > 2.4) {
+      kit.tank.push({
+        x: building.x + sway('t'),
+        y: top,
+        z: building.z + sway('u'),
+        ry: roll * 6.28,
+      })
+      kit.vent.push({ x: building.x + sway('v'), y: top, z: building.z + sway('w') })
+      if (roll > 0.45)
+        kit.stair.push({ x: building.x + sway('s'), y: top, z: building.z + sway('q'), ry: 0 })
+      if (roll > 0.7)
+        kit.unit.push({ x: building.x + sway('e'), y: top, z: building.z + sway('r') })
+    } else {
+      kit.unit.push({
+        x: building.x + sway('t'),
+        y: top,
+        z: building.z + sway('u'),
+        ry: roll * 3.1,
+      })
+      if (roll > 0.4)
+        kit.vent.push({ x: building.x + sway('v'), y: top, z: building.z + sway('w') })
+    }
+  }
+
+  const shopPieces: THREE.BufferGeometry[] = []
+
   // Neighbourhood: low unnamed blocks. They cast shadows but are not pickable.
+  const BAND = 0.46
   for (const fabric of cityFabric) {
     const group = new THREE.Group()
     group.position.set(fabric.x, PLOT_HEIGHT + 0.01, fabric.z)
-    const geo = track(new THREE.BoxGeometry(fabric.w, fabric.h, fabric.d))
-    scaleBoxUv(geo, fabric.w, fabric.h, fabric.d, 1.15)
+    const bodyH = Math.max(0.4, fabric.h - BAND)
+    const geo = track(new THREE.BoxGeometry(fabric.w, bodyH, fabric.d))
+    scaleBoxUv(geo, fabric.w, bodyH, fabric.d, 1.15)
     const mesh = new THREE.Mesh(geo, assets.fabric)
-    mesh.position.y = fabric.h / 2
+    mesh.position.y = BAND + bodyH / 2
     mesh.castShadow = true
     mesh.receiveShadow = true
     group.add(mesh)
     scene.add(group)
+
+    // The ground floor: shopfront glass in a stone band, drawn as its own box
+    // so the warm room reads from street level.
+    const shopGeo = new THREE.BoxGeometry(fabric.w + 0.015, BAND, fabric.d + 0.015)
+    scaleBoxUv(shopGeo, fabric.w + 0.015, BAND, fabric.d + 0.015, 1.9)
+    shopGeo.translate(fabric.x, PLOT_HEIGHT + 0.01 + BAND / 2, fabric.z)
+    shopPieces.push(shopGeo)
+
+    // A tank, a vent, a stair head: roofs are never empty.
+    const top = PLOT_HEIGHT + fabric.h + 0.01
+    const roll = seedHash(`${fabric.x}:${fabric.z}`)
+    if (roll > 0.36) kit.tank.push({ x: fabric.x, y: top, z: fabric.z, ry: roll * 6.28 })
+    if (roll < 0.72) kit.vent.push({ x: fabric.x + 0.34, y: top, z: fabric.z - 0.3 })
+    if (roll > 0.5)
+      kit.unit.push({ x: fabric.x - 0.36, y: top, z: fabric.z + 0.28, ry: roll * 3.1 })
+    if (roll > 0.86) kit.stair.push({ x: fabric.x, y: top, z: fabric.z - 0.2, ry: 0 })
   }
+
+  if (shopPieces.length > 0) {
+    const shops = new THREE.Mesh(track(mergeGeometries(shopPieces)), shopMaterial)
+    shops.castShadow = false
+    shops.receiveShadow = true
+    scene.add(shops)
+  }
+
+  // A signal on each corner of the two crossings, facing the middle of the
+  // junction, so the avenues read as controlled rather than free-for-all.
+  for (const junction of junctions) {
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        const x = junction.x + sx * (ROAD / 2 + 0.36)
+        const z = junction.z + sz * (ROAD / 2 + 0.36)
+        const ry = Math.atan2(junction.x - x, junction.z - z)
+        kit.pole.push({ x, y: 0.06, z, ry })
+        kit.head.push({ x, y: 0.06 + 0.72, z, ry })
+      }
+    }
+  }
+
+  /* ——— the street kit ————————————————————————————————————————————————————
+     Detail at this scale lives at knee height and on the roof: a water tank, a
+     stair head, a signal on its pole, a bench nobody is sitting on. Everything
+     here is one instanced mesh per shape, so the whole set is a dozen draw
+     calls and none of it is touched per frame. */
+
+  const kitEntries = Object.entries(kit) as Array<[KitShape, KitItem[]]>
+  for (const [shape, items] of kitEntries) {
+    if (items.length === 0) continue
+    const spec = KIT_SHAPES[shape]
+    const mesh = new THREE.InstancedMesh(spec.geometry, spec.material, items.length)
+    mesh.castShadow = spec.castShadow
+    mesh.receiveShadow = spec.castShadow
+    items.forEach((item, index) => {
+      placeDummy.position.set(item.x, item.y, item.z)
+      placeDummy.rotation.set(0, item.ry ?? 0, 0)
+      placeDummy.scale.setScalar(item.s ?? 1)
+      placeDummy.updateMatrix()
+      mesh.setMatrixAt(index, placeDummy.matrix)
+    })
+    mesh.instanceMatrix.needsUpdate = true
+    scene.add(mesh)
+  }
+
+  // Soft contact shadows. The sun map gives the long shadows; this is the
+  // darkening where a wall actually meets the ground, which is what makes a
+  // block look like it is standing on the plate rather than floating over it.
+  const contactTexture = track(contactShadowTexture())
+  const contactMaterial = track(
+    new THREE.MeshBasicMaterial({
+      map: contactTexture,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0.55,
+    }),
+  )
+  const contactGeo = track(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2))
+  const contacts: Array<{ x: number; z: number; w: number; d: number; y: number }> = [
+    ...cityBuildings.map((b) => ({
+      x: b.x,
+      z: b.z,
+      w: b.w + 1.1,
+      d: b.d + 1.1,
+      y: PLOT_HEIGHT + 0.012,
+    })),
+    ...cityFabric.map((f) => ({
+      x: f.x,
+      z: f.z,
+      w: f.w + 0.9,
+      d: f.d + 0.9,
+      y: PLOT_HEIGHT + 0.012,
+    })),
+  ]
+  const contactMesh = new THREE.InstancedMesh(contactGeo, contactMaterial, contacts.length)
+  contactMesh.renderOrder = 1
+  contacts.forEach((c, index) => {
+    placeDummy.position.set(c.x, c.y, c.z)
+    placeDummy.rotation.set(0, 0, 0)
+    placeDummy.scale.set(c.w, 1, c.d)
+    placeDummy.updateMatrix()
+    contactMesh.setMatrixAt(index, placeDummy.matrix)
+  })
+  contactMesh.instanceMatrix.needsUpdate = true
+  scene.add(contactMesh)
 
   // Traffic, kerb lamps and zebra crossings: real kit cars running the avenues,
   // with the traffic rules in cityTraffic.ts.
