@@ -29,10 +29,10 @@ import jpeg from 'jpeg-js'
 const PHOTO = new URL('../src/assets/hero-room.jpg', import.meta.url)
 const OUT = new URL('../src/lib/emoFace.ts', import.meta.url)
 
-/** Where his face is in the 2752 × 1536 photo, as a search window for the glows. */
-const BAND = { x: 1010, y: 910, w: 190, h: 120 }
+/** Where his face is in the 1376 × 768 photo, as a search window for the glows. */
+const BAND = { x: 505, y: 455, w: 95, h: 60 }
 /** The dark glass of his display, measured once and then only trusted. */
-const SCREEN = { x: 1020, y: 892, w: 164, h: 156 }
+const SCREEN = { x: 510, y: 446, w: 82, h: 78 }
 /** A pixel is eye paint when green/blue run well ahead of red, and it is lit. */
 const CORE = (r, g, b) => g - r > 55 && b - r > 55 && g > 90
 /** A pixel is his glass, not paint, when it is barely above the black of the display. */
