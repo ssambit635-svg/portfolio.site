@@ -282,8 +282,10 @@ button {
    roll-off from edge to centre and no banding anywhere. */
 .hero-screen {
   position: absolute;
-  /* The panel covers the whole glass of the display, measured off this
-     photograph: 375, 187, 640 × 208 of 1376 × 768. */
+  /* The glass, measured off this photograph: 375, 187, 640 × 208 of 1376 × 768.
+     It is a box to hold the type, not a panel: there is no opaque fill and no
+     clip, because a panel edge is a colour of its own and this photograph's
+     glass already has one. */
   left: 27.9%;
   top: 25%;
   width: 45.3%;
@@ -297,35 +299,23 @@ button {
   padding: 1.9cqw 2.2cqw;
   text-align: center;
   font-family: var(--sans);
-  /* The outline of the display, measured off the photograph: the glass starts
-     at x=245 of 1376 and its top edge dips 4% of the box as it crosses the
-     middle, the right edge leans in by 14px and comes back out, and the bottom
-     is the monitor's own chin. Every point is in the panel's own box. */
-  clip-path: polygon(
-    0% 0.51%,
-    17.78% 3.26%,
-    40.71% 4.3%,
-    63.65% 4.3%,
-    86.58% 3.26%,
-    98.05% 2.23%,
-    100% 0.85%,
-    98.39% 34.28%,
-    98.39% 51.53%,
-    99.2% 99.07%,
-    75.11% 97%,
-    50.8% 94.56%,
-    29.24% 94.56%,
-    6.31% 96.25%,
-    0% 99%
-  );
+  /* The photograph's own glass, taken down a stop — same pixels, so the same
+     teal, the same sheen, the same falloff at the edges, and nothing to
+     mismatch anywhere. The earlier build painted an opaque panel over the
+     glass and clipped it to a polygon; the sliver of real glass left between
+     that polygon and the bezel read as a bright green line down the edge. */
   background:
-    /* Matte glass: one broad, almost invisible sheen down the middle. No
-       hotspot, no bright edge, nothing that reads as a seam. */
-    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.032), transparent 62%),
-    /* The panel itself, opaque: a matte OLED is a surface, not a window. The
-       outermost hair is the colour of the monitor's own frame, so wherever the
-       panel overlaps the frame there is no edge to see. */
-    radial-gradient(100% 100% at 50% 50%, #081212 0%, #071111 58%, #030707 87%, #010101 100%);
+    /* A whisper of sheen, and a settling of the glass under the type. Both fade
+       to nothing before the box ends, so there is no edge anywhere on the
+       display — no straight line down the glass, no colour of its own. */
+    radial-gradient(120% 150% at 50% 44%, rgba(206, 240, 225, 0.03), transparent 62%),
+    radial-gradient(
+      105% 125% at 50% 52%,
+      rgba(1, 8, 10, 0.5) 0%,
+      rgba(1, 8, 10, 0.44) 50%,
+      rgba(1, 8, 10, 0.2) 78%,
+      transparent 100%
+    );
 }
 .hero-screen-label {
   margin: 0;
