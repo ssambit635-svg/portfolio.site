@@ -71,9 +71,6 @@ export default function Preloader() {
   useEffect(() => {
     if (prefersReducedMotion()) {
       setReduced(true)
-      // Nothing to wait for: the page is ready now.
-      ;(window as unknown as { __siteReady?: boolean }).__siteReady = true
-      window.dispatchEvent(new Event('site:ready'))
       return
     }
 
@@ -107,9 +104,6 @@ export default function Preloader() {
             if (cancelled) return
             setScrollLocked(false)
             setDone(true)
-            // Hand the stage to whatever comes next: the room lighting up.
-            ;(window as unknown as { __siteReady?: boolean }).__siteReady = true
-            window.dispatchEvent(new Event('site:ready'))
           }, 280)
         }, last + TAIL)
       }, wait)
