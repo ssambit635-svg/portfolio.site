@@ -1401,6 +1401,18 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   }
   const view = { width: 1, height: 1, aspect: 1.6, fit: FIT_HEIGHT }
 
+  // How far this section has travelled through the viewport, and how fast it is
+  // going. Read from `scrollY` and a cached offset — never from a bounding rect
+  // inside the frame — so the loop never forces layout.
+  const travel = { top: 0, height: 1, progress: 0, glide: 0, lastY: 0 }
+
+  const measureTravel = () => {
+    const rect = host.getBoundingClientRect()
+    travel.top = rect.top + window.scrollY
+    travel.height = Math.max(1, rect.height)
+    travel.lastY = window.scrollY
+  }
+
   const resize = () => {
     const rect = host.getBoundingClientRect()
     const width = Math.max(1, Math.round(rect.width))
@@ -1411,12 +1423,19 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     // On a narrow screen the plate has to fit across, not down.
     view.fit = Math.max(FIT_HEIGHT, FIT_WIDTH / view.aspect)
     renderer.setSize(width, height, false)
+    measureTravel()
   }
 
   const placeCamera = () => {
-    const ce = Math.cos(cam.elevation)
-    const se = Math.sin(cam.elevation)
-    const viewHeight = view.fit / cam.zoom
+    // The scroll is a second hand on the same camera: it never touches the
+    // visitor's own drag, zoom or focus, it is just added on top of them.
+    const lean = options.reducedMotion ? 0 : travel.progress
+    const drag = options.reducedMotion ? 0 : travel.glide
+    const elevation = cam.elevation + lean * 0.1
+    const zoom = cam.zoom * (1 - lean * 0.06)
+    const ce = Math.cos(elevation)
+    const se = Math.sin(elevation)
+    const viewHeight = view.fit / zoom
     const viewWidth = viewHeight * view.aspect
     camera.top = viewHeight / 2
     camera.bottom = -viewHeight / 2
@@ -1428,8 +1447,8 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     const forward = new THREE.Vector3(-Math.sin(cam.azimuth) * ce, -se, -Math.cos(cam.azimuth) * ce)
     const up = new THREE.Vector3().crossVectors(right, forward)
     const offset = right
-      .multiplyScalar(viewWidth * cam.shift)
-      .addScaledVector(up, viewHeight * cam.shiftY)
+      .multiplyScalar(viewWidth * (cam.shift + (lean - 0.5) * 0.045))
+      .addScaledVector(up, viewHeight * (cam.shiftY + drag))
     camera.position.set(
       cam.target.x + DISTANCE * ce * Math.sin(cam.azimuth),
       cam.target.y + DISTANCE * se,
@@ -1753,6 +1772,20 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       now - lastInteraction > 7000
     ) {
       goal.azimuth += dt * 0.00022
+    }
+
+    if (!options.reducedMotion) {
+      const y = window.scrollY
+      // 0 as the top of the section reaches the fold, 1 as its bottom leaves.
+      const span = travel.height + view.height
+      const p = THREE.MathUtils.clamp((y + view.height - travel.top) / span, 0, 1)
+      const ease = 1 - Math.exp(-dt * 0.004)
+      travel.progress += (p - travel.progress) * ease
+      // The plate is heavy: it lags the page by a hair while you scroll, and
+      // settles when you stop. px/ms in, a fraction of the frame out.
+      const speed = THREE.MathUtils.clamp(((y - travel.lastY) / Math.max(dt, 1)) * 0.012, -0.014, 0.014)
+      travel.glide += (-speed - travel.glide) * (1 - Math.exp(-dt * 0.006))
+      travel.lastY = y
     }
 
     const smooth = 1 - Math.exp(-dt * 0.0075)
