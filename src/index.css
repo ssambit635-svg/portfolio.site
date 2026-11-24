@@ -365,7 +365,7 @@ button {
   margin: 0;
   z-index: 3;
   font-family: 'Pinyon Script', cursive;
-  font-size: clamp(24px, 6vw, 48px);
+  font-size: clamp(28px, 6.8vw, 58px);
   line-height: 1.2;
   white-space: nowrap;
   color: var(--white);
@@ -1839,7 +1839,7 @@ button {
   .hero-tagline {
     top: max(calc(12px + env(safe-area-inset-top, 0px)), 5svh);
     max-width: calc(100vw - 96px);
-    font-size: clamp(24px, 6vw, 42px);
+    font-size: clamp(27px, 6.6vw, 48px);
     white-space: nowrap;
   }
   .hero-screen {
@@ -1975,7 +1975,7 @@ button {
   }
   .hero-tagline {
     top: max(calc(10px + env(safe-area-inset-top, 0px)), 4svh);
-    font-size: clamp(22px, 4.5vw, 38px);
+    font-size: clamp(25px, 5vw, 42px);
   }
   .hero-screen-label {
     font-size: clamp(10.5px, 1.15vw, 12px);

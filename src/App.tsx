@@ -5,6 +5,7 @@ import PegBoard from './components/PegBoard'
 import EmoRobot from './components/EmoRobot'
 import HeroKeyboard from './components/HeroKeyboard'
 import WorksWheel from './components/WorksWheel'
+import HeroPowerOn from './components/HeroPowerOn'
 import Preloader from './components/Preloader'
 import ArrowIcon from './components/ArrowIcon'
 import UptimeDot from './components/UptimeDot'
@@ -267,6 +268,7 @@ export default function App() {
   return (
     <>
       <Preloader />
+      <HeroPowerOn />
       <a className="skip-link" href="#works">
         Skip to work
       </a>
