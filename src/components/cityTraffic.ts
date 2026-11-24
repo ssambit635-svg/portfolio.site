@@ -17,6 +17,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import {
+  CAR_LENGTH,
+  parkedCars,
   cityCars,
   cityCrossings,
   cityLamps,
@@ -291,6 +293,18 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
       slot,
     })
   }
+  // Parked cars ride in the same instanced mesh as their moving twins, in
+  // slots after the runners. Nothing writes to those slots again, so a parked
+  // car costs one matrix and never a frame.
+  const parkedByKind = new Map<CityCarKind, typeof parkedCars>()
+  for (const car of parkedCars) {
+    const list = parkedByKind.get(car.kind) ?? []
+    list.push(car)
+    parkedByKind.set(car.kind, list)
+  }
+  const slotsFor = (kind: CityCarKind) =>
+    (slotByKind.get(kind) ?? 0) + (parkedByKind.get(kind)?.length ?? 0)
+
   const meshes = new Map<CityCarKind, THREE.InstancedMesh>()
   /** Which car sits in which instance slot, per type. Runners keep the order
    * they were added in, which is the order the slots were handed out. */
@@ -394,13 +408,25 @@ export function createTraffic(scene: THREE.Scene, camera: THREE.Camera, animate:
         side: THREE.FrontSide,
       }),
     )
-    const mesh = new THREE.InstancedMesh(geometry, paint, slotByKind.get(kind) ?? 1)
+    const mesh = new THREE.InstancedMesh(geometry, paint, slotsFor(kind) || 1)
     mesh.castShadow = true
     mesh.receiveShadow = true
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
     meshes.set(kind, mesh)
     scene.add(mesh)
     for (const runner of runners) if (runner.kind === kind) place(runner)
+
+    // The ones left at the kerb: same shell, same paint, no engine.
+    const parked = parkedByKind.get(kind) ?? []
+    const first = slotByKind.get(kind) ?? 0
+    parked.forEach((car, index) => {
+      dummy.position.set(car.x, 0.07, car.z)
+      dummy.rotation.set(0, car.ry + NOSE, 0)
+      dummy.scale.setScalar(CAR_LENGTH[car.kind])
+      dummy.updateMatrix()
+      mesh.setMatrixAt(first + index, dummy.matrix)
+    })
+    mesh.instanceMatrix.needsUpdate = true
   }
 
   for (const kind of slotByKind.keys()) {

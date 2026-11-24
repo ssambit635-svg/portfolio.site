@@ -911,7 +911,7 @@ export type CityCar = {
   length: number
 }
 
-const CAR_LENGTH: Record<CityCarKind, number> = {
+export const CAR_LENGTH: Record<CityCarKind, number> = {
   supercar: 1.12,
   van: 1.26,
   taxi: 1.06,
@@ -966,6 +966,33 @@ export const cityCars: CityCar[] = (() => {
     }
   })
 })()
+
+/**
+ * Cars left at the kerb. They are not traffic: no lane, no rules, no update —
+ * just the proof that someone lives here. Each one is parked tight to the kerb
+ * on the same side as the lane it would join, nose pointing the way that lane
+ * goes, so the street still reads right-hand-drive.
+ */
+export type ParkedCar = { kind: CityCarKind; x: number; z: number; ry: number }
+
+const KERB_PARK = ROAD / 2 - 0.42
+
+export const parkedCars: ParkedCar[] = [
+  // The cross avenue, south kerb, nose east; north kerb, nose west.
+  { kind: 'hatch', x: -16.6, z: KERB_PARK, ry: 0 },
+  { kind: 'sedan', x: -12.9, z: KERB_PARK, ry: 0 },
+  { kind: 'van', x: 12.9, z: KERB_PARK, ry: 0 },
+  { kind: 'taxi', x: 16.6, z: KERB_PARK, ry: 0 },
+  { kind: 'sedan', x: -14.8, z: -KERB_PARK, ry: Math.PI },
+  { kind: 'hatch', x: -11.1, z: -KERB_PARK, ry: Math.PI },
+  { kind: 'supercar', x: 11.1, z: -KERB_PARK, ry: Math.PI },
+  { kind: 'van', x: 14.8, z: -KERB_PARK, ry: Math.PI },
+  // The north-south avenues, parked on the outer kerb.
+  { kind: 'hatch', x: AVENUE_X + KERB_PARK, z: -8.4, ry: Math.PI / 2 },
+  { kind: 'sedan', x: AVENUE_X + KERB_PARK, z: 8.4, ry: Math.PI / 2 },
+  { kind: 'taxi', x: -AVENUE_X - KERB_PARK, z: -8.4, ry: -Math.PI / 2 },
+  { kind: 'hatch', x: -AVENUE_X - KERB_PARK, z: 8.4, ry: -Math.PI / 2 },
+]
 
 /** A lamp standard on the kerb; `arm` is the yaw that points its head at the road. */
 export type CityLamp = { x: number; z: number; arm: number }
