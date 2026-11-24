@@ -222,7 +222,9 @@ button {
 .hero {
   --hero-ar: 1.7917; /* 1376 / 768 — the photo's own ratio */
   /* How far the camera can pull back before the section lets go. */
-  --hero-runway: 78svh;
+  --hero-runway: 145svh;
+  /* 1 is the photograph's own framing; above it, the camera is closer in. */
+  --zoom: calc(1.45 - 0.45 * var(--dolly));
   /* 0 at the top of the page, 1 at the end of the runway. The only thing the
      scroll is allowed to write. */
   --dolly: 0;
@@ -235,6 +237,7 @@ button {
   /* Nothing to move through: the hero is one screen, as it always was. */
   .hero {
     --hero-runway: 0px;
+    --zoom: 1.45;
     height: 100svh;
     min-height: 100svh;
   }
@@ -253,14 +256,9 @@ button {
   position: relative;
   isolation: isolate;
   container-type: inline-size;
-  /* Everything on the glass — the words, the robot, the keyboard — is inside
-     this box, so it all leaves together and nothing drifts out of register. */
-  /* A slow drift, opposite to the room's, so the two frames move against each
-     other while they trade places: it reads as one camera move rather than as
-     two photographs stacked. */
-  transform: scale(calc(1 + var(--dolly) * 0.04));
-  opacity: clamp(0, calc((0.28 - var(--dolly)) / 0.18), 1);
-  will-change: transform, opacity;
+  /* Nothing in this box moves on its own. The words, the robot and the keyboard
+     are written on the one photograph; the photograph is what the camera moves
+     away from. */
 }
 .hero-monitor {
   display: block;
@@ -284,20 +282,19 @@ button {
    roll-off from edge to centre and no banding anywhere. */
 .hero-screen {
   position: absolute;
-  /* The panel covers the whole glass of the display. It used to start 2.7% of
-     the photo further in, which left the photograph's own green edge showing
-     as a band down the left of the screen. */
-  left: 17.81%;
-  top: 19.6%;
-  width: 63.44%;
-  height: 37.8%;
+  /* The panel covers the whole glass of the display, measured off this
+     photograph: 375, 187, 640 × 208 of 1376 × 768. */
+  left: 27.9%;
+  top: 25%;
+  width: 45.3%;
+  height: 26%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5cqw;
-  padding: 2.6cqw 3cqw;
+  gap: 1.1cqw;
+  padding: 1.9cqw 2.2cqw;
   text-align: center;
   font-family: var(--sans);
   /* The outline of the display, measured off the photograph: the glass starts
@@ -333,7 +330,7 @@ button {
 .hero-screen-label {
   margin: 0;
   color: #b6cbc3;
-  font-size: 0.8cqw;
+  font-size: 0.58cqw;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.2em;
@@ -346,7 +343,7 @@ button {
   margin: 0;
   max-width: 100%;
   font-family: var(--sans);
-  font-size: min(3.2cqw, 6.4vw);
+  font-size: min(2.35cqw, 6.4vw);
   font-weight: 500;
   line-height: 1.25;
   letter-spacing: -0.018em;
@@ -391,7 +388,7 @@ button {
   /* The name belongs to the photograph's frame, so it leaves with it: gone by
      the time the room is the subject. (`filter`, not `opacity`: the intro
      animation already owns opacity, and it would win.) */
-  filter: opacity(calc(1 - var(--dolly, 0) * 1.9));
+  filter: opacity(calc(1 - var(--dolly, 0) * 1.15));
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
@@ -609,8 +606,10 @@ button {
   top: calc((100vh - var(--hero-h)) * 0.65);
   top: calc((100svh - var(--hero-h)) * 0.65);
   left: 50%;
-  transform: translateX(-50%);
-  transform-origin: top center;
+  /* The camera. Still the same still — only the distance changes: closer on the
+     monitor at the top of the page, its own framing at the end of the runway. */
+  transform: translateX(-50%) scale(var(--zoom));
+  transform-origin: 50% 44%;
   width: calc(var(--hero-h) * var(--hero-ar));
   height: var(--hero-h);
   pointer-events: none;
@@ -619,37 +618,6 @@ button {
   display: block;
   width: 100%;
   height: 100%;
-}
-/* The room: a wider plate of the same desk, laid behind the photograph and
-   measured off its own pixels — the car shelf and the katana are already at the
-   right scale, so the photograph can dissolve into it without a seam. */
-/* The room: the same desk photographed from a step further back, the whole
-   studio around it — the shelf of car models and the posters on the left, the
-   katana, the plant and the tower on the right. It is the same frame as the
-   photograph, so it can trade places with it without either one moving a
-   pixel that matters. */
-.hero-frame > .hero-room {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-  user-select: none;
-  /* Held at a size where its monitor sits exactly on the photograph's, so the
-     handover happens between two frames of the same desk; only once the
-     photograph is gone does the room settle back to its own framing. */
-  transform: scale(calc(1.16 - 0.16 * clamp(0, calc((var(--dolly) - 0.28) / 0.55), 1)));
-  opacity: clamp(0, calc((var(--dolly) - 0.1) / 0.18), 1);
-}
-/* ...and the photograph hands over to it. The two shots agree on where the desk
-   is, so the handover is a camera move, not a cut: one image recedes as the
-   other comes forward, and the panel's own words leave with the photograph
-   they are written on. */
-.hero-monitor {
-  display: block;
-  width: 100%;
-  height: auto;
 }
 .tv-screen-fx {
   position: absolute;
@@ -1893,6 +1861,7 @@ button {
     --hero-top: clamp(120px, 18svh, 220px);
     --hero-w: min(116vw, 980px);
     --hero-runway: 0px;
+    --zoom: 1.45;
     height: calc(var(--hero-top) + var(--hero-w) / var(--hero-ar));
     min-height: calc(var(--hero-top) + var(--hero-w) / var(--hero-ar));
   }
@@ -1918,11 +1887,11 @@ button {
     padding: 2cqw 2.4cqw;
   }
   .hero-screen-label {
-    font-size: clamp(10.5px, 1.35vw, 12px);
+    font-size: clamp(8.5px, 1.05vw, 10px);
     letter-spacing: 0.12em;
   }
   .hero .hero-screen-title {
-    font-size: clamp(15px, 4.2vw, 34px);
+    font-size: clamp(12px, 3.1vw, 26px);
     letter-spacing: -0.03em;
   }
 }

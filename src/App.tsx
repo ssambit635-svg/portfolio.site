@@ -15,7 +15,6 @@ import { credentials, experience, profile, projects } from './lib/site'
 import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
 import { prefersReducedMotion } from './lib/utils'
-import heroMonitor from './assets/hero-monitor.jpg'
 import heroRoom from './assets/hero-room.jpg'
 
 function Arrow() {
@@ -92,12 +91,12 @@ function Hero() {
     <section id="home" className="hero" ref={heroRef}>
       <div className="hero-pin">
         <div className="hero-frame">
-          {/* The room the desk stands in. Decorative: the photograph in front
-              of it carries every word. */}
-          <img src={heroRoom} alt="" aria-hidden="true" className="hero-room" />
           <div className="hero-monitor-wrapper">
+            {/* One photograph, close on the monitor; the frame is what moves.
+                The whole room is already in it — the shelf, the posters, the
+                katana — and scrolling simply steps back until all of it is. */}
             <img
-              src={heroMonitor}
+              src={heroRoom}
               alt=""
               width={1376}
               height={768}
