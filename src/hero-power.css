@@ -1,0 +1,463 @@
+/* ——— the room comes up ————————————————————————————————————————————————————
+   The overlay that sits between the shutter and the page: black, then a light
+   bar flickering over the monitor, then the panel striking and opening out
+   into the hero that was under it all along.
+
+   Every timing lives here, and `TOTAL` in HeroPowerOn.tsx is the sum of them:
+   0.95s of lamp and dark, 0.40s of bring-up, 0.75s of phosphor, 0.80s of
+   reveal. Change one, change the other.
+
+   The overlay is a fixed layer with `pointer-events: none`: it can never eat a
+   click, and it leaves the page's own layout untouched.
+   --------------------------------------------------------------------------- */
+
+.cine {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  pointer-events: none;
+  overflow: hidden;
+  /* Everything is expressed against the black; the pieces above it animate in.
+     The fade-out lives on `[data-run='1']`: the overlay is already black while
+     the shutter is still up, and its clock must start when the shutter goes. */
+  background: #000;
+  /* How much closer than the frame the camera starts. It ends on 1, so the
+     last thing you see before the reveal is the photograph's own geometry. */
+  --stage-k: 1.06;
+}
+.cine[data-run='1'] {
+  animation: cine-out 0.8s ease-in 2.1s both;
+}
+
+/* On a phone the desk is small in the frame, so the camera starts further in
+   and the pull-back does more of the work. */
+@media (max-aspect-ratio: 1 / 1) {
+  .cine {
+    --stage-k: 1.34;
+  }
+}
+
+/* ——— the camera ———————————————————————————————————————————————————————————— */
+
+.cine-stage {
+  position: absolute;
+  inset: 0;
+  transform-origin: calc(var(--glass-x, 0px) + var(--glass-w, 100%) / 2)
+    calc(var(--glass-y, 0px) + var(--glass-h, 100%) / 2);
+}
+.cine[data-run='1'] .cine-stage {
+  animation: cine-push 2.9s cubic-bezier(0.33, 0, 0.2, 1) both;
+}
+
+/* The room: two soft pools of nothing, so the black has depth rather than being
+   a switched-off rectangle. Barely there on purpose. */
+.cine-room {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 60% at 50% 18%, rgba(96, 120, 108, 0.1), transparent 70%),
+    radial-gradient(70% 50% at 50% 92%, rgba(58, 66, 58, 0.14), transparent 72%);
+  opacity: 0;
+}
+.cine[data-run='1'] .cine-room {
+  animation: cine-room-in 1s ease-out both;
+}
+
+/* ——— the light bar ———————————————————————————————————————————————————————— */
+
+/* Two layers of the same bar: a hard warm core and a wide soft bloom, both
+   sitting exactly where the tube is in the photograph. */
+.cine-lamp,
+.cine-lamp-bloom {
+  position: absolute;
+  left: var(--lamp-x);
+  top: var(--lamp-y);
+  width: var(--lamp-w);
+  height: var(--lamp-h);
+  border-radius: 999px;
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+.cine-lamp {
+  background: linear-gradient(180deg, #fffdf6 0%, #f6efdf 42%, #cbbfa6 100%);
+  box-shadow:
+    0 0 2px rgba(255, 248, 230, 0.9),
+    0 0 12px rgba(255, 241, 210, 0.55);
+}
+.cine-lamp-bloom {
+  left: calc(var(--lamp-x) - var(--lamp-w) * 0.06);
+  top: calc(var(--lamp-y) - var(--lamp-h) * 3);
+  width: calc(var(--lamp-w) * 1.12);
+  height: calc(var(--lamp-h) * 7);
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(255, 244, 220, 0.4) 0%,
+    rgba(255, 238, 205, 0.14) 45%,
+    transparent 72%
+  );
+  filter: blur(6px);
+}
+
+.cine[data-run='1'] .cine-lamp {
+  animation: cine-lamp 0.9s steps(1, end) both;
+}
+.cine[data-run='1'] .cine-lamp-bloom {
+  animation: cine-lamp-bloom 0.9s steps(1, end) both;
+}
+
+/* ——— the panel ———————————————————————————————————————————————————————————— */
+
+/* The glass, in the same place and the same shape as the real one. The raster
+   opens out of the bring-up line; the sweep passes over it once it is whole. */
+.cine-panel,
+.cine-bloom {
+  position: absolute;
+  left: var(--glass-x);
+  top: var(--glass-y);
+  width: var(--glass-w);
+  height: var(--glass-h);
+}
+.cine-panel {
+  overflow: hidden;
+  opacity: 0;
+  clip-path: polygon(
+    0% 0.51%,
+    17.78% 3.26%,
+    40.71% 4.3%,
+    63.65% 4.3%,
+    86.58% 3.26%,
+    98.05% 2.23%,
+    100% 0.85%,
+    98.39% 34.28%,
+    98.39% 51.53%,
+    99.2% 99.07%,
+    75.11% 97%,
+    50.8% 94.56%,
+    29.24% 94.56%,
+    6.31% 96.25%,
+    0% 99%
+  );
+}
+.cine[data-run='1'] .cine-panel {
+  animation: cine-panel 1.35s ease-out both;
+}
+
+/* The raster itself: black glass that comes up green, then cools to the panel. */
+.cine-raster {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  background:
+    radial-gradient(120% 140% at 50% 45%, rgba(96, 226, 160, 0.34), transparent 62%),
+    radial-gradient(100% 100% at 50% 50%, #0a1a12 0%, #061310 55%, #020705 100%);
+  transform: scaleY(0.004);
+  opacity: 0;
+}
+.cine[data-run='1'] .cine-raster {
+  animation: cine-raster 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.92s both;
+}
+
+/* The bring-up line: one bright hairline across the middle of the glass. */
+.cine-tube {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #f2fff6 12%,
+    #ffffff 50%,
+    #f2fff6 88%,
+    transparent
+  );
+  filter: blur(0.4px);
+  transform: scaleX(0);
+  opacity: 0;
+}
+.cine[data-run='1'] .cine-tube {
+  animation: cine-tube 0.62s ease-out 0.9s both;
+}
+
+/* The sync band: a soft bright band that rolls down the glass twice. */
+.cine-sweep {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  height: 34%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(198, 255, 222, 0.05) 40%,
+    rgba(220, 255, 236, 0.16) 52%,
+    rgba(198, 255, 222, 0.05) 64%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translateY(-60%);
+}
+.cine[data-run='1'] .cine-sweep {
+  animation: cine-sweep 1.35s ease-in-out 1.15s both;
+}
+
+/* The bloom the panel throws into the room while it is still too bright. */
+.cine-bloom {
+  /* A gradient, not a blur: the same soft glow for a fraction of the paint. */
+  background: radial-gradient(
+    58% 56% at 50% 50%,
+    rgba(178, 255, 214, 0.42) 0%,
+    rgba(150, 240, 200, 0.16) 42%,
+    transparent 74%
+  );
+  opacity: 0;
+  transform: scale(1.06);
+}
+.cine[data-run='1'] .cine-bloom {
+  animation: cine-bloom 1.6s ease-out 0.95s both;
+}
+
+/* ——— grain ———————————————————————————————————————————————————————————————— */
+
+.cine-grain {
+  position: absolute;
+  inset: -50%;
+  /* Barely more than the noise of the photograph itself. */
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  animation: cine-grain 0.6s steps(3, end) infinite;
+}
+
+/* ——— the keyframes ——————————————————————————————————————————————————————— */
+
+@keyframes cine-room-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* A tube that is not sure it wants to light: on, off, on, off, then steady. */
+@keyframes cine-lamp {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.92;
+  }
+  9% {
+    opacity: 0.08;
+  }
+  14% {
+    opacity: 0.75;
+  }
+  17% {
+    opacity: 0.12;
+  }
+  22% {
+    opacity: 1;
+  }
+  26% {
+    opacity: 0.3;
+  }
+  33% {
+    opacity: 0.95;
+  }
+  40% {
+    opacity: 0.55;
+  }
+  52% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes cine-lamp-bloom {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.5;
+  }
+  9% {
+    opacity: 0.05;
+  }
+  14% {
+    opacity: 0.4;
+  }
+  17% {
+    opacity: 0.06;
+  }
+  22% {
+    opacity: 0.6;
+  }
+  26% {
+    opacity: 0.16;
+  }
+  33% {
+    opacity: 0.55;
+  }
+  40% {
+    opacity: 0.3;
+  }
+  52% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0.72;
+  }
+}
+
+/* The strike: the line is drawn, then the raster opens out of it. */
+@keyframes cine-tube {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  18% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+  30% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  62% {
+    transform: scaleX(1) scaleY(2.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1) scaleY(1);
+    opacity: 0;
+  }
+}
+
+@keyframes cine-raster {
+  0% {
+    transform: scaleY(0.004);
+    opacity: 0;
+  }
+  12% {
+    transform: scaleY(0.01);
+    opacity: 0.9;
+  }
+  34% {
+    transform: scaleY(0.62);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 0.95;
+  }
+  72% {
+    transform: scaleY(1);
+    opacity: 0.8;
+  }
+  /* Still lit when the black starts to lift: the green goes with the black,
+     into the real glass, rather than cutting to nothing first. */
+  100% {
+    transform: scaleY(1);
+    opacity: 0.62;
+  }
+}
+
+@keyframes cine-sweep {
+  0% {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.55;
+    transform: translateY(140%);
+  }
+  70% {
+    opacity: 0.7;
+    transform: translateY(-70%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120%);
+  }
+}
+
+@keyframes cine-panel {
+  0% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes cine-bloom {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.5;
+  }
+  55% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes cine-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-3%, 2%);
+  }
+  66% {
+    transform: translate(2%, -3%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* The camera holds close through the strike, then pulls back onto the desk —
+   finishing exactly on 1, the length of `TOTAL`, so the green lands on the
+   real panel instead of near it. */
+@keyframes cine-push {
+  0% {
+    transform: scale(var(--stage-k));
+  }
+  58% {
+    transform: scale(var(--stage-k));
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* The black pulls back, and the hero was underneath it the whole time. */
+@keyframes cine-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine {
+    display: none;
+  }
+}
