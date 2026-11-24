@@ -221,18 +221,46 @@ button {
 
 .hero {
   --hero-ar: 1.7917; /* 1376 / 768 — the photo's own ratio */
-  min-height: 100vh;
-  min-height: 100svh;
+  /* How far the camera can pull back before the section lets go. */
+  --hero-runway: 78svh;
+  /* 0 at the top of the page, 1 at the end of the runway. The only thing the
+     scroll is allowed to write. */
+  --dolly: 0;
   position: relative;
+  height: calc(100svh + var(--hero-runway));
+  min-height: calc(100svh + var(--hero-runway));
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing to move through: the hero is one screen, as it always was. */
+  .hero {
+    --hero-runway: 0px;
+    height: 100svh;
+    min-height: 100svh;
+  }
+}
+/* The frame is pinned while the camera pulls back: the hero does not slide
+   away, it recedes. (Not `.hero-stage`: that name already belongs to the old
+   television hero, which is still in the stylesheet.) */
+.hero-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
 }
 .hero-monitor-wrapper {
   position: relative;
   isolation: isolate;
   container-type: inline-size;
+  /* Everything on the glass — the words, the robot, the keyboard — is inside
+     this box, so it all leaves together and nothing drifts out of register. */
+  /* A slow drift, opposite to the room's, so the two frames move against each
+     other while they trade places: it reads as one camera move rather than as
+     two photographs stacked. */
+  transform: scale(calc(1 + var(--dolly) * 0.04));
+  opacity: clamp(0, calc((0.28 - var(--dolly)) / 0.18), 1);
+  will-change: transform, opacity;
 }
 .hero-monitor {
   display: block;
@@ -360,6 +388,10 @@ button {
 .hero-tagline {
   position: absolute;
   top: clamp(16px, 5vh, 64px);
+  /* The name belongs to the photograph's frame, so it leaves with it: gone by
+     the time the room is the subject. (`filter`, not `opacity`: the intro
+     animation already owns opacity, and it would win.) */
+  filter: opacity(calc(1 - var(--dolly, 0) * 1.9));
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
@@ -587,6 +619,37 @@ button {
   display: block;
   width: 100%;
   height: 100%;
+}
+/* The room: a wider plate of the same desk, laid behind the photograph and
+   measured off its own pixels — the car shelf and the katana are already at the
+   right scale, so the photograph can dissolve into it without a seam. */
+/* The room: the same desk photographed from a step further back, the whole
+   studio around it — the shelf of car models and the posters on the left, the
+   katana, the plant and the tower on the right. It is the same frame as the
+   photograph, so it can trade places with it without either one moving a
+   pixel that matters. */
+.hero-frame > .hero-room {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  /* Held at a size where its monitor sits exactly on the photograph's, so the
+     handover happens between two frames of the same desk; only once the
+     photograph is gone does the room settle back to its own framing. */
+  transform: scale(calc(1.16 - 0.16 * clamp(0, calc((var(--dolly) - 0.28) / 0.55), 1)));
+  opacity: clamp(0, calc((var(--dolly) - 0.1) / 0.18), 1);
+}
+/* ...and the photograph hands over to it. The two shots agree on where the desk
+   is, so the handover is a camera move, not a cut: one image recedes as the
+   other comes forward, and the panel's own words leave with the photograph
+   they are written on. */
+.hero-monitor {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .tv-screen-fx {
   position: absolute;
@@ -1824,10 +1887,18 @@ button {
 @media (max-width: 960px) and (orientation: portrait) {
   .hero {
     /* The scene and the strip above it are the whole section: the section ends
-       where the scene ends, so there is no dead band under the desk either. */
+       where the scene ends, so there is no dead band under the desk either.
+       A narrow screen gets the photograph and nothing else: the room is a
+       wide-screen idea, and there is no room for it in a portrait frame. */
     --hero-top: clamp(120px, 18svh, 220px);
     --hero-w: min(116vw, 980px);
+    --hero-runway: 0px;
+    height: calc(var(--hero-top) + var(--hero-w) / var(--hero-ar));
     min-height: calc(var(--hero-top) + var(--hero-w) / var(--hero-ar));
+  }
+  .hero-pin {
+    position: relative;
+    height: 100%;
   }
   .hero-frame {
     --hero-h: auto;

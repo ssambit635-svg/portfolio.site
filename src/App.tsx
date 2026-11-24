@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import MacLaptop from './components/MacLaptop'
 import SiteMenu from './components/SiteMenu'
 import RevealText from './components/RevealText'
@@ -13,7 +14,9 @@ import SkillCity from './components/SkillCity'
 import { credentials, experience, profile, projects } from './lib/site'
 import { formatCheckedAt } from './lib/uptime'
 import { useLenis } from './hooks/useLenis'
+import { prefersReducedMotion } from './lib/utils'
 import heroMonitor from './assets/hero-monitor.jpg'
+import heroRoom from './assets/hero-room.jpg'
 
 function Arrow() {
   return <ArrowIcon />
@@ -33,37 +36,93 @@ function ScreenLine({ text }: { text: string }) {
   return <span className="hero-line">{text}</span>
 }
 
+/**
+ * The desk is in a room, and the room is bigger than the photograph.
+ *
+ * The photo stays exactly where it has always been — every overlay on it is
+ * measured against it — and the rest of the room is a second, wider plate
+ * behind it, aligned to the same desk. Scrolling does not slide the hero away:
+ * the section pins, and the camera pulls back, so the photograph settles into
+ * the room around it. `--dolly` is the only thing the scroll writes, and it is
+ * one number; the scale, the fades and the parallax are all CSS on top of it.
+ */
 function Hero() {
+  const heroRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el || prefersReducedMotion()) return
+
+    let raf = 0
+    let runway = 1
+    const measure = () => {
+      runway = Math.max(1, el.offsetHeight - window.innerHeight)
+    }
+    // One number in, one custom property out: no layout is read in the frame.
+    const write = () => {
+      raf = 0
+      // No pin, no runway: the photograph stays exactly where it is.
+      if (runway < 8) {
+        el.style.setProperty('--dolly', '0')
+        return
+      }
+      const p = Math.min(1, Math.max(0, window.scrollY / runway))
+      el.style.setProperty('--dolly', p.toFixed(3))
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(write)
+    }
+    const onResize = () => {
+      measure()
+      onScroll()
+    }
+
+    measure()
+    write()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
   return (
-    <section id="home" className="hero">
-      <div className="hero-frame">
-        <div className="hero-monitor-wrapper">
-          <img
-            src={heroMonitor}
-            alt=""
-            width={1376}
-            height={768}
-            className="hero-monitor"
-            fetchPriority="high"
-          />
-          <div className="hero-screen">
-            <p className="hero-screen-label">
-              <ScreenLine text="CLOUD · FULL-STACK · CSE ’29" />
-            </p>
-            <h1 className="hero-screen-title">
-              <ScreenLine text="From code to cloud." />
-              <ScreenLine text="From pixels to production." />
-            </h1>
+    <section id="home" className="hero" ref={heroRef}>
+      <div className="hero-pin">
+        <div className="hero-frame">
+          {/* The room the desk stands in. Decorative: the photograph in front
+              of it carries every word. */}
+          <img src={heroRoom} alt="" aria-hidden="true" className="hero-room" />
+          <div className="hero-monitor-wrapper">
+            <img
+              src={heroMonitor}
+              alt=""
+              width={1376}
+              height={768}
+              className="hero-monitor"
+              fetchPriority="high"
+            />
+            <div className="hero-screen">
+              <p className="hero-screen-label">
+                <ScreenLine text="CLOUD · FULL-STACK · CSE ’29" />
+              </p>
+              <h1 className="hero-screen-title">
+                <ScreenLine text="From code to cloud." />
+                <ScreenLine text="From pixels to production." />
+              </h1>
+            </div>
+            <EmoRobot />
+            <HeroKeyboard />
           </div>
-          <EmoRobot />
-          <HeroKeyboard />
         </div>
-      </div>
-      {/* Outside the frame: the photo is cropped top and bottom to bleed edge to
+        {/* Outside the frame: the photo is cropped top and bottom to bleed edge to
           edge, and the name has to sit on the fold instead of inside the scene. */}
-      <p className="hero-tagline">
-        {profile.first} · {profile.last}
-      </p>
+        <p className="hero-tagline">
+          {profile.first} · {profile.last}
+        </p>
+      </div>
     </section>
   )
 }
