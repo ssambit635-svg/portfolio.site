@@ -12,6 +12,7 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { techLogos, type TechLogo } from '../lib/techLogos'
+import { addCityProps } from './cityProps'
 import { createTraffic } from './cityTraffic'
 import {
   PLATE,
@@ -24,6 +25,7 @@ import {
   greenRoads,
   junctions,
   ROAD,
+  cityLamps,
   plateRim,
   plotRect,
   roadDashes,
@@ -129,13 +131,28 @@ function scaleBoxUv(geo: THREE.BoxGeometry, w: number, h: number, d: number, uni
  * plus one of four small variations (a blind, a lit room, a darker pane) so a
  * facade does not read as wallpaper.
  */
-function facadeTexture(detail: 'tower' | 'block' = 'tower'): THREE.CanvasTexture {
+function facadeTextures(detail: 'tower' | 'block' = 'tower'): {
+  map: THREE.CanvasTexture
+  glow: THREE.CanvasTexture
+} {
   const S = 256
   const cell = S / 2
   const canvas = document.createElement('canvas')
   canvas.width = S
   canvas.height = S
   const ctx = canvas.getContext('2d')
+
+  // The same four windows again, drawn as light: only the panes that are lit
+  // appear here, so at dusk a facade glows from its rooms, not from itself.
+  const glowCanvas = document.createElement('canvas')
+  glowCanvas.width = S
+  glowCanvas.height = S
+  const glowCtx = glowCanvas.getContext('2d')
+  if (glowCtx) {
+    glowCtx.fillStyle = '#000000'
+    glowCtx.fillRect(0, 0, S, S)
+  }
+
   if (ctx) {
     ctx.fillStyle = '#e7dcc5'
     ctx.fillRect(0, 0, S, S)
@@ -148,6 +165,9 @@ function facadeTexture(detail: 'tower' | 'block' = 'tower'): THREE.CanvasTexture
         const ox = col * cell
         const oy = row * cell
         const variant = (row * 2 + col) % 4
+        // Fixed per tile, and different for the two facade families, so the city
+        // does not look like one switch was flipped on every window.
+        const lit = (variant * 7 + row * 3 + col * 5 + (detail === 'block' ? 2 : 0)) % 7 < 2
 
         // The floor slab, darker than the wall, with a lit top edge.
         ctx.fillStyle = 'rgba(98, 84, 60, 0.11)'
@@ -167,13 +187,30 @@ function facadeTexture(detail: 'tower' | 'block' = 'tower'): THREE.CanvasTexture
         ctx.fillStyle = 'rgba(26, 22, 15, 0.3)'
         ctx.fillRect(wx - 1, wy - 1, ww + 2, 2)
 
-        // The glass: sky above, room below.
+        // The glass: sky above and room below, or a warm room with the lamp on.
         const glass = ctx.createLinearGradient(0, wy, 0, wy + wh)
-        glass.addColorStop(0, variant === 2 ? '#9aa6aa' : '#8b979c')
-        glass.addColorStop(0.45, '#5b666c')
-        glass.addColorStop(1, variant === 3 ? '#333b40' : '#414b51')
+        if (lit) {
+          glass.addColorStop(0, '#ffe8ba')
+          glass.addColorStop(0.45, '#f2ca89')
+          glass.addColorStop(1, '#c99a55')
+        } else {
+          glass.addColorStop(0, variant === 2 ? '#9aa6aa' : '#8b979c')
+          glass.addColorStop(0.45, '#5b666c')
+          glass.addColorStop(1, variant === 3 ? '#333b40' : '#414b51')
+        }
         ctx.fillStyle = glass
         ctx.fillRect(wx, wy, ww, wh)
+
+        if (lit && glowCtx) {
+          const halo = glowCtx.createLinearGradient(0, wy, 0, wy + wh)
+          halo.addColorStop(0, '#fff2d6')
+          halo.addColorStop(0.55, '#ffdca6')
+          halo.addColorStop(1, '#e2a75c')
+          glowCtx.fillStyle = halo
+          glowCtx.fillRect(wx, wy, ww, wh)
+          glowCtx.fillStyle = 'rgba(0, 0, 0, 0.9)'
+          glowCtx.fillRect(wx + ww / 2 - 1, wy, 2, wh)
+        }
 
         // One soft reflection across the top third.
         const sheen = ctx.createLinearGradient(wx, wy, wx + ww, wy + wh * 0.9)
@@ -207,12 +244,20 @@ function facadeTexture(detail: 'tower' | 'block' = 'tower'): THREE.CanvasTexture
       }
     }
   }
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 8
-  return texture
+
+  const map = new THREE.CanvasTexture(canvas)
+  map.wrapS = THREE.RepeatWrapping
+  map.wrapT = THREE.RepeatWrapping
+  map.colorSpace = THREE.SRGBColorSpace
+  map.anisotropy = 8
+
+  const glow = new THREE.CanvasTexture(glowCanvas)
+  glow.wrapS = THREE.RepeatWrapping
+  glow.wrapT = THREE.RepeatWrapping
+  glow.colorSpace = THREE.SRGBColorSpace
+  glow.anisotropy = 8
+
+  return { map, glow }
 }
 
 /** Paving for a city block: a fine tile grid, so an empty corner reads as a plaza. */
@@ -415,6 +460,59 @@ function contactShadowTexture(): THREE.CanvasTexture {
   return texture
 }
 
+/** Tarmac: a dark, faintly blue surface with grit in it, not a flat green. */
+function asphaltTexture(): THREE.CanvasTexture {
+  const S = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = S
+  canvas.height = S
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.fillStyle = '#3b4042'
+    ctx.fillRect(0, 0, S, S)
+    for (let i = 0; i < 900; i += 1) {
+      const x = (i * 61) % S
+      const y = (i * 97) % S
+      ctx.fillStyle = i % 3 === 0 ? 'rgba(214, 216, 208, 0.09)' : 'rgba(12, 14, 14, 0.16)'
+      ctx.fillRect(x, y, 1 + (i % 2), 1)
+    }
+    // A repair seam, so the tarmac is not a perfect field.
+    ctx.strokeStyle = 'rgba(20, 22, 22, 0.22)'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(0, S * 0.62)
+    ctx.lineTo(S, S * 0.58)
+    ctx.stroke()
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 8
+  return texture
+}
+
+/** The warm pool a lamp throws on the tarmac. */
+function lampPoolTexture(): THREE.CanvasTexture {
+  const S = 64
+  const canvas = document.createElement('canvas')
+  canvas.width = S
+  canvas.height = S
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    const gradient = ctx.createRadialGradient(S / 2, S / 2, 1, S / 2, S / 2, S / 2)
+    gradient.addColorStop(0, 'rgba(255, 226, 170, 0.95)')
+    gradient.addColorStop(0.32, 'rgba(255, 206, 138, 0.4)')
+    gradient.addColorStop(0.68, 'rgba(240, 176, 104, 0.11)')
+    gradient.addColorStop(1, 'rgba(240, 176, 104, 0)')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, S, S)
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+
 /** The ground floor of a neighbourhood block: glass, a door, a warm room. */
 function shopTexture(): THREE.CanvasTexture {
   const S = 128
@@ -546,14 +644,25 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     return item
   }
 
-  const facade = track(facadeTexture('tower'))
-  const facadePlain = track(facadeTexture('block'))
+  const facadeArt = facadeTextures('tower')
+  const facade = track(facadeArt.map)
+  const facadePlainArt = facadeTextures('block')
+  const facadePlain = track(facadePlainArt.map)
+  const facadeGlow = track(facadePlainArt.glow)
   const paving = track(pavingTexture())
   const assets = {
-    fabric: track(new THREE.MeshLambertMaterial({ map: facadePlain, color: 0xe4d8bf })),
+    fabric: track(
+      new THREE.MeshLambertMaterial({
+        map: facadePlain,
+        color: 0xe4d8bf,
+        emissive: 0xffd7a0,
+        emissiveMap: facadeGlow,
+        emissiveIntensity: 0.72,
+      }),
+    ),
     plate: track(new THREE.MeshLambertMaterial({ color: 0x191c1a })),
     green: track(new THREE.MeshBasicMaterial({ color: HOT })),
-    lane: track(new THREE.MeshLambertMaterial({ color: 0x03713f })),
+    lane: track(new THREE.MeshLambertMaterial({ map: track(asphaltTexture()) })),
     dash: track(new THREE.MeshBasicMaterial({ color: 0xd7ccb3 })),
     // The footway between kerb and road: light stone, a shade under the dashes.
     walk: track(new THREE.MeshLambertMaterial({ color: 0xa79d86 })),
@@ -567,7 +676,15 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const kit = emptyKit()
   const kitStone = track(new THREE.MeshLambertMaterial({ color: 0xb3a88f }))
   const kitMetal = track(new THREE.MeshLambertMaterial({ color: 0x33372f }))
-  const shopMaterial = track(new THREE.MeshLambertMaterial({ map: track(shopTexture()) }))
+  const shopArt = track(shopTexture())
+  const shopMaterial = track(
+    new THREE.MeshLambertMaterial({
+      map: shopArt,
+      emissive: 0xffc98a,
+      emissiveMap: track(shopTexture()),
+      emissiveIntensity: 0.7,
+    }),
+  )
   const kitWood = track(new THREE.MeshLambertMaterial({ color: 0x6a5539 }))
   const kitSignal = track(
     new THREE.MeshBasicMaterial({ map: track(signalTexture()), toneMapped: false }),
@@ -663,12 +780,21 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     plot: THREE.Material
     kerb: THREE.Material
   }
+  // The brand green, but as paint on a building rather than as a highlight:
+  // the same hue, less of the voltage.
+  const siteGreen = track(new THREE.MeshLambertMaterial({ color: 0x0f9d63 }))
   const cream = new THREE.Color(0xeee3cc)
   const districtLooks = new Map<DistrictId, DistrictLook>()
   for (const district of districts) {
     const ink = new THREE.Color(district.color)
     const facadeMaterial = track(
-      new THREE.MeshLambertMaterial({ map: facade, color: ink.clone().lerp(cream, 0.52) }),
+      new THREE.MeshLambertMaterial({
+        map: facade,
+        color: ink.clone().lerp(cream, 0.52),
+        emissive: 0xffd7a0,
+        emissiveMap: facadeArt.glow,
+        emissiveIntensity: 0.72,
+      }),
     )
     const roofMaterial = track(
       new THREE.MeshLambertMaterial({ color: ink.clone().lerp(cream, 0.18) }),
@@ -707,8 +833,10 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
 
   /* ——— light ————————————————————————————————————————————————————————————— */
 
-  const sun = new THREE.DirectionalLight(0xffefd4, 3.0)
-  sun.position.set(-26, 40, 18)
+  // Dusk. The sun is low and warm; the sky fill is cool and weak, so shadows
+  // go blue and every lit window is the brightest thing in the city.
+  const sun = new THREE.DirectionalLight(0xffd2a1, 2.45)
+  sun.position.set(-30, 26, 22)
   sun.castShadow = true
   const shadowSize = lightDevice ? 1024 : 2048
   sun.shadow.mapSize.set(shadowSize, shadowSize)
@@ -724,7 +852,11 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   scene.add(sun)
   scene.add(sun.target)
 
-  const hemi = new THREE.HemisphereLight(0xfff3de, 0x171a15, 1.5)
+  const hemi = new THREE.HemisphereLight(0xa8bcd6, 0x2c2720, 1.75)
+  // A weak warm bounce from the shopfronts and the lamps, from the other side.
+  const bounce = new THREE.DirectionalLight(0xffb877, 0.72)
+  bounce.position.set(20, 9, -18)
+  scene.add(bounce)
   scene.add(hemi)
 
   /* ——— the plate ————————————————————————————————————————————————————————— */
@@ -757,9 +889,12 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     return mesh
   }
 
-  // Green roads.
+  // The carriageway: tarmac, with the same grain on every corridor.
   for (const rect of greenRoads) {
-    const mesh = rectMesh(rect, 0.05, 0.008, assets.lane)
+    const geo = track(new THREE.BoxGeometry(rect.w, 0.05, rect.d))
+    scaleBoxUv(geo, rect.w, 0.05, rect.d, 1.7)
+    const mesh = new THREE.Mesh(geo, assets.lane)
+    mesh.position.set(rect.x, 0.033, rect.z)
     mesh.receiveShadow = true
     scene.add(mesh)
   }
@@ -780,6 +915,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   const plotMeshes = new Map<DistrictId, THREE.Mesh>()
   const districtRings = new Map<DistrictId, THREE.Line>()
   const trees: Array<{ x: number; z: number }> = []
+  const kerbLines: THREE.BufferGeometry[] = []
   const placeDummy = new THREE.Object3D()
 
   for (const district of districts) {
@@ -815,6 +951,21 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
       treeAt(rect.x + t, rect.z + walkLine)
       treeAt(rect.x - walkLine, rect.z + t)
       treeAt(rect.x + walkLine, rect.z + t)
+    }
+
+    // A painted green kerb line around the footway: the brand colour, back
+    // where a street can wear it without shouting.
+    const edge = 0.07
+    const outer = PLOT / 2 + walk + edge / 2
+    for (const strip of [
+      { x: rect.x, z: rect.z - outer, w: PLOT + walk * 2 + edge * 2, d: edge },
+      { x: rect.x, z: rect.z + outer, w: PLOT + walk * 2 + edge * 2, d: edge },
+      { x: rect.x - outer, z: rect.z, w: edge, d: PLOT + walk * 2 },
+      { x: rect.x + outer, z: rect.z, w: edge, d: PLOT + walk * 2 },
+    ]) {
+      kerbLines.push(
+        new THREE.BoxGeometry(strip.w, 0.02, strip.d).translate(strip.x, 0.058, strip.z),
+      )
     }
 
     // Furniture on the same footway: a bench facing the road, a bin beside it,
@@ -870,6 +1021,13 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     ring.renderOrder = 3
     districtRings.set(district.id, ring)
     scene.add(ring)
+  }
+
+  if (kerbLines.length > 0) {
+    const kerbMesh = new THREE.Mesh(track(mergeGeometries(kerbLines)), siteGreen)
+    kerbMesh.receiveShadow = false
+    scene.add(kerbMesh)
+    for (const geometry of kerbLines) geometry.dispose()
   }
 
   // Trees: one instanced trunk and one instanced crown for the whole city.
@@ -931,7 +1089,7 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
               ? look.detail
               : part.kind === 'side'
                 ? look.side
-                : assets.green
+                : siteGreen
       const mesh = new THREE.Mesh(geo, material)
       mesh.position.set(part.x, part.y + part.h / 2, part.z)
       mesh.castShadow = true
@@ -1119,6 +1277,36 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
     }
   }
 
+  // The lamps throw warm pools on the tarmac: one additive quad under each
+  // head, so the streets are lit without a single real light in the scene.
+  if (cityLamps.length > 0) {
+    const poolGeometry = track(new THREE.PlaneGeometry(3.3, 3.3).rotateX(-Math.PI / 2))
+    const poolMaterial = track(
+      new THREE.MeshBasicMaterial({
+        map: track(lampPoolTexture()),
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        opacity: 0.75,
+      }),
+    )
+    const pools = new THREE.InstancedMesh(poolGeometry, poolMaterial, cityLamps.length)
+    pools.renderOrder = 2
+    cityLamps.forEach((lamp, index) => {
+      placeDummy.position.set(
+        lamp.x + Math.cos(lamp.arm) * 0.35,
+        0.08,
+        lamp.z - Math.sin(lamp.arm) * 0.35,
+      )
+      placeDummy.rotation.set(0, 0, 0)
+      placeDummy.scale.setScalar(1)
+      placeDummy.updateMatrix()
+      pools.setMatrixAt(index, placeDummy.matrix)
+    })
+    pools.instanceMatrix.needsUpdate = true
+    scene.add(pools)
+  }
+
   /* ——— the street kit ————————————————————————————————————————————————————
      Detail at this scale lives at knee height and on the roof: a water tank, a
      stair head, a signal on its pole, a bench nobody is sitting on. Everything
@@ -1183,6 +1371,9 @@ export function createSkillCity(host: HTMLElement, options: SceneOptions): Skill
   })
   contactMesh.instanceMatrix.needsUpdate = true
   scene.add(contactMesh)
+
+  // The civic layer: shelters, hoardings, a crane, manholes, puddles.
+  addCityProps(scene, { track })
 
   // Traffic, kerb lamps and zebra crossings: real kit cars running the avenues,
   // with the traffic rules in cityTraffic.ts.
